@@ -447,9 +447,22 @@ export default function AdminPage() {
 
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+    <div className="admin-root" style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+      <style jsx global>{`
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+        @media (max-width: 768px) {
+          .admin-root { flex-direction: column !important; }
+          .admin-sidebar {
+            width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid #ddd;
+          }
+          .admin-main { max-width: 100% !important; padding: 16px !important; }
+        }
+      `}</style>
       {/* MENÚ LATERAL */}
-      <aside style={{ width: 220, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
+      <aside className="admin-sidebar" style={{ width: 220, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
         <h2 style={{ fontSize: 16, marginBottom: 12 }}>Materias</h2>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {categorias.map((c) => (
@@ -518,7 +531,7 @@ export default function AdminPage() {
       </aside>
 
       {/* CONTENIDO PRINCIPAL */}
-      <main style={{ flex: 1, padding: 24, maxWidth: 900 }}>
+      <main className="admin-main" style={{ flex: 1, padding: 24, maxWidth: 900, minWidth: 0 }}>
         <h1 style={{ marginTop: 0, marginBottom: 20 }}>
           {categoriaActiva ? categoriaActiva.nombre : 'Selecciona una materia'}
         </h1>
@@ -532,11 +545,11 @@ export default function AdminPage() {
                 asocia una lectura, indica cuántas preguntas y cuántas opciones cada una.
               </p>
 
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ marginRight: 12 }}>
+              <div style={{ marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: '4px 16px' }}>
+                <label>
                   <input type="radio" checked={modoLectura === 'ninguna'} onChange={() => setModoLectura('ninguna')} /> Sin lectura
                 </label>
-                <label style={{ marginRight: 12 }}>
+                <label>
                   <input type="radio" checked={modoLectura === 'nueva'} onChange={() => setModoLectura('nueva')} /> Crear nueva lectura
                 </label>
                 <label>
