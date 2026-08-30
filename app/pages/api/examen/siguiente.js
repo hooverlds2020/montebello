@@ -45,10 +45,14 @@ export default async function handler(req, res) {
   }
 
   const { rows: siguienteRows } = await pool.query(
-    `SELECT er.id AS examen_reactivo_id, r.id AS reactivo_id, r.pregunta, r.imagen_url, c.nombre AS categoria
+    `SELECT er.id AS examen_reactivo_id, r.id AS reactivo_id, r.pregunta, r.imagen_url, r.lectura_id,
+            c.nombre AS categoria,
+            l.titulo AS lectura_titulo, l.subtitulo AS lectura_subtitulo,
+            l.texto AS lectura_texto, l.imagen_url AS lectura_imagen_url
      FROM examen_reactivos er
      JOIN reactivos r ON r.id = er.reactivo_id
      JOIN categorias c ON c.id = r.categoria_id
+     LEFT JOIN lecturas l ON l.id = r.lectura_id
      WHERE er.examen_id = $1 AND er.opcion_respondida_id IS NULL
      ORDER BY er.orden ASC
      LIMIT 1`,
@@ -73,6 +77,15 @@ export default async function handler(req, res) {
     pregunta: siguiente.pregunta,
     imagenUrl: siguiente.imagen_url,
     categoria: siguiente.categoria,
+    lectura: siguiente.lectura_id
+      ? {
+          id: siguiente.lectura_id,
+          titulo: siguiente.lectura_titulo,
+          subtitulo: siguiente.lectura_subtitulo,
+          texto: siguiente.lectura_texto,
+          imagenUrl: siguiente.lectura_imagen_url,
+        }
+      : null,
     opciones: barajar(opciones), // orden aleatorio para que no sea igual entre alumnos
     tiempoLimiteMinutos: examen.tiempo_limite_minutos,
     iniciadoEn: examen.iniciado_en,

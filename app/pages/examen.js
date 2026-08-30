@@ -121,7 +121,7 @@ export default function Examen() {
 
   if (pregunta) {
     return (
-      <div style={{ maxWidth: 560, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
+      <div style={{ maxWidth: pregunta.lectura ? 680 : 560, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 8 }}>
           <span>{pregunta.categoria}</span>
           <span>Pregunta {pregunta.numero} de {pregunta.total}</span>
@@ -129,6 +129,27 @@ export default function Examen() {
         <div style={{ background: '#eee', borderRadius: 6, height: 6, marginBottom: 20 }}>
           <div style={{ width: `${(pregunta.respondidas / pregunta.total) * 100}%`, height: '100%', background: '#4a90d9', borderRadius: 6 }} />
         </div>
+
+        {pregunta.lectura && (
+          <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 20, marginBottom: 20 }}>
+            {pregunta.lectura.titulo && (
+              <h2 style={{ textAlign: 'center', fontSize: 18, marginBottom: 4 }}>{pregunta.lectura.titulo}</h2>
+            )}
+            {pregunta.lectura.subtitulo && (
+              <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#666', fontSize: 14, marginBottom: 16 }}>
+                {pregunta.lectura.subtitulo}
+              </p>
+            )}
+            {pregunta.lectura.imagenUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={pregunta.lectura.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16, display: 'block' }} />
+            )}
+            <div
+              style={{ fontSize: 15, lineHeight: 1.6 }}
+              dangerouslySetInnerHTML={{ __html: pregunta.lectura.texto }}
+            />
+          </div>
+        )}
 
         <p style={{ fontSize: 17, marginBottom: 16 }}>{pregunta.pregunta}</p>
         {pregunta.imagenUrl && (
