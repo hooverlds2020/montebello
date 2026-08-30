@@ -536,8 +536,19 @@ export default function AdminPage() {
           {categoriaActiva ? categoriaActiva.nombre : 'Selecciona una materia'}
         </h1>
 
+        {categoriaActiva && categoriaActiva.activa === false && (
+          <div style={{
+            background: '#fdeceb', border: '1px solid #e6a29c', color: '#7a1f14',
+            padding: '10px 14px', borderRadius: 6, marginBottom: 20, fontSize: 14,
+          }}>
+            🔒 <strong>Materia deshabilitada.</strong> Todas sus lecturas y preguntas quedan fuera del
+            examen de diagnóstico mientras esté así, aunque siguen guardadas. Habilítala en el menú
+            lateral para volver a incluirla.
+          </div>
+        )}
+
         {categoriaActivaId && (
-          <>
+          <div style={{ opacity: categoriaActiva?.activa === false ? 0.5 : 1 }}>
             <section style={{ marginBottom: 32, padding: 16, border: '2px solid #4a90d9', borderRadius: 8 }}>
               <h2>Carga rápida de reactivos</h2>
               <p style={{ color: '#666', fontSize: 14 }}>
@@ -827,7 +838,7 @@ export default function AdminPage() {
               );})}
               {reactivos.length === 0 && <p style={{ color: '#888' }}>Aún no hay reactivos en esta materia.</p>}
             </section>
-          </>
+          </div>
         )}
       </main>
 
