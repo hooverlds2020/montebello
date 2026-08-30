@@ -175,6 +175,16 @@ export default function AdminPage() {
     );
   }
 
+  async function actualizarCantidadExamen(c, valor) {
+    const n = parseInt(valor, 10) || 0;
+    await fetch(`/api/admin/categorias/${c.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cantidad_examen: n }),
+    });
+    cargarCategorias();
+  }
+
   async function crearLectura(e) {
     e.preventDefault();
     setMensajeLectura('');
@@ -512,6 +522,18 @@ export default function AdminPage() {
                   >
                     {c.activa === false ? '🔒' : '🔓'}
                   </button>
+                </div>
+              )}
+              {editandoMateriaId !== c.id && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 10, marginTop: 2 }}>
+                  <span style={{ fontSize: 11, color: '#888' }}>En examen:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    defaultValue={c.cantidad_examen || 0}
+                    onBlur={(e) => actualizarCantidadExamen(c, e.target.value)}
+                    style={{ width: 40, fontSize: 11, padding: 2 }}
+                  />
                 </div>
               )}
             </li>
