@@ -28,6 +28,15 @@ services:
       PGPASSWORD: CAMBIA_ESTA_CLAVE
       ADMIN_PASSWORD: CAMBIA_ESTA_CLAVE_ADMIN
       ADMIN_JWT_SECRET: CAMBIA_ESTE_SECRETO_LARGO_Y_ALEATORIO
+      ALUMNO_JWT_SECRET: CAMBIA_ESTE_OTRO_SECRETO_LARGO_Y_ALEATORIO
+      SITE_URL: https://montebello.clicknube.site
+      # SMTP opcional: si no se configura, el link de recuperación queda en los logs
+      # (docker logs montebello-app) para pruebas, en vez de enviarse por correo real.
+      # SMTP_HOST: smtp.tuproveedor.com
+      # SMTP_PORT: 587
+      # SMTP_USER: usuario@tudominio.com
+      # SMTP_PASS: clave_smtp
+      # SMTP_FROM: no-reply@institutomontebello.com
     volumes:
       - ./uploads:/app/public/uploads
     expose:
