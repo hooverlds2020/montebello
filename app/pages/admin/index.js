@@ -139,6 +139,42 @@ export default function AdminPage() {
     setCategoriaActivaId(data.id);
   }
 
+  const [editandoMateriaId, setEditandoMateriaId] = useState(null);
+  const [editMateriaNombre, setEditMateriaNombre] = useState('');
+
+  function iniciarEdicionMateria(c) {
+    setEditandoMateriaId(c.id);
+    setEditMateriaNombre(c.nombre);
+  }
+
+  async function guardarNombreMateria(id) {
+    const res = await fetch(`/api/admin/categorias/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre: editMateriaNombre }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    setEditandoMateriaId(null);
+    cargarCategorias();
+  }
+
+  async function toggleMateriaActiva(c) {
+    await fetch(`/api/admin/categorias/${c.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activa: !c.activa }),
+    });
+    cargarCategorias();
+    mostrarToast(
+      c.activa ? `"${c.nombre}" deshabilitada — no se usará en el examen` : `"${c.nombre}" habilitada de nuevo`,
+      'exito'
+    );
+  }
+
   async function crearLectura(e) {
     e.preventDefault();
     setMensajeLectura('');
@@ -201,6 +237,20 @@ export default function AdminPage() {
     setEditandoLecturaId(null);
     cargarLecturas();
     cargarReactivos(categoriaActivaId);
+  }
+
+  async function toggleLecturaActiva(lecturaId, activaActual) {
+    await fetch(`/api/admin/lecturas/${lecturaId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activa: !activaActual }),
+    });
+    cargarLecturas();
+    cargarReactivos(categoriaActivaId);
+    mostrarToast(
+      activaActual ? 'Lectura deshabilitada — no se usará en el examen' : 'Lectura habilitada de nuevo',
+      'exito'
+    );
   }
 
 
@@ -383,7 +433,7 @@ export default function AdminPage() {
       const clave = r.lectura_id || 'sin-lectura';
       if (!(clave in indiceGrupo)) {
         indiceGrupo[clave] = grupos.length;
-        grupos.push({ clave, titulo: r.lectura_titulo || null, items: [] });
+        grupos.push({ clave, titulo: r.lectura_titulo || null, activa: r.lectura_activa !== false, items: [] });
       }
       grupos[indiceGrupo[clave]].items.push(r);
     }
@@ -403,25 +453,54 @@ export default function AdminPage() {
         <h2 style={{ fontSize: 16, marginBottom: 12 }}>Materias</h2>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {categorias.map((c) => (
-            <li key={c.id}>
-              <button
-                onClick={() => setCategoriaActivaId(c.id)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '8px 10px',
-                  marginBottom: 4,
-                  border: 'none',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                  background: c.id === categoriaActivaId ? '#4a90d9' : 'transparent',
-                  color: c.id === categoriaActivaId ? '#fff' : '#333',
-                  fontWeight: c.id === categoriaActivaId ? 'bold' : 'normal',
-                }}
-              >
-                {c.nombre}
-              </button>
+            <li key={c.id} style={{ marginBottom: 4 }}>
+              {editandoMateriaId === c.id ? (
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <input
+                    value={editMateriaNombre}
+                    onChange={(e) => setEditMateriaNombre(e.target.value)}
+                    style={{ flex: 1, padding: 4, fontSize: 13 }}
+                    autoFocus
+                  />
+                  <button onClick={() => guardarNombreMateria(c.id)} style={{ fontSize: 12 }}>✓</button>
+                  <button onClick={() => setEditandoMateriaId(null)} style={{ fontSize: 12 }}>✕</button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <button
+                    onClick={() => setCategoriaActivaId(c.id)}
+                    style={{
+                      display: 'block',
+                      flex: 1,
+                      textAlign: 'left',
+                      padding: '8px 10px',
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      background: c.id === categoriaActivaId ? '#4a90d9' : 'transparent',
+                      color: c.id === categoriaActivaId ? '#fff' : c.activa === false ? '#aaa' : '#333',
+                      fontWeight: c.id === categoriaActivaId ? 'bold' : 'normal',
+                      fontStyle: c.activa === false ? 'italic' : 'normal',
+                    }}
+                  >
+                    {c.nombre} {c.activa === false && '(deshabilitada)'}
+                  </button>
+                  <button
+                    onClick={() => iniciarEdicionMateria(c)}
+                    title="Renombrar"
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13 }}
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    onClick={() => toggleMateriaActiva(c)}
+                    title={c.activa === false ? 'Habilitar' : 'Deshabilitar'}
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13 }}
+                  >
+                    {c.activa === false ? '🔒' : '🔓'}
+                  </button>
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -605,17 +684,29 @@ export default function AdminPage() {
                     onClick={() => toggleGrupo(grupo.clave)}
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f0f4fa', padding: '6px 10px', borderRadius: 6, cursor: 'pointer', userSelect: 'none' }}
                   >
-                    <h3 style={{ fontSize: 15, margin: 0, flex: 1 }}>
+                    <h3 style={{ fontSize: 15, margin: 0, flex: 1, opacity: grupo.activa ? 1 : 0.5 }}>
                       <span style={{ display: 'inline-block', width: 16 }}>{abierto ? '▼' : '▶'}</span>
                       {grupo.titulo ? `📖 ${grupo.titulo}` : 'Sin lectura asociada'} — {grupo.items.length} pregunta(s)
+                      {grupo.clave !== 'sin-lectura' && !grupo.activa && (
+                        <span style={{ marginLeft: 8, fontSize: 11, color: '#c0392b', fontWeight: 'bold' }}>DESHABILITADA</span>
+                      )}
                     </h3>
                     {grupo.clave !== 'sin-lectura' && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); iniciarEdicionLectura(grupo.clave); }}
-                        style={btnStyle('secundario', { fontSize: 12, padding: '4px 10px' })}
-                      >
-                        ✏️ Editar lectura
-                      </button>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleLecturaActiva(grupo.clave, grupo.activa); }}
+                          title={grupo.activa ? 'Deshabilitar (no se usará en el examen)' : 'Habilitar'}
+                          style={btnStyle('secundario', { fontSize: 12, padding: '4px 10px' })}
+                        >
+                          {grupo.activa ? '🔓 Habilitada' : '🔒 Deshabilitada'}
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); iniciarEdicionLectura(grupo.clave); }}
+                          style={btnStyle('secundario', { fontSize: 12, padding: '4px 10px' })}
+                        >
+                          ✏️ Editar lectura
+                        </button>
+                      </div>
                     )}
                   </div>
 

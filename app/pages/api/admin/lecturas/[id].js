@@ -9,11 +9,16 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'PUT') {
-    const { titulo, subtitulo, texto_html, imagen_url } = req.body;
-    await pool.query(
-      'UPDATE lecturas SET titulo = $1, subtitulo = $2, texto = $3, imagen_url = $4 WHERE id = $5',
-      [titulo || null, subtitulo || null, texto_html, imagen_url || null, id]
-    );
+    const { titulo, subtitulo, texto_html, imagen_url, activa } = req.body;
+    if (texto_html !== undefined) {
+      await pool.query(
+        'UPDATE lecturas SET titulo = $1, subtitulo = $2, texto = $3, imagen_url = $4 WHERE id = $5',
+        [titulo || null, subtitulo || null, texto_html, imagen_url || null, id]
+      );
+    }
+    if (activa !== undefined) {
+      await pool.query('UPDATE lecturas SET activa = $1 WHERE id = $2', [activa, id]);
+    }
     return res.status(200).json({ ok: true });
   }
 

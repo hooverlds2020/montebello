@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     }
     const { rows } = await pool.query(
       `SELECT r.id, r.pregunta, r.imagen_url, r.categoria_id, r.lectura_id,
-              c.nombre AS categoria, l.titulo AS lectura_titulo,
+              c.nombre AS categoria, l.titulo AS lectura_titulo, l.activa AS lectura_activa,
               COALESCE(json_agg(json_build_object(
                 'id', o.id, 'texto', o.texto, 'es_correcta', o.es_correcta, 'imagen_url', o.imagen_url
               ) ORDER BY o.id) FILTER (WHERE o.id IS NOT NULL), '[]') AS opciones
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
        LEFT JOIN lecturas l ON l.id = r.lectura_id
        LEFT JOIN opciones o ON o.reactivo_id = r.id
        ${where}
-       GROUP BY r.id, c.nombre, l.titulo
+       GROUP BY r.id, c.nombre, l.titulo, l.activa
        ORDER BY r.id`,
       params
     );
