@@ -1,0 +1,67 @@
+[
+  {
+    "numero": 61,
+    "categoria": "Español",
+    "pregunta": "Una persona debe trabajar por lo menos 98 horas para cubrir el valor de sus necesidades. ¿Cuál expresión describe esta situación?"
+  },
+  {
+    "numero": 62,
+    "categoria": "Español",
+    "pregunta": "Selecciona la opción que equivale a la siguiente expresión algebraica."
+  },
+  {
+    "numero": 64,
+    "categoria": "Español",
+    "pregunta": "¿Qué conjunto de números presenta una desviación estándar mayor?"
+  },
+  {
+    "numero": 65,
+    "categoria": "Matemáticas",
+    "pregunta": "Identifica cuánto mide el área sombreada:"
+  },
+  {
+    "numero": 67,
+    "categoria": "Matemáticas",
+    "pregunta": "En un juego de azar se detecta que se utiliza un dado alterado de 6 caras en el que los números 4 y 5 tienen el doble de probabilidad de caer que el resto de los números. Determine la probabilidad de que al lanzar el dado caiga un 4:"
+  },
+  {
+    "numero": 78,
+    "categoria": "Matemáticas",
+    "pregunta": "Identifique el diagrama de árbol que representa el espacio muestral del experimento: se lanza un dado de tres caras en dos ocasiones consecutivas."
+  },
+  {
+    "numero": 79,
+    "categoria": "Matemáticas",
+    "pregunta": "¿Cuál es el resultado de la operación"
+  },
+  {
+    "numero": 80,
+    "categoria": "Matemáticas",
+    "pregunta": "Seleccione la solución del siguiente sistema de ecuaciones lineales."
+  },
+  {
+    "numero": 81,
+    "categoria": "Matemáticas",
+    "pregunta": "¿Cuál es el valor de  si se tiene que ?"
+  },
+  {
+    "numero": 85,
+    "categoria": "Matemáticas",
+    "pregunta": "El gráfico de barras representa las edades de los integrantes de un curso de verano. ¿Cuál es la gráfica de pastel que le corresponde?"
+  },
+  {
+    "numero": 86,
+    "categoria": "Matemáticas",
+    "pregunta": "La media de las calificaciones de Química obtenidas en un grupo es menor que su moda. Selecciona la gráfica que corresponde al hecho anterior."
+  },
+  {
+    "numero": 87,
+    "categoria": "Matemáticas",
+    "pregunta": "De acuerdo con los datos, ¿cuál es el modelo que representa la cantidad de calorías quemadas por un atleta, en función de los minutos que ha entrenado en los últimos 5 días?"
+  },
+  {
+    "numero": 88,
+    "categoria": "Matemáticas",
+    "pregunta": "En el plano cartesiano se muestra la gráfica de la función , donde  es un valor positivo."
+  }
+]

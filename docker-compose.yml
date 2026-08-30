@@ -1,0 +1,44 @@
+services:
+  montebello-db:
+    image: postgres:16
+    container_name: montebello-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: montebello_diagnostico
+      POSTGRES_USER: montebello
+      POSTGRES_PASSWORD: CAMBIA_ESTA_CLAVE
+    volumes:
+      - montebello_db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/1_init.sql
+      - ./db/seed_preguntas.sql:/docker-entrypoint-initdb.d/2_seed.sql
+    ports:
+      - "127.0.0.1:5434:5432"
+
+  montebello-app:
+    build: ./app
+    container_name: montebello-app
+    restart: unless-stopped
+    depends_on:
+      - montebello-db
+    environment:
+      PGHOST: montebello-db
+      PGPORT: 5432
+      PGDATABASE: montebello_diagnostico
+      PGUSER: montebello
+      PGPASSWORD: CAMBIA_ESTA_CLAVE
+      ADMIN_PASSWORD: CAMBIA_ESTA_CLAVE_ADMIN
+      ADMIN_JWT_SECRET: CAMBIA_ESTE_SECRETO_LARGO_Y_ALEATORIO
+    volumes:
+      - ./uploads:/app/public/uploads
+    expose:
+      - "3000"
+    networks:
+      - default
+      - proxy-network
+
+volumes:
+  montebello_db_data:
+
+networks:
+  proxy-network:
+    external: true

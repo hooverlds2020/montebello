@@ -1,0 +1,1633 @@
+[
+  {
+    "numero": 1,
+    "pregunta": "De acuerdo con el texto, ¿qué impacto tiene para México el proceso que vive Chile?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Es una noticia que repercute en la vida política de Latinoamérica, región a la que pertenece México",
+        "es_correcta": true
+      },
+      {
+        "texto": "Es un ejemplo para el gobierno mexicano en la toma de decisiones acerca de la estructura política",
+        "es_correcta": false
+      },
+      {
+        "texto": "La sociedad mexicana toma como referencia las acciones de la sociedad chilena para su transformación",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 2,
+    "pregunta": "¿Cuál oración sintetiza la postura del autor?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Aunque no hubo tanta participación en el referéndum, Chile ha dado un gran paso político",
+        "es_correcta": true
+      },
+      {
+        "texto": "Los chilenos no desean la transición, pues se sienten ajenos a las decisiones gubernamentales",
+        "es_correcta": false
+      },
+      {
+        "texto": "La inminente transición chilena solo ha sido posible por la gran participación de la sociedad",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 3,
+    "pregunta": "¿Cómo se relaciona el creciente descontento de la sociedad con el resultado del referéndum?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "La situación actual en Chile provoca la apatía de la gente en la toma de decisiones",
+        "es_correcta": false
+      },
+      {
+        "texto": "El referéndum es la única vía por la cual se expresa una inconformidad social",
+        "es_correcta": false
+      },
+      {
+        "texto": "Los chilenos eligen participar en la consulta ciudadana para transformar su sociedad",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 4,
+    "pregunta": "Los chilenos decidieron que _____________ debe estar a cargo de ____________",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "El Parlamento – las reformas a la Constitución",
+        "es_correcta": false
+      },
+      {
+        "texto": "Un órgano mixto – reconsiderar la arquitectura institucional",
+        "es_correcta": false
+      },
+      {
+        "texto": "Una convención constitucional – la nueva Carta Magna",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 5,
+    "pregunta": "De acuerdo con el texto, ¿cuál es el problema con la actual Constitución de Chile?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Responde a una forma de gobierno sin distribución de poderes ni legitimación para la toma de decisiones",
+        "es_correcta": true
+      },
+      {
+        "texto": "Es muy antigua, por lo que requiere adecuarse a una sociedad que está demandando un cambio",
+        "es_correcta": false
+      },
+      {
+        "texto": "Surgió en un momento en la que la sociedad no podía involucrarse en la toma de decisiones.",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 6,
+    "pregunta": "El estallido social fue a causa ___________ y el proceso constituyente busca ___________",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "De la dictadura – infundir vitalidad democrática",
+        "es_correcta": false
+      },
+      {
+        "texto": "De la pandemia – dar respuestas a las necesidades más urgentes",
+        "es_correcta": false
+      },
+      {
+        "texto": "Del modelo socioeconómico – canalizar el descontento por la vía institucional",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 7,
+    "pregunta": "¿Qué acción se realiza a partir de la emisión de esta carta?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "El apoderado, Rómulo, funge como fiador del poderdante Juan Carlos",
+        "es_correcta": false
+      },
+      {
+        "texto": "La poderdante, Esmeralda, tramita la carta para cobrarle a Rigoberta",
+        "es_correcta": true
+      },
+      {
+        "texto": "El fiador, Rómulo, procede en contra de la ciudadana Rigoberta",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 8,
+    "pregunta": "Con base en el texto, ¿cuál afirmación es correcta?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "El apoderado, Rómulo, funge como fiador del poderdante Juan Carlos",
+        "es_correcta": false
+      },
+      {
+        "texto": "La poderdante, Esmeralda, tramita la carta para cobrarle a Rigoberta",
+        "es_correcta": true
+      },
+      {
+        "texto": "El fiador, Rómulo, procede en contra de la ciudadana Rigoberta",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 9,
+    "pregunta": "¿Qué documentos se deben anexar \tpara dar validez a la carta?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "El pasaporte de Esmeralda, la identificación de Juan Carlos y los recibos vencidos de Rigoberta",
+        "es_correcta": false
+      },
+      {
+        "texto": "La licencia de conducir de Esmeralda, el pasaporte de Juan Carlos y el INE de los testigos",
+        "es_correcta": true
+      },
+      {
+        "texto": "Los recibos vencidos de Rigoberta, el contrato de fiador de Rómulo y el INE de los testigos",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 10,
+    "pregunta": "¿Cuántas veces se afeitaba el protagonista cuando empezó a irritarse su piel?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Una vez por día",
+        "es_correcta": false
+      },
+      {
+        "texto": "Dos veces al día",
+        "es_correcta": true
+      },
+      {
+        "texto": "Antes de cada comida",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 11,
+    "pregunta": "¿Por qué el protagonista extrema su régimen de higiene cuando vive con su pareja?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Porque ella es poco tolerante con el vello corporal, ya que lastima sus labios",
+        "es_correcta": false
+      },
+      {
+        "texto": "Porque prefiere dedicarse a su higiene personal, pues no tiene nada que hacer",
+        "es_correcta": false
+      },
+      {
+        "texto": "Porque quiere agradarle a ella y eso desata su propia obsesión",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 12,
+    "pregunta": "Con base en el cuento, ¿cuál afirmación es correcta?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Comenzó afeitándose la barba y terminó afeitándose todo el cuerpo",
+        "es_correcta": true
+      },
+      {
+        "texto": "Empezó afeitándose el pecho y enseguida hizo lo mismo con la barba",
+        "es_correcta": false
+      },
+      {
+        "texto": "Inició depilándose las cejas y pestañas, a pesar de que a ella le gustaban",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 13,
+    "pregunta": "¿Cuál es uno de los mensajes del cuento?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Se necesita ser complaciente para mantener una pareja",
+        "es_correcta": false
+      },
+      {
+        "texto": "El cuidado personal se puede convertir en una obsesión",
+        "es_correcta": false
+      },
+      {
+        "texto": "Ceder a las peticiones de los demás puede provocar un daño",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 14,
+    "pregunta": "¿Qué función tiene el título del cuento?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Anticipa la transformación física que vivirá el protagonista",
+        "es_correcta": true
+      },
+      {
+        "texto": "Hace referencia a la falta de higiene inicial del protagonista",
+        "es_correcta": false
+      },
+      {
+        "texto": "Revela el ideal de belleza al que aspira el protagonista",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 15,
+    "pregunta": "¿Qué tipo de desenlace tiene el cuento?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Previsible, ya que la suerte del protagonista es la que el lector esperaba",
+        "es_correcta": false
+      },
+      {
+        "texto": "Terminante, pues el conflicto que vive el protagonista queda resuelto",
+        "es_correcta": false
+      },
+      {
+        "texto": "Abierto, porque el lector tiene que imaginar el destino del protagonista",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 16,
+    "pregunta": "¿Cuál refrán es equivalente a la situación planteada en la noticia?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Ojos que no ven, corazón que no siente",
+        "es_correcta": false
+      },
+      {
+        "texto": "Aunque la mona se vista de seda, mona se queda",
+        "es_correcta": false
+      },
+      {
+        "texto": "No todo lo que brilla es oro",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 17,
+    "pregunta": "¿Cuál es el tema central de la noticia?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Las decepciones amorosas en relaciones a distancia",
+        "es_correcta": false
+      },
+      {
+        "texto": "El riesgo que implica la solicitud de préstamos bancarios",
+        "es_correcta": false
+      },
+      {
+        "texto": "El aumento de las estafas a quienes buscan pareja en la red",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 18,
+    "pregunta": "El dinero que depositó ___________ lo obtuvo de ___________.",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Tonia – préstamos",
+        "es_correcta": true
+      },
+      {
+        "texto": "Thomas – una herencia",
+        "es_correcta": false
+      },
+      {
+        "texto": "Thomas – préstamos",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 19,
+    "pregunta": "¿Cuál pregunta debe formar parte de la encuesta que se aplicó a la población de estudio?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "¿Tus padres también tienen acceso a las redes sociales?",
+        "es_correcta": false
+      },
+      {
+        "texto": "¿Tienes control sobre el tiempo que pasan tus hijos en internet?",
+        "es_correcta": false
+      },
+      {
+        "texto": "¿Con qué frecuencia publicas contenido en las redes sociales?",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 20,
+    "pregunta": "De acuerdo con el ensayo, una medida de control directo es que los padres…",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Utilicen las herramientas de control parental que existen para cada una de las redes sociales",
+        "es_correcta": true
+      },
+      {
+        "texto": "Tengan con sus hijos una buena relación que les permita estar enterados de lo que ven en redes sociales",
+        "es_correcta": false
+      },
+      {
+        "texto": "Estén informados acerca de los riesgos que existen para sus hijos con el uso de las aplicaciones en la red",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 21,
+    "pregunta": "¿Cuál es el objetivo de este estudio?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Establecer una línea clara entre la información que debe ser pública y la que debe ser privada en las redes sociales",
+        "es_correcta": false
+      },
+      {
+        "texto": "Demostrar a los adolescentes los riesgos que existen al publicar con descuido información privada",
+        "es_correcta": false
+      },
+      {
+        "texto": "Identificar si los padres y las madres tendrían que adoptar una actitud de control en las redes sociales de sus hijos",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 22,
+    "pregunta": "Según el texto, ¿cuál es la consecuencia principal de que las redes sociales sean utilizadas sin precaución?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Tener sanciones por parte de la administración de las redes sociales",
+        "es_correcta": false
+      },
+      {
+        "texto": "Expresar una opinión que afecte a la familia que no forma parte de la red social",
+        "es_correcta": false
+      },
+      {
+        "texto": "Recibir diferentes opiniones, incluso agresivas y violentas",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 23,
+    "pregunta": "¿Cuál opción presenta la información que plantea el ensayo?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "La población de estudio son hombres de entre 10 y 20 años que usan constantemente las redes sociales",
+        "es_correcta": false
+      },
+      {
+        "texto": "Las redes sociales representan un problema latente para la seguridad y el desarrollo de los adolescentes y jóvenes",
+        "es_correcta": true
+      },
+      {
+        "texto": "Los padres de familia son los responsables de poner controles de seguridad para la interacción de los jóvenes",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 24,
+    "pregunta": "De acuerdo con los objetivos de la investigación, ¿qué criterios son relevantes en la aplicación de la encuesta?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "La edad de las personas consultadas y las características que comparte una generación",
+        "es_correcta": true
+      },
+      {
+        "texto": "La responsabilidad de los padres de familia y las obligaciones familiares de los jóvenes y adolescentes",
+        "es_correcta": false
+      },
+      {
+        "texto": "Las costumbres y valores de una generación y las formas de socializar de los jóvenes",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 25,
+    "pregunta": "La protagonista desea que cuando muera…",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Sus afectos perduren y su nombre se destuerza",
+        "es_correcta": false
+      },
+      {
+        "texto": "Salgan los huesos de su carne a nutrir azucenas",
+        "es_correcta": false
+      },
+      {
+        "texto": "Eviten llorar por su muerte y arroparla con tierra",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 26,
+    "pregunta": "La protagonista anhela que su muerte ocurra en ___________ y _____________",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Los campos – sonriendo",
+        "es_correcta": false
+      },
+      {
+        "texto": "Una isla – en soledad",
+        "es_correcta": true
+      },
+      {
+        "texto": "Sus sueños – entre sollozos",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 27,
+    "pregunta": "¿Qué condición debe darse para que la protagonista pueda ser nombrada poeta?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Perder la vida en una isla",
+        "es_correcta": false
+      },
+      {
+        "texto": "Quedarse sola y abandonada",
+        "es_correcta": false
+      },
+      {
+        "texto": "Volverse parte de la tierra",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 28,
+    "pregunta": "De acuerdo con el poema, ¿qué pasará cuando la autora muera?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Volverá el amor",
+        "es_correcta": false
+      },
+      {
+        "texto": "Será olvidada",
+        "es_correcta": false
+      },
+      {
+        "texto": "Afirmará su identidad",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 29,
+    "pregunta": "De acuerdo con el poema, ¿qué es la muerte?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "La reintegración a la naturaleza y la vida",
+        "es_correcta": true
+      },
+      {
+        "texto": "La tristeza de la soledad y el silencio",
+        "es_correcta": false
+      },
+      {
+        "texto": "El final de los afectos y los sueños",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 30,
+    "pregunta": "La función de los versos Un clavel interpuesto entre el viento y mi sombra, /hijo mío y de la muerte, me llamará poeta, es…",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Establecer una comparación entre la vida humana y una flor",
+        "es_correcta": false
+      },
+      {
+        "texto": "Atribuir una acción propia de los seres humanos a una flor",
+        "es_correcta": true
+      },
+      {
+        "texto": "Utilizar la flor como símbolo de la breve existencia humana",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 31,
+    "pregunta": "¿En qué oración las palabras tienen una relación correcta?",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "La gente que vive en el norte y sur del país fueron muy afectadas por las intensas sequías de los últimos años",
+        "es_correcta": false
+      },
+      {
+        "texto": "El archipiélago ecuatorial contiene el mayor número de especies vegetales y animales endémicas del planeta",
+        "es_correcta": true
+      },
+      {
+        "texto": "Se determinó que la jauría de mestizos estuvieron alimentándose de la comida que se encontraba en el lugar",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 32,
+    "pregunta": "La nueva camioneta tiene 250 caballos de fuerza; __________, una potencia única en el mercado.",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Mejor dicho",
+        "es_correcta": false
+      },
+      {
+        "texto": "Es decir",
+        "es_correcta": true
+      },
+      {
+        "texto": "Más bien",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 33,
+    "pregunta": "Identifique el enunciado que está escrito correctamente.",
+    "categoria": "Español",
+    "subcategoria": "Comprensión lectora",
+    "opciones": [
+      {
+        "texto": "Desde que comenzó a leer libros en francés, su lécsico en ese idioma mejoró enormemente",
+        "es_correcta": false
+      },
+      {
+        "texto": "Las excentricidades del artista plástico siempre estuvieron ligadas a su genio y creatividad",
+        "es_correcta": true
+      },
+      {
+        "texto": "El éxsodo comenzó después de que los dos terremotos destruyeran las ciudades principales",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 34,
+    "pregunta": "¿En qué oración se establece una relación correcta entre las palabras?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Un saco de patatas se desparramaron por el suelo",
+        "es_correcta": false
+      },
+      {
+        "texto": "Existían infinidad de cosillas urgidas de un arreglo",
+        "es_correcta": true
+      },
+      {
+        "texto": "La mitad de las mesas se encontraba desocupada",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 35,
+    "pregunta": "Elija la oración que está acentuada correctamente.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Los expertos recurrieron a la casuística para analizar las molestias que produce el ruido",
+        "es_correcta": true
+      },
+      {
+        "texto": "Faltan veintiun días para que comiencen las exposiciones sobre los mantos acuíferos",
+        "es_correcta": false
+      },
+      {
+        "texto": "La colección está constituida por una veintena de piezas jesuíticas que fueron restauradas",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 36,
+    "pregunta": "¿En cuál oración las palabras tienen una relación correcta?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Clara Campoamor es una de las defensoras de la igualdad más brillantes",
+        "es_correcta": true
+      },
+      {
+        "texto": "La persona que escribió el artículo es una de los ambientalistas más notables",
+        "es_correcta": false
+      },
+      {
+        "texto": "Violeta Parra es una de los cantautores más importantes del siglo XX",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 37,
+    "pregunta": "Complete el enunciado con las grafías correctas.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "c – z – c – s",
+        "es_correcta": true
+      },
+      {
+        "texto": "s – z – s – z",
+        "es_correcta": false
+      },
+      {
+        "texto": "z – s – c – s",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 38,
+    "pregunta": "¿Cuál oración está redactada correctamente?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Toda la familia acudió con alegría a la celebración del quinceavo cumpleaños de Mariana",
+        "es_correcta": false
+      },
+      {
+        "texto": "El despacho de los arquitectos se encuentra en el diecinueveavo piso de la torre central",
+        "es_correcta": false
+      },
+      {
+        "texto": "La doceava parte de las ganancias será destinada a la reforestación del bosque tropical",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 39,
+    "pregunta": "El profesor de Literatura solicita a los estudiantes un prólogo para un libro que acaba de ser publicado. ¿Cuál es el texto adecuado?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Del autor de Un romance en la ciudad llega Retina, una novela que conseguirá adentrarte en la complicada mente de alguien experto en escribir historias para ser devoradas. No te la puedes perder por nada del mundo. Acompaña a Edouard, el personaje principal, en esa historia en la que su madre quizás no sea quien todos pensaban. Disponible en librerías para Navidad",
+        "es_correcta": false
+      },
+      {
+        "texto": "Retina, la nueva novela del escritor francés Mathieu Dupont, se concibe como una de las más representativas del autor. En esta obra, el galo no sólo muestra que su estilo está en continuo cambio, sino también sorprende con un género distinto, pasando de la novela rosa a una policiaca, que nos ha dejado intrigados sobre el personaje principal y el mundo que lo rodea",
+        "es_correcta": false
+      },
+      {
+        "texto": "Dupont considera que Retina fue una de sus obras más difíciles de lograr. En un par de cartas enviadas a la editorial, indicó que tuvo que adentrarse en lo más profundo de las emociones y los miedos que abundaron en su infancia. En esta novela no sólo se abordará el misterio que envolvió la muerte de su padre, sino también lo difícil que para él fue mantener una relación con su madre",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 40,
+    "pregunta": "Elija la opción que tiene un significado opuesto a la palabra resaltada con negritas.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Inédito",
+        "es_correcta": false
+      },
+      {
+        "texto": "Actual",
+        "es_correcta": true
+      },
+      {
+        "texto": "Bisoño",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 41,
+    "pregunta": "Seleccione la opción que tiene un significado similar al de las palabras resaltadas con negritas.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "La batería",
+        "es_correcta": false
+      },
+      {
+        "texto": "La fuente",
+        "es_correcta": false
+      },
+      {
+        "texto": "El montón",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 42,
+    "pregunta": "La editorial de un periódico de circulación nacional está por publicar una columna de opinión. ¿Cuál texto es el adecuado para tal fin?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "El incremento de la inflación ha impactado tanto en la tasa de interés como en el costo anual total de más de 20 instrumentos analizados durante el último trimestre del año. Además de estos datos, los resultados de la encuesta aplicada a los usuarios de tarjetas de crédito muestran que 56.9% de los tarjetahabientes realiza el pago del total, en tanto que 43.1% liquida el saldo total",
+        "es_correcta": false
+      },
+      {
+        "texto": "Según datos oficiales, miles de usuarios de tarjetas de crédito desconocen la manera en la que funcionan estos instrumentos, por lo que considero necesario difundir la educación financiera a la población en general e, incluso, incorporarla en la educación básica. De hecho, son varios los organismos públicos y privados que se suman a las iniciativas que, desde mi punto de vista, favorecen la educación financiera",
+        "es_correcta": true
+      },
+      {
+        "texto": "La educación financiera es una herramienta cada vez más necesaria. El libro Cuentas claras, carteras sanas plantea que este conocimiento tendría que incorporarse incluso como parte de la educación básica, pues, con base en los datos de esta obra, son miles los usuarios de servicios financieros los que toman malas decisiones por desconocimiento de instrumentos como las tarjetas de crédito",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 43,
+    "pregunta": "Elija la oración que está acentuada correctamente",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Durante la audiencia, la jueza puso un “estáte quieto” a la fiscalía",
+        "es_correcta": false
+      },
+      {
+        "texto": "Muchos discípulos no entienden, aun diciéndoselos de buena manera",
+        "es_correcta": true
+      },
+      {
+        "texto": "Algunas estrategias mejoran tu desempeño escolar, pónlas en práctica",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 44,
+    "pregunta": "Una persona escribió la crónica de un día de su vida. ¿Cuál fragmento pertenece a esta situación comunicativa?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Quienes nos vieron ese día dijeron que traíamos los ojos redondos como platos, y no era para menos. Daniel y yo habíamos sufrido la mayor impresión de nuestras vidas. La caminata de los lunes había sido interrumpida por un trozo enorme de metal que cayó apenas a un par de metros delante nuestro: era una especie de esfera metálica, en cuyo diámetro brillaba un cinturón mineral",
+        "es_correcta": false
+      },
+      {
+        "texto": "El 19 de enero, el día de mi cumpleaños, también cumple años Chema, mi mejor amigo y la única persona que me comprende. Posiblemente por esa coincidencia de fechas, Chema parece tener el poder de leerme la mente y de adivinar mis alegrías y tristezas. Yo lo quiero por eso, pero también porque es un chico amable, con un gran sentido del humor y siempre dispuesto a ayudar a los demás",
+        "es_correcta": false
+      },
+      {
+        "texto": "Esa jornada comenzó como cualquier otra. Yo había llegado puntualmente a la escuela para dar la clase de las 7:00, pues era martes. Todo transcurrió como de costumbre en las primeras tres sesiones. A las 10:00 vino el receso, que apenas me alcanzó para tomar un café. En punto de las 10:20, me dirigí al salón donde daría la penúltima clase. Para mi sorpresa, ella estaba ahí aguardándome",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 45,
+    "pregunta": "Elija la oración en la que se establece una relación correcta entre las palabras.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Le pedí con mucha anticipación un ensayo a mis alumnos, pero igual no lo hicieron",
+        "es_correcta": false
+      },
+      {
+        "texto": "Nunca duden de aquel cuyas manos sean tan ásperas como la tierra que nos sustenta",
+        "es_correcta": true
+      },
+      {
+        "texto": "Las encontré exactamente donde dijiste: mis lentes estaban olvidados sobre el periódico",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 46,
+    "pregunta": "¿Qué enunciado está acentuado correctamente?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "El género épico – lírico estaba en boga hace veintiseis siglos",
+        "es_correcta": false
+      },
+      {
+        "texto": "El género épico – lirico estaba en boga hace veintiseis siglos",
+        "es_correcta": false
+      },
+      {
+        "texto": "El género épico – lírico estaba en boga hace veintiséis siglos",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 47,
+    "pregunta": "¿En qué oración se usan de forma correcta los paréntesis?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Carlos Fuentes (\t1928 – 2012) escribió La región más transparente",
+        "es_correcta": true
+      },
+      {
+        "texto": "Carlos Fuentes (\t1928) – (2012) escribió La región más transparente",
+        "es_correcta": false
+      },
+      {
+        "texto": "(Carlos Fuentes 1928 – 2012) escribió La región más transparente",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 48,
+    "pregunta": "Seleccione el enunciado que está puntuado correctamente.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "En este pequeño pueblo podemos encontrar tiendas, cafés, bares, etc…",
+        "es_correcta": false
+      },
+      {
+        "texto": "Con base en todas las evidencias, el jurado decidió que… usted es el ganador.",
+        "es_correcta": true
+      },
+      {
+        "texto": "Siempre me he preguntado: ¿Acaso me habré equivocado al suponer?...",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 49,
+    "pregunta": "En la redacción de un periódico se pretende publicar una noticia sobre la acusación de corrupción al rey de España. ¿Cuál fragmento es el apropiado?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "La Fiscalía abrió una nueva investigación judicial contra el rey. Se trata de la segunda indagatoria contra el monarca. En esta ocasión se le investiga por el supuesto cobro de comisiones ilegales en la construcción de un aeropuerto. La Fiscalía sospecha que hay una trama internacional en la que podrían estar involucrados empresarios de varios países",
+        "es_correcta": true
+      },
+      {
+        "texto": "Una vez más la monarquía se ve envuelta en un escándalo. Ahora resulta que al rey lo andan siguiendo por corrupto. O sea, que encima de que no trabaja, también le entraba al negocio de la construcción cobrando por tramitar permisos. Y la verdad la culpa es de la gente que en pleno siglo XXI sigue admitiendo a un rey; hay que ser ingenuos para aguantar semejante abuso",
+        "es_correcta": false
+      },
+      {
+        "texto": "Da igual cuál sea tu impresión sobre la famosísima monarquía. La nueva acusación de corrupción contra el rey es, además de toda una revelación de la que te enteraste aquí, un golpe para la institucionalidad del país. Para los enemigos de la Corona, resulta urgente que la sociedad se libere de esta institución, a la que consideran obsoleta, decadente y, además, corrupta",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 50,
+    "pregunta": "Elija la oración que está acentuada de forma correcta.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Tras despedirme de mi asesora, cambié el tema del ensayo",
+        "es_correcta": true
+      },
+      {
+        "texto": "La isla se encontraba a veinte millas naúticas de la nave",
+        "es_correcta": false
+      },
+      {
+        "texto": "La región del Caúcaso se caracteriza por su geografía accidentada",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 51,
+    "pregunta": "Selecciona la oración que está puntuada de forma correcta.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "¿Cómo te llamas?. ¿Qué estudiaste?. ¿En qué trabajas?.",
+        "es_correcta": false
+      },
+      {
+        "texto": "¿Cómo te llamas?, ¿Qué estudiaste?, ¿En qué trabajas?",
+        "es_correcta": false
+      },
+      {
+        "texto": "¿Cómo te llamas? ¿Qué estudiaste? ¿En qué trabajas?",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 52,
+    "pregunta": "Selecciona el enunciado que está puntuado correctamente.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Los jugadores que hayan faltado a un entrenamiento durante la semana, no serán titulares el domingo.",
+        "es_correcta": false
+      },
+      {
+        "texto": "Los jugadores, independientemente de su rendimiento físico, deben pasar por una evaluación médica antes del torneo.",
+        "es_correcta": true
+      },
+      {
+        "texto": "Toda la temporada de voleibol playero, que arrancó a principios de febrero ha estado lleno de partidos excepcionales.",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 53,
+    "pregunta": "Elija el enunciado que está escrito correctamente.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Anhelo visitar un orfanato y ayudar a los huérfanos a aprender diversos temas",
+        "es_correcta": true
+      },
+      {
+        "texto": "Anelo visitar un orfanato y ayudar a los huérfanos a aprender diversos temas",
+        "es_correcta": false
+      },
+      {
+        "texto": "Anhelo visitar un horfanato y ayudar a los huérfanos a aprender diversos temas",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 54,
+    "pregunta": "Complete el enunciado con las grafías correctas.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "ll – y – ll – ll",
+        "es_correcta": false
+      },
+      {
+        "texto": "y – y – y – ll",
+        "es_correcta": true
+      },
+      {
+        "texto": "y – ll – y – y",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 55,
+    "pregunta": "Complete el enunciado con la expresión que le da sentido.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "No obstante",
+        "es_correcta": false
+      },
+      {
+        "texto": "Entonces",
+        "es_correcta": false
+      },
+      {
+        "texto": "Porque",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 56,
+    "pregunta": "Complete con las palabras que le dan sentido al fragmento.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "le – la – la",
+        "es_correcta": true
+      },
+      {
+        "texto": "lo – la – lo",
+        "es_correcta": false
+      },
+      {
+        "texto": "le – lo – le",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 57,
+    "pregunta": "¿En cuál fragmento se establece una relación correcta entre las palabras?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "Los claros motivo y razones del cambio económico",
+        "es_correcta": false
+      },
+      {
+        "texto": "Las codiciadas fama y belleza entre la farándula",
+        "es_correcta": false
+      },
+      {
+        "texto": "Las necesarias atenciones y cuidados de los infantes",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 58,
+    "pregunta": "¿En cuál fragmento se establece una relación correcta entre las palabras?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "La carpeta verde y el escritorio estaban húmedas",
+        "es_correcta": false
+      },
+      {
+        "texto": "El autobús escolar y la cancha de fútbol son nuevas",
+        "es_correcta": false
+      },
+      {
+        "texto": "El estudio y la práctica del deporte son necesarios",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 59,
+    "pregunta": "La revista de una universidad publicó una convocatoria para escribir ensayos académicos sobre la responsabilidad de la humanidad con respecto a los animales. Se recibieron tres propuestas. ¿Cuál es el texto adecuado para publicar en la revista?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "En los últimos años me he comprometido con los animales. He dejado de usar ropa de piel y he optado por vestir prendas sintéticas. No soy la única persona: han crecido los grupos que defienden los derechos de los animales y se han creado santuarios para resguardar las especies que están en peligro de extinción. Además de eso, cada día somos más los vegetarianos y continuamos luchando para erradicar las corridas de toros y otro tipo de prácticas que atentan contra la vida de los animales",
+        "es_correcta": false
+      },
+      {
+        "texto": "Las vacas son animales bien inteligentes pertenecientes a la familia de los bóvidos. Por ejemplo, si se dejan a la orilla de un río y hay un puente, lo utilizarán para atravesar sin necesidad de un pastor. También los perritos son animales con una gran inteligencia, sin lugar a dudas. Actualmente, los estudios sobre la inteligencia en los animales no se centran ni en las vacas ni en los perros, sino en los cefalópodos como los pulpos, ya que han demostrado tener memoria y simetría bilateral",
+        "es_correcta": false
+      },
+      {
+        "texto": "La humanidad está pasando por un proceso de sensibilización hacia los sentimientos y las emociones de los animales, ya que estos presentan un sistema nervioso y una inteligencia semejantes a los de los humanos. Por esta razón, diversas ONG buscan concientizar sobre la violencia contra los animales al evidenciar la explotación poco sustentable de recursos naturales. De igual manera, se han investigado el comportamiento animal y los estímulos externos que repercuten en su desarrollo",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 60,
+    "pregunta": "El profesor de Cinematografía está revisando los textos sobre una película de estreno reciente para elegir la reseña que incluirá en una publicación. ¿Cuál fragmento cumple de forma adecuada con ese objetivo?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "El estreno de la película de terror Epitafio pone en evidencia la abismal diferencia entre el cine que se produce en Estados Unidos y el que se puede producir en nuestro país. Epitafio parte de la misma premisa que un sinnúmero de películas del género: dos adolescentes se internan en un bosque para estar solos y lo que encuentran es la tragedia",
+        "es_correcta": true
+      },
+      {
+        "texto": "Por si no lo saben, les cuento que epitafio es como se les llama a las inscripciones grabadas en las sepulturas. Hay muchos epitafios famosos. Por ejemplo, está el epitafio de Groucho Marx que dice: “Perdonen que no me levante”. Y bueno, Epitafio también es la más reciente película de terror mexicana. Me hizo brincar varias veces y eso no me pasa siempre",
+        "es_correcta": false
+      },
+      {
+        "texto": "Me gustan las películas de terror que me hacen reír y Epitafio no es la excepción. Al monstruo que aparece al final se le ven los hilos. Había gente que sí se encontraba espantada y a mí me daban ganas de reírme en la sala del cine. Pero cada quien, ¿no? Al menos eso pienso yo",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 61,
+    "pregunta": "Una persona debe trabajar por lo menos 98 horas para cubrir el valor de sus necesidades. ¿Cuál expresión describe esta situación?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": []
+  },
+  {
+    "numero": 62,
+    "pregunta": "Selecciona la opción que equivale a la siguiente expresión algebraica.",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": []
+  },
+  {
+    "numero": 63,
+    "pregunta": "Una persona mide la longitud de la sombra de un poste cuando la luz directa del sol forma un ángulo de 35° con respecto al piso, tal como se muestra en la imagen. ¿Cuál es la altura del poste?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": [
+      {
+        "texto": "3.9 m",
+        "es_correcta": false
+      },
+      {
+        "texto": "4.9 m",
+        "es_correcta": true
+      },
+      {
+        "texto": "5.7 m",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 64,
+    "pregunta": "¿Qué conjunto de números presenta una desviación estándar mayor?",
+    "categoria": "Español",
+    "subcategoria": "Redacción indirecta",
+    "opciones": []
+  },
+  {
+    "numero": 65,
+    "pregunta": "Identifica cuánto mide el área sombreada:",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 66,
+    "pregunta": "En la gráfica se muestran las calificaciones de Física obtenidas por un grupo de estudiantes.",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "7.0",
+        "es_correcta": false
+      },
+      {
+        "texto": "7.5",
+        "es_correcta": true
+      },
+      {
+        "texto": "8.0",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 67,
+    "pregunta": "En un juego de azar se detecta que se utiliza un dado alterado de 6 caras en el que los números 4 y 5 tienen el doble de probabilidad de caer que el resto de los números. Determine la probabilidad de que al lanzar el dado caiga un 4:",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 68,
+    "pregunta": "¿Cuál es el valor de  para que la razón  sea proporcional a la razón ?",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "10",
+        "es_correcta": false
+      },
+      {
+        "texto": "12",
+        "es_correcta": true
+      },
+      {
+        "texto": "22",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 69,
+    "pregunta": "El costo de rentar  sillas con 3 empresas diferentes se muestra en la gráfica. ¿Cuál es la empresa que cobra menos renta por unidad?",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "P",
+        "es_correcta": true
+      },
+      {
+        "texto": "Q",
+        "es_correcta": false
+      },
+      {
+        "texto": "R",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 70,
+    "pregunta": "¿Qué opción representa el camino para llegar al punto B saliendo del punto A?",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "Caminar media cuadra hacia el suroeste, 1 cuadra al noroeste y 2.5 cuadras al suroeste",
+        "es_correcta": true
+      },
+      {
+        "texto": "Andar 1 cuadra al sureste, 1 cuadra hacia el suroeste y 2 cuadras hacia el noroeste",
+        "es_correcta": false
+      },
+      {
+        "texto": "Recorrer media cuadra hacia el suroeste, 1 cuadra hacia el noroeste y 3 cuadras al suroeste",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 71,
+    "pregunta": "Relacione el tipo de simetría con el diseño correspondiente.",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "1a, 2b, 3c",
+        "es_correcta": false
+      },
+      {
+        "texto": "1b, 2a, 3c",
+        "es_correcta": true
+      },
+      {
+        "texto": "1b, 2c, 3a",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 72,
+    "pregunta": "En la tabla se muestran los datos sobre las características socioeconómicas de una población. Indique la tasa de viviendas habitadas que cuentan con computadora. Considere redondear el resultado al entero inmediato superior o inferior.",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "28 de cada 100",
+        "es_correcta": true
+      },
+      {
+        "texto": "37 de cada 100",
+        "es_correcta": false
+      },
+      {
+        "texto": "47 de cada 100",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 73,
+    "pregunta": "Seleccione el denominador  del exponente fraccionario en la expresión , para que sea equivalente a la expresión",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "1",
+        "es_correcta": true
+      },
+      {
+        "texto": "2",
+        "es_correcta": false
+      },
+      {
+        "texto": "8",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 74,
+    "pregunta": "En una tienda de ropa, una joven observa que una gorra tiene un precio de $330 y, por temporada, se le aplica un descuento de 20%. Al pagar en caja, le hacen un descuento adicional de 15%, pues presentó una tarjeta de cliente frecuente. ¿A cuánto asciende el monto total del descuento que la joven obtuvo por su compra?",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "$105.6",
+        "es_correcta": true
+      },
+      {
+        "texto": "$115.5",
+        "es_correcta": false
+      },
+      {
+        "texto": "$224.4",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 75,
+    "pregunta": "Complete la oración con la unidad de medida correspondiente y la estimación faltante. Para un experimento escolar, Pablo pone a germinar un frijol en algodón y observa que crece en promedio 0.08 \t por hora, por lo que después de \t horas mide 57.6 mm",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "mm, 72",
+        "es_correcta": false
+      },
+      {
+        "texto": "cm, 72",
+        "es_correcta": true
+      },
+      {
+        "texto": "cm, 720",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 76,
+    "pregunta": "Al lanzar un par de dados comunes, la probabilidad de obtener números menores a 4 en ambos dados es \t\t\t que la probabilidad de que salgan números primos en ambos dados:",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "Menor",
+        "es_correcta": false
+      },
+      {
+        "texto": "Mayor",
+        "es_correcta": false
+      },
+      {
+        "texto": "Igual",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 77,
+    "pregunta": "Seleccione la figura cuya área es de 9 unidades cuadradas.",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "F1",
+        "es_correcta": false
+      },
+      {
+        "texto": "F2",
+        "es_correcta": false
+      },
+      {
+        "texto": "F3",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 78,
+    "pregunta": "Identifique el diagrama de árbol que representa el espacio muestral del experimento: se lanza un dado de tres caras en dos ocasiones consecutivas.",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 79,
+    "pregunta": "¿Cuál es el resultado de la operación",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 80,
+    "pregunta": "Seleccione la solución del siguiente sistema de ecuaciones lineales.",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 81,
+    "pregunta": "¿Cuál es el valor de  si se tiene que ?",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 82,
+    "pregunta": "¿Cuál es la solución del sistema de ecuaciones con 2 variables que se muestra en la gráfica?",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "El punto A, B, o C es solución",
+        "es_correcta": false
+      },
+      {
+        "texto": "Los puntos A, B y C son solución",
+        "es_correcta": false
+      },
+      {
+        "texto": "Un sistema así no tiene solución",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 83,
+    "pregunta": "En la gráfica se muestra la ecuación de la parábola .",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "Abajo",
+        "es_correcta": false
+      },
+      {
+        "texto": "La izquierda",
+        "es_correcta": false
+      },
+      {
+        "texto": "La derecha",
+        "es_correcta": true
+      }
+    ]
+  },
+  {
+    "numero": 84,
+    "pregunta": "Con base en la siguiente imagen, determina la afirmación verdadera.",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "La medida del arco que determinan los ángulos es igual a",
+        "es_correcta": true
+      },
+      {
+        "texto": "La suma de los dos ángulos centrales es igual a",
+        "es_correcta": false
+      },
+      {
+        "texto": "La medida del arco que determinan los ángulos es igual",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 85,
+    "pregunta": "El gráfico de barras representa las edades de los integrantes de un curso de verano. ¿Cuál es la gráfica de pastel que le corresponde?",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 86,
+    "pregunta": "La media de las calificaciones de Química obtenidas en un grupo es menor que su moda. Selecciona la gráfica que corresponde al hecho anterior.",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 87,
+    "pregunta": "De acuerdo con los datos, ¿cuál es el modelo que representa la cantidad de calorías quemadas por un atleta, en función de los minutos que ha entrenado en los últimos 5 días?",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 88,
+    "pregunta": "En el plano cartesiano se muestra la gráfica de la función , donde  es un valor positivo.",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": []
+  },
+  {
+    "numero": 89,
+    "pregunta": "La tabla muestra los datos de una encuesta que se realizó a 30 familias para conocer la cantidad de focos que tiene en su casa:",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "16",
+        "es_correcta": true
+      },
+      {
+        "texto": "17",
+        "es_correcta": false
+      },
+      {
+        "texto": "18",
+        "es_correcta": false
+      }
+    ]
+  },
+  {
+    "numero": 90,
+    "pregunta": "El Departamento de Calidad reporta que hay modelos de celulares que han presentado gran cantidad de defectos en 5 lotes. El gerente recolecta los datos de la tabla y observa que ambos modelos tienen un promedio de 29 equipos defectuosos, por lo que descontinuará el modelo cuya cantidad de equipo defectuoso se aleje más del promedio. ¿Qué decisión toma el gerente?",
+    "categoria": "Matemáticas",
+    "subcategoria": "Pensamiento matemático",
+    "opciones": [
+      {
+        "texto": "Descontinuar el modelo PF3, ya que es el que presenta menor dispersión en la cantidad de aparatos defectuosos por lote",
+        "es_correcta": false
+      },
+      {
+        "texto": "Descontinuar el modelo CT5, ya que es el que presenta mayor dispersión en la cantidad de aparatos defectuosos por lote",
+        "es_correcta": true
+      },
+      {
+        "texto": "Descontinuar otro modelo, ya que la dispersión es la cantidad de aparatos defectuosos por lote de los modelos CT5 y PF3 es menor al promedio",
+        "es_correcta": false
+      }
+    ]
+  }
+]
