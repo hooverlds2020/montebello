@@ -30,15 +30,9 @@ export default function LoginAlumno() {
   return (
     <div style={{ minHeight: '100vh', background: '#f7f8fa', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'sans-serif' }}>
       <div style={{ width: '100%', maxWidth: 380, background: '#fff', borderRadius: 16, boxShadow: '0 10px 30px rgba(0,0,0,0.07)', padding: 36 }}>
-        {/* Placeholder de identidad institucional — reemplazar con el logo real cuando lo tengan */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: '50%', background: '#4a90d9',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontSize: 24, fontWeight: 'bold',
-          }}>
-            M
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/logo-montebello.webp" alt="Instituto Educativo Montebello" style={{ width: 90, height: 'auto' }} />
         </div>
 
         <h1 style={{ fontSize: 20, textAlign: 'center', margin: 0 }}>Instituto Educativo Montebello</h1>

@@ -173,6 +173,8 @@ export default function Examen() {
     return (
       <div style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
         <div className="solo-impresion" style={{ display: 'none', textAlign: 'center', marginBottom: 16 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/logo-montebello.webp" alt="" style={{ width: 60, height: 'auto', display: 'block', margin: '0 auto 8px' }} />
           <strong>Instituto Educativo Montebello</strong> — Resultado de examen de diagnóstico<br />
           {alumno?.nombre} · {alumno?.email} · {new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
         </div>
@@ -347,6 +349,8 @@ export default function Examen() {
         </button>
 
         <div className="solo-impresion" style={{ display: 'none', textAlign: 'center', marginBottom: 16 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/logo-montebello.webp" alt="" style={{ width: 60, height: 'auto', display: 'block', margin: '0 auto 8px' }} />
           <strong>Instituto Educativo Montebello</strong> — Resultado de examen de diagnóstico<br />
           {alumno?.nombre} · {alumno?.email}
         </div>
