@@ -64,7 +64,7 @@ export default function Examen() {
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState('');
   const [segundosRestantes, setSegundosRestantes] = useState(null);
-  const [transicionSeccion, setTransicionSeccion] = useState(null); // { preguntaPendiente }
+  const [esNuevaSeccion, setEsNuevaSeccion] = useState(false);
   const seccionActualRef = useRef(null);
 
   const [historial, setHistorial] = useState(null);
@@ -124,21 +124,6 @@ export default function Examen() {
     return data.lectura ? `lectura-${data.lectura.id}` : `categoria-${data.categoria}`;
   }
 
-  function descripcionSeccion(data) {
-    if (data.lectura) {
-      return {
-        titulo: 'Nueva lectura',
-        detalle: data.lectura.titulo
-          ? `A continuación un texto: "${data.lectura.titulo}". Léelo con calma antes de responder las preguntas relacionadas.`
-          : 'A continuación un nuevo texto de lectura. Léelo con calma antes de responder las preguntas relacionadas.',
-      };
-    }
-    return {
-      titulo: 'Nueva sección',
-      detalle: `A continuación, reactivos de ${data.categoria}, sin texto de apoyo.`,
-    };
-  }
-
   async function cargarSiguiente(id) {
     setSeleccion(null);
     const res = await fetch(`/api/examen/siguiente?examenId=${id}`);
@@ -152,19 +137,9 @@ export default function Examen() {
       return;
     }
     const clave = claveDeSeccion(data);
-    if (seccionActualRef.current !== null && seccionActualRef.current !== clave) {
-      setTransicionSeccion({ preguntaPendiente: data });
-      return;
-    }
+    setEsNuevaSeccion(seccionActualRef.current !== null && seccionActualRef.current !== clave);
     seccionActualRef.current = clave;
     setPregunta(data);
-  }
-
-  function continuarTrasTransicion() {
-    const data = transicionSeccion.preguntaPendiente;
-    seccionActualRef.current = claveDeSeccion(data);
-    setPregunta(data);
-    setTransicionSeccion(null);
   }
 
   async function enviarRespuesta() {
@@ -246,26 +221,6 @@ export default function Examen() {
   }
 
   // ---- Pantalla de presentación de pregunta ----
-  // ---- Aviso de cambio de sección/lectura (antes de mostrar la siguiente pregunta) ----
-  if (transicionSeccion) {
-    const { titulo, detalle } = descripcionSeccion(transicionSeccion.preguntaPendiente);
-    return (
-      <div style={{ maxWidth: 480, margin: '80px auto', fontFamily: 'sans-serif', padding: 24, textAlign: 'center' }}>
-        <div style={{ background: '#eaf2fb', borderRadius: 14, padding: '32px 28px' }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>📘</div>
-          <h2 style={{ margin: '0 0 8px 0', color: '#2c5a86' }}>{titulo}</h2>
-          <p style={{ color: '#3a5b7a', fontSize: 15, marginBottom: 24 }}>{detalle}</p>
-          <button
-            onClick={continuarTrasTransicion}
-            style={{ padding: '10px 28px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, fontWeight: 600 }}
-          >
-            Continuar
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (pregunta) {
     const tiempoBajo = segundosRestantes !== null && segundosRestantes <= 300; // últimos 5 min
     return (
@@ -288,6 +243,12 @@ export default function Examen() {
         <div style={{ background: '#eee', borderRadius: 6, height: 6, marginBottom: 20 }}>
           <div style={{ width: `${(pregunta.respondidas / pregunta.total) * 100}%`, height: '100%', background: '#4a90d9', borderRadius: 6 }} />
         </div>
+
+        {esNuevaSeccion && (
+          <div style={{ display: 'inline-block', fontSize: 12, color: '#4a90d9', background: '#eaf2fb', padding: '3px 10px', borderRadius: 20, marginBottom: 10 }}>
+            {pregunta.lectura ? '📘 Nueva lectura' : '📄 Nueva sección'}
+          </div>
+        )}
 
         {pregunta.lectura && (
           <div className="panel-lectura" style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 20, marginBottom: 20 }}>
