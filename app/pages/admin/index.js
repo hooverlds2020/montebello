@@ -23,6 +23,48 @@ export default function AdminPage() {
   // Categoría activa en el menú lateral (reemplaza al filtro suelto de antes)
   const [categoriaActivaId, setCategoriaActivaId] = useState(null);
 
+  // Vista general del panel: 'asignaturas' (banco de reactivos) o 'alumnos' (resultados)
+  const [vistaGeneral, setVistaGeneral] = useState('asignaturas');
+  const [resultadosResumen, setResultadosResumen] = useState(null);
+  const [alumnoSeleccionadoId, setAlumnoSeleccionadoId] = useState(null);
+  const [detalleAlumno, setDetalleAlumno] = useState(null);
+  const [cargandoAlumnos, setCargandoAlumnos] = useState(false);
+
+  async function cargarResumenAlumnos() {
+    setCargandoAlumnos(true);
+    const res = await fetch('/api/admin/resultados');
+    const data = await res.json();
+    setResultadosResumen(data);
+    setCargandoAlumnos(false);
+  }
+
+  async function verDetalleAlumno(id) {
+    setAlumnoSeleccionadoId(id);
+    setDetalleAlumno(null);
+    const res = await fetch(`/api/admin/alumnos/${id}`);
+    const data = await res.json();
+    setDetalleAlumno(data);
+  }
+
+  function exportarCSV() {
+    if (!resultadosResumen) return;
+    const encabezados = ['Nombre', 'Correo', 'Intentos', 'Correctas', 'Total', 'Porcentaje', 'Fecha de último intento'];
+    const filas = resultadosResumen.alumnos.map((a) => [
+      a.nombre, a.email, a.intentos, a.correctas, a.total, `${a.porcentaje}%`,
+      a.finalizadoEn ? new Date(a.finalizadoEn).toLocaleDateString('es-MX') : '',
+    ]);
+    const csv = [encabezados, ...filas]
+      .map((fila) => fila.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `resultados_diagnostico_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const [mensaje, setMensaje] = useState('');
 
   // Carga rápida: generar N preguntas de una lectura de golpe
@@ -121,6 +163,12 @@ export default function AdminPage() {
       setLecturaRapidaId('');
     }
   }, [categoriaActivaId]);
+
+  useEffect(() => {
+    if (vistaGeneral === 'alumnos' && !resultadosResumen) {
+      cargarResumenAlumnos();
+    }
+  }, [vistaGeneral]);
 
   async function crearCategoria(e) {
     e.preventDefault();
@@ -528,12 +576,12 @@ export default function AdminPage() {
 
 
   return (
-    <div className="admin-root" style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+    <div className="admin-root" style={{ minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <style jsx global>{`
         * { box-sizing: border-box; }
         body { margin: 0; }
         @media (max-width: 768px) {
-          .admin-root { flex-direction: column !important; }
+          .admin-body { flex-direction: column !important; }
           .admin-sidebar {
             width: 100% !important;
             border-right: none !important;
@@ -542,15 +590,28 @@ export default function AdminPage() {
           .admin-main { max-width: 100% !important; padding: 16px !important; }
         }
       `}</style>
+
+      {/* BARRA SUPERIOR: cambia entre Asignaturas y Alumnos, un solo panel, sin roles separados */}
+      <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderBottom: '1px solid #ddd', background: '#fafbfc' }}>
+        <button
+          onClick={() => setVistaGeneral('asignaturas')}
+          style={btnStyle(vistaGeneral === 'asignaturas' ? 'primario' : 'secundario', { fontSize: 14 })}
+        >
+          📚 Asignaturas
+        </button>
+        <button
+          onClick={() => setVistaGeneral('alumnos')}
+          style={btnStyle(vistaGeneral === 'alumnos' ? 'primario' : 'secundario', { fontSize: 14 })}
+        >
+          👥 Alumnos
+        </button>
+      </div>
+
+      {vistaGeneral === 'asignaturas' && (
+      <div className="admin-body" style={{ display: 'flex' }}>
       {/* MENÚ LATERAL */}
       <aside className="admin-sidebar" style={{ width: 240, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
         <h2 style={{ fontSize: 16, marginBottom: 12 }}>Materias</h2>
-        <Link
-          href="/admin/resultados"
-          style={{ display: 'block', marginBottom: 16, padding: '8px 10px', background: '#f0f4fa', borderRadius: 6, color: '#4a90d9', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
-        >
-          📊 Ver resultados de alumnos
-        </Link>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {categorias.filter((c) => !c.categoria_padre_id).map((padre) => {
             const hijos = categorias.filter((h) => h.categoria_padre_id === padre.id);
@@ -902,6 +963,142 @@ export default function AdminPage() {
           </div>
         )}
       </main>
+      </div>
+      )}
+
+      {vistaGeneral === 'alumnos' && (
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <h1 style={{ margin: 0 }}>
+              {detalleAlumno ? detalleAlumno.alumno.nombre : 'Resultados del diagnóstico'}
+            </h1>
+            {detalleAlumno ? (
+              <button onClick={() => { setAlumnoSeleccionadoId(null); setDetalleAlumno(null); }} style={btnStyle('secundario')}>
+                ← Volver a la lista
+              </button>
+            ) : (
+              <button
+                onClick={exportarCSV}
+                disabled={!resultadosResumen || resultadosResumen.alumnos.length === 0}
+                style={btnStyle('primario')}
+              >
+                Exportar a Excel (CSV)
+              </button>
+            )}
+          </div>
+
+          {cargandoAlumnos && <p style={{ color: '#888' }}>Cargando...</p>}
+
+          {/* Vista de detalle de un alumno específico */}
+          {detalleAlumno && (
+            <div>
+              <p style={{ color: '#666', fontSize: 14, marginBottom: 20 }}>{detalleAlumno.alumno.email}</p>
+              {detalleAlumno.historial.length === 0 && (
+                <p style={{ color: '#888' }}>Este alumno aún no ha finalizado ningún examen.</p>
+              )}
+              {detalleAlumno.historial.map((h) => (
+                <div key={h.examenId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>
+                      {new Date(h.finalizadoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </span>
+                    <span
+                      style={{
+                        fontWeight: 'bold', padding: '3px 10px', borderRadius: 20,
+                        background: h.porcentaje >= 60 ? '#eafaf1' : '#fdeceb',
+                        color: h.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
+                      }}
+                    >
+                      {h.correctas}/{h.total} ({h.porcentaje}%)
+                    </span>
+                  </div>
+                  {h.porCategoria.map((c) => (
+                    <div key={c.categoria} style={{ marginBottom: 6 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#555', marginBottom: 2 }}>
+                        <span>{c.categoria}</span>
+                        <span>{c.porcentaje}%</span>
+                      </div>
+                      <div style={{ background: '#eee', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+                        <div style={{ width: `${c.porcentaje}%`, height: '100%', background: c.porcentaje >= 60 ? '#2e7d32' : '#c0392b' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Vista general: resumen + lista de alumnos */}
+          {!detalleAlumno && resultadosResumen && (
+            <>
+              {resultadosResumen.alumnos.length === 0 ? (
+                <p style={{ color: '#888' }}>Todavía ningún alumno ha finalizado su examen de diagnóstico.</p>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 160, background: '#f0f4fa', borderRadius: 10, padding: 16, textAlign: 'center' }}>
+                      <div style={{ fontSize: 28, fontWeight: 'bold', color: '#4a90d9' }}>{resultadosResumen.totalAlumnosEvaluados}</div>
+                      <div style={{ fontSize: 12, color: '#666' }}>Alumnos evaluados</div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 160, background: resultadosResumen.promedioGeneral >= 60 ? '#eafaf1' : '#fdeceb', borderRadius: 10, padding: 16, textAlign: 'center' }}>
+                      <div style={{ fontSize: 28, fontWeight: 'bold', color: resultadosResumen.promedioGeneral >= 60 ? '#2e7d32' : '#c0392b' }}>
+                        {resultadosResumen.promedioGeneral}%
+                      </div>
+                      <div style={{ fontSize: 12, color: '#666' }}>Promedio general</div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 32 }}>
+                    <h2 style={{ fontSize: 16, marginBottom: 12 }}>Promedio por materia</h2>
+                    {resultadosResumen.promedioPorMateria.map((m) => (
+                      <div key={m.categoria} style={{ marginBottom: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
+                          <span>{m.categoria}</span>
+                          <span style={{ fontWeight: 600, color: m.porcentaje >= 60 ? '#2e7d32' : '#c0392b' }}>{m.porcentaje}%</span>
+                        </div>
+                        <div style={{ background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+                          <div style={{ width: `${m.porcentaje}%`, height: '100%', background: m.porcentaje >= 60 ? '#2e7d32' : '#c0392b' }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div>
+                    <h2 style={{ fontSize: 16, marginBottom: 12 }}>Lista de alumnos</h2>
+                    {resultadosResumen.alumnos.map((a) => (
+                      <div
+                        key={a.alumnoId}
+                        onClick={() => verDetalleAlumno(a.alumnoId)}
+                        style={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          padding: 14, border: '1px solid #eee', borderRadius: 8, marginBottom: 8, cursor: 'pointer',
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 14 }}>{a.nombre}</div>
+                          <div style={{ fontSize: 13, color: '#888' }}>{a.email} · {a.intentos} intento(s)</div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span
+                            style={{
+                              fontWeight: 'bold', padding: '3px 10px', borderRadius: 20,
+                              background: a.porcentaje >= 60 ? '#eafaf1' : '#fdeceb',
+                              color: a.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
+                            }}
+                          >
+                            {a.porcentaje}%
+                          </span>
+                          <span style={{ color: '#ccc' }}>›</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {toast && (
         <div

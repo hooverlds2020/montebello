@@ -22,7 +22,6 @@ export default async function handler(req, res) {
      ORDER BY e.alumno_id, e.finalizado_en DESC`
   );
 
-  // Cuántos intentos totales tiene cada alumno (incluye todos, no solo el último)
   const { rows: conteoIntentos } = await pool.query(
     `SELECT alumno_id, count(*) AS intentos
      FROM examenes WHERE estado = 'finalizado'
@@ -42,7 +41,6 @@ export default async function handler(req, res) {
     intentos: intentosPorAlumno[r.alumno_id] || 1,
   })).sort((a, b) => new Date(b.finalizadoEn) - new Date(a.finalizadoEn));
 
-  // Promedio general y por materia (usando el último intento de cada alumno)
   const promedioGeneral = alumnos.length > 0
     ? Math.round(alumnos.reduce((acc, a) => acc + a.porcentaje, 0) / alumnos.length)
     : null;
