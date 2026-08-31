@@ -261,6 +261,46 @@ export default function AdminPage() {
     cargarCategorias();
   }
 
+  // Drag & drop para reordenar materias en el menú lateral (arrastrar en vez de escribir números).
+  // `scope` agrupa qué se puede reordenar entre sí: 'top' para materias de primer nivel,
+  // o el id de la materia padre para reordenar sus subcategorías entre ellas.
+  const [arrastrando, setArrastrando] = useState(null); // { id, scope }
+
+  async function soltarSobre(listaScope, idDestino) {
+    if (!arrastrando || arrastrando.scope !== listaScope || arrastrando.id === idDestino) {
+      setArrastrando(null);
+      return;
+    }
+    const lista = listaScope === 'top'
+      ? categorias.filter((c) => !c.categoria_padre_id)
+      : categorias.filter((c) => c.categoria_padre_id === listaScope);
+
+    const ordenActual = [...lista].sort((a, b) => (a.orden ?? a.id) - (b.orden ?? b.id));
+    const idxOrigen = ordenActual.findIndex((c) => c.id === arrastrando.id);
+    const idxDestino = ordenActual.findIndex((c) => c.id === idDestino);
+    if (idxOrigen === -1 || idxDestino === -1) {
+      setArrastrando(null);
+      return;
+    }
+
+    const reordenado = [...ordenActual];
+    const [movido] = reordenado.splice(idxOrigen, 1);
+    reordenado.splice(idxDestino, 0, movido);
+
+    // Guarda el nuevo orden secuencial (de 10 en 10, deja espacio por si luego se quiere insertar entre dos)
+    await Promise.all(
+      reordenado.map((c, i) =>
+        fetch(`/api/admin/categorias/${c.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orden: (i + 1) * 10 }),
+        })
+      )
+    );
+    setArrastrando(null);
+    cargarCategorias();
+  }
+
   async function crearLectura(e) {
     e.preventDefault();
     setMensajeLectura('');
@@ -640,18 +680,41 @@ export default function AdminPage() {
       <aside className="admin-sidebar" style={{ width: 240, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
         <h2 style={{ fontSize: 16, marginBottom: 12 }}>Materias</h2>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {categorias.filter((c) => !c.categoria_padre_id).map((padre) => {
-            const hijos = categorias.filter((h) => h.categoria_padre_id === padre.id);
+          {categorias
+            .filter((c) => !c.categoria_padre_id)
+            .sort((a, b) => (a.orden ?? a.id) - (b.orden ?? b.id))
+            .map((padre) => {
+            const hijos = categorias
+              .filter((h) => h.categoria_padre_id === padre.id)
+              .sort((a, b) => (a.orden ?? a.id) - (b.orden ?? b.id));
             return (
-              <li key={padre.id} style={{ marginBottom: hijos.length > 0 ? 10 : 4 }}>
+              <li
+                key={padre.id}
+                draggable
+                onDragStart={() => setArrastrando({ id: padre.id, scope: 'top' })}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => soltarSobre('top', padre.id)}
+                style={{
+                  marginBottom: hijos.length > 0 ? 10 : 4,
+                  cursor: 'grab',
+                  opacity: arrastrando?.id === padre.id ? 0.4 : 1,
+                }}
+              >
                 {hijos.length > 0 ? (
                   <>
-                    <div style={{ fontSize: 12, fontWeight: 'bold', color: '#888', textTransform: 'uppercase', padding: '4px 10px' }}>
-                      {padre.nombre}
+                    <div style={{ fontSize: 12, fontWeight: 'bold', color: '#888', textTransform: 'uppercase', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ color: '#ccc' }}>⠿</span> {padre.nombre}
                     </div>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderLeft: '2px solid #eee', marginLeft: 10 }}>
                       {hijos.map((h) => (
-                        <li key={h.id} style={{ marginBottom: 4 }}>
+                        <li
+                          key={h.id}
+                          draggable
+                          onDragStart={(e) => { e.stopPropagation(); setArrastrando({ id: h.id, scope: padre.id }); }}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => { e.stopPropagation(); soltarSobre(padre.id, h.id); }}
+                          style={{ marginBottom: 4, cursor: 'grab', opacity: arrastrando?.id === h.id ? 0.4 : 1 }}
+                        >
                           {renderMateriaItem(h)}
                         </li>
                       ))}

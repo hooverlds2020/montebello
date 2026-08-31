@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'PUT') {
-    const { nombre, activa, cantidad_examen } = req.body;
+    const { nombre, activa, cantidad_examen, orden } = req.body;
     try {
       if (nombre !== undefined) {
         await pool.query('UPDATE categorias SET nombre = $1 WHERE id = $2', [nombre.trim(), id]);
@@ -19,6 +19,9 @@ export default async function handler(req, res) {
       }
       if (cantidad_examen !== undefined) {
         await pool.query('UPDATE categorias SET cantidad_examen = $1 WHERE id = $2', [cantidad_examen, id]);
+      }
+      if (orden !== undefined) {
+        await pool.query('UPDATE categorias SET orden = $1 WHERE id = $2', [orden, id]);
       }
       return res.status(200).json({ ok: true });
     } catch (e) {

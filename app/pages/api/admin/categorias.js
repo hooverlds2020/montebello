@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    const { rows } = await pool.query('SELECT * FROM categorias ORDER BY id');
+    const { rows } = await pool.query('SELECT * FROM categorias ORDER BY orden, id');
     return res.status(200).json(rows);
   }
 

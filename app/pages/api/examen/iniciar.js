@@ -80,7 +80,7 @@ export default async function handler(req, res) {
 
   // Materias habilitadas con cantidad configurada para el examen
   const { rows: categorias } = await pool.query(
-    `SELECT id, cantidad_examen FROM categorias WHERE activa = TRUE AND cantidad_examen > 0`
+    `SELECT id, cantidad_examen FROM categorias WHERE activa = TRUE AND cantidad_examen > 0 ORDER BY orden, id`
   );
 
   if (categorias.length === 0) {
