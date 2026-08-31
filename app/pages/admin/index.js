@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import DonaResultado from '../../components/DonaResultado';
 const { estaAutenticado } = require('../../lib/auth');
 
@@ -16,6 +17,7 @@ export async function getServerSideProps({ req }) {
 
 
 export default function AdminPage() {
+  const router = useRouter();
   const [categorias, setCategorias] = useState([]);
   const [reactivos, setReactivos] = useState([]);
   const [lecturas, setLecturas] = useState([]);
@@ -202,6 +204,11 @@ export default function AdminPage() {
   const [confirmacion, setConfirmacion] = useState(null); // { mensaje, onConfirmar }
   function pedirConfirmacion(mensaje, onConfirmar) {
     setConfirmacion({ mensaje, onConfirmar });
+  }
+
+  async function cerrarSesionAdmin() {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    router.push('/admin/login');
   }
 
   // Paleta consistente de botones, para no depender del estilo por defecto del navegador
@@ -856,7 +863,7 @@ export default function AdminPage() {
       `}</style>
 
       {/* BARRA SUPERIOR: cambia entre Asignaturas y Alumnos, un solo panel, sin roles separados */}
-      <div className="barra-superior-admin ocultar-al-imprimir" style={{ display: 'flex', gap: 8, padding: '12px 16px', borderBottom: '1px solid #ddd', background: '#fafbfc' }}>
+      <div className="barra-superior-admin ocultar-al-imprimir" style={{ display: 'flex', gap: 8, padding: '12px 16px', borderBottom: '1px solid #ddd', background: '#fafbfc', flexWrap: 'wrap' }}>
         <button
           onClick={() => setVistaGeneral('asignaturas')}
           style={btnStyle(vistaGeneral === 'asignaturas' ? 'primario' : 'secundario', { fontSize: 14 })}
@@ -874,6 +881,12 @@ export default function AdminPage() {
           style={btnStyle(vistaGeneral === 'usuarios' ? 'primario' : 'secundario', { fontSize: 14 })}
         >
           ⚙️ Usuarios
+        </button>
+        <button
+          onClick={cerrarSesionAdmin}
+          style={btnStyle('secundario', { fontSize: 14, marginLeft: 'auto' })}
+        >
+          🚪 Cerrar sesión
         </button>
       </div>
 
