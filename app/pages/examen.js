@@ -55,6 +55,7 @@ function formatearFecha(iso) {
 
 export default function Examen() {
   const [alumno, setAlumno] = useState(null);
+  const [umbralAprobacion, setUmbralAprobacion] = useState(60); // valor por defecto mientras carga
   const [cargando, setCargando] = useState(true);
   const [examenId, setExamenId] = useState(null);
   const [pregunta, setPregunta] = useState(null);
@@ -81,6 +82,11 @@ export default function Examen() {
         setCargando(false);
       })
       .catch(() => router.push('/login'));
+
+    fetch('/api/config/publico')
+      .then((res) => res.json())
+      .then((data) => setUmbralAprobacion(data.umbralAprobacion))
+      .catch(() => {}); // si falla, se queda con el valor por defecto (60)
   }, []);
 
   async function cargarHistorial() {
@@ -325,8 +331,8 @@ export default function Examen() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div
                     style={{
-                      fontSize: 15, fontWeight: 'bold', color: h.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
-                      background: h.porcentaje >= 60 ? '#eafaf1' : '#fdeceb', padding: '4px 10px', borderRadius: 20,
+                      fontSize: 15, fontWeight: 'bold', color: h.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b',
+                      background: h.porcentaje >= umbralAprobacion ? '#eafaf1' : '#fdeceb', padding: '4px 10px', borderRadius: 20,
                     }}
                   >
                     {h.porcentaje}%
@@ -340,13 +346,13 @@ export default function Examen() {
                     <div key={c.categoria}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#555', marginBottom: 3 }}>
                         <span>{c.categoria}</span>
-                        <span style={{ fontWeight: 600, color: c.porcentaje >= 60 ? '#2e7d32' : '#c0392b' }}>{c.porcentaje}%</span>
+                        <span style={{ fontWeight: 600, color: c.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>{c.porcentaje}%</span>
                       </div>
                       <div style={{ background: '#eee', borderRadius: 4, height: 6, overflow: 'hidden' }}>
                         <div
                           style={{
                             width: `${c.porcentaje}%`, height: '100%', borderRadius: 4,
-                            background: c.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
+                            background: c.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b',
                           }}
                         />
                       </div>

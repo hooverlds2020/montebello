@@ -29,6 +29,32 @@ export default function AdminPage() {
   const [alumnoSeleccionadoId, setAlumnoSeleccionadoId] = useState(null);
   const [detalleAlumno, setDetalleAlumno] = useState(null);
   const [cargandoAlumnos, setCargandoAlumnos] = useState(false);
+  const [umbralAprobacion, setUmbralAprobacion] = useState(60);
+  const [editandoUmbral, setEditandoUmbral] = useState(false);
+  const [umbralInput, setUmbralInput] = useState(60);
+
+  async function cargarUmbral() {
+    const res = await fetch('/api/admin/configuracion');
+    const data = await res.json();
+    setUmbralAprobacion(data.umbral_aprobacion);
+    setUmbralInput(data.umbral_aprobacion);
+  }
+
+  async function guardarUmbral() {
+    const res = await fetch('/api/admin/configuracion', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ umbralAprobacion: umbralInput }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    setUmbralAprobacion(umbralInput);
+    setEditandoUmbral(false);
+    mostrarToast('Umbral de aprobación actualizado', 'exito');
+  }
 
   async function cargarResumenAlumnos() {
     setCargandoAlumnos(true);
@@ -165,8 +191,9 @@ export default function AdminPage() {
   }, [categoriaActivaId]);
 
   useEffect(() => {
-    if (vistaGeneral === 'alumnos' && !resultadosResumen) {
-      cargarResumenAlumnos();
+    if (vistaGeneral === 'alumnos') {
+      if (!resultadosResumen) cargarResumenAlumnos();
+      cargarUmbral();
     }
   }, [vistaGeneral]);
 
@@ -987,6 +1014,28 @@ export default function AdminPage() {
             )}
           </div>
 
+          {!detalleAlumno && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, fontSize: 13, color: '#666', flexWrap: 'wrap' }}>
+              <span>Umbral de aprobación (verde/rojo en toda la app):</span>
+              {editandoUmbral ? (
+                <>
+                  <input
+                    type="number" min="0" max="100" value={umbralInput}
+                    onChange={(e) => setUmbralInput(parseInt(e.target.value, 10) || 0)}
+                    style={{ width: 60, padding: 4 }}
+                  />
+                  <button onClick={guardarUmbral} style={btnStyle('primario', { padding: '4px 10px', fontSize: 12 })}>Guardar</button>
+                  <button onClick={() => setEditandoUmbral(false)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>Cancelar</button>
+                </>
+              ) : (
+                <>
+                  <strong>{umbralAprobacion}%</strong>
+                  <button onClick={() => setEditandoUmbral(true)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>✏️ Editar</button>
+                </>
+              )}
+            </div>
+          )}
+
           {cargandoAlumnos && <p style={{ color: '#888' }}>Cargando...</p>}
 
           {/* Vista de detalle de un alumno específico */}
@@ -1005,8 +1054,8 @@ export default function AdminPage() {
                     <span
                       style={{
                         fontWeight: 'bold', padding: '3px 10px', borderRadius: 20,
-                        background: h.porcentaje >= 60 ? '#eafaf1' : '#fdeceb',
-                        color: h.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
+                        background: h.porcentaje >= umbralAprobacion ? '#eafaf1' : '#fdeceb',
+                        color: h.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b',
                       }}
                     >
                       {h.correctas}/{h.total} ({h.porcentaje}%)
@@ -1019,7 +1068,7 @@ export default function AdminPage() {
                         <span>{c.porcentaje}%</span>
                       </div>
                       <div style={{ background: '#eee', borderRadius: 4, height: 6, overflow: 'hidden' }}>
-                        <div style={{ width: `${c.porcentaje}%`, height: '100%', background: c.porcentaje >= 60 ? '#2e7d32' : '#c0392b' }} />
+                        <div style={{ width: `${c.porcentaje}%`, height: '100%', background: c.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }} />
                       </div>
                     </div>
                   ))}
@@ -1040,8 +1089,8 @@ export default function AdminPage() {
                       <div style={{ fontSize: 28, fontWeight: 'bold', color: '#4a90d9' }}>{resultadosResumen.totalAlumnosEvaluados}</div>
                       <div style={{ fontSize: 12, color: '#666' }}>Alumnos evaluados</div>
                     </div>
-                    <div style={{ flex: 1, minWidth: 160, background: resultadosResumen.promedioGeneral >= 60 ? '#eafaf1' : '#fdeceb', borderRadius: 10, padding: 16, textAlign: 'center' }}>
-                      <div style={{ fontSize: 28, fontWeight: 'bold', color: resultadosResumen.promedioGeneral >= 60 ? '#2e7d32' : '#c0392b' }}>
+                    <div style={{ flex: 1, minWidth: 160, background: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#eafaf1' : '#fdeceb', borderRadius: 10, padding: 16, textAlign: 'center' }}>
+                      <div style={{ fontSize: 28, fontWeight: 'bold', color: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>
                         {resultadosResumen.promedioGeneral}%
                       </div>
                       <div style={{ fontSize: 12, color: '#666' }}>Promedio general</div>
@@ -1054,10 +1103,10 @@ export default function AdminPage() {
                       <div key={m.categoria} style={{ marginBottom: 10 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
                           <span>{m.categoria}</span>
-                          <span style={{ fontWeight: 600, color: m.porcentaje >= 60 ? '#2e7d32' : '#c0392b' }}>{m.porcentaje}%</span>
+                          <span style={{ fontWeight: 600, color: m.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>{m.porcentaje}%</span>
                         </div>
                         <div style={{ background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
-                          <div style={{ width: `${m.porcentaje}%`, height: '100%', background: m.porcentaje >= 60 ? '#2e7d32' : '#c0392b' }} />
+                          <div style={{ width: `${m.porcentaje}%`, height: '100%', background: m.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }} />
                         </div>
                       </div>
                     ))}
@@ -1082,8 +1131,8 @@ export default function AdminPage() {
                           <span
                             style={{
                               fontWeight: 'bold', padding: '3px 10px', borderRadius: 20,
-                              background: a.porcentaje >= 60 ? '#eafaf1' : '#fdeceb',
-                              color: a.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
+                              background: a.porcentaje >= umbralAprobacion ? '#eafaf1' : '#fdeceb',
+                              color: a.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b',
                             }}
                           >
                             {a.porcentaje}%
