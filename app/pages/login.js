@@ -28,53 +28,75 @@ export default function LoginAlumno() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'sans-serif' }}>
-      <div style={{ width: '100%', maxWidth: 380, background: '#fff', borderRadius: 16, boxShadow: '0 10px 30px rgba(0,0,0,0.07)', padding: 36 }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/logo-montebello.webp" alt="Instituto Educativo Montebello" style={{ width: 90, height: 'auto' }} />
-        </div>
-
-        <h1 style={{ fontSize: 20, textAlign: 'center', margin: 0 }}>Instituto Educativo Montebello</h1>
-        <p style={{ textAlign: 'center', color: '#4a90d9', fontStyle: 'italic', fontSize: 12, marginTop: 2, marginBottom: 10 }}>
+    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: 'sans-serif' }}>
+      {/* Panel izquierdo: identidad institucional */}
+      <div
+        className="panel-bienvenida"
+        style={{
+          flex: 1, minWidth: 320, background: 'linear-gradient(160deg, #0d3b66, #14548c)',
+          color: '#fff', padding: '48px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/logo-montebello.webp" alt="" style={{ width: 90, height: 'auto', marginBottom: 28, filter: 'brightness(0) invert(1)', opacity: 0.95 }} />
+        <h1 style={{ fontSize: 28, margin: '0 0 12px 0' }}>Bienvenido</h1>
+        <p style={{ fontSize: 15, opacity: 0.85, lineHeight: 1.6, maxWidth: 380 }}>
+          Examen de diagnóstico del Instituto Educativo Montebello.
+        </p>
+        <p style={{ fontSize: 13, fontStyle: 'italic', opacity: 0.7, marginTop: 24 }}>
           Transformando la educación hacia la sociedad del conocimiento
         </p>
-        <p style={{ textAlign: 'center', color: '#888', marginTop: 0, marginBottom: 28, fontSize: 14 }}>Examen de diagnóstico</p>
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ display: 'block', width: '100%', padding: 11, marginBottom: 12, boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 }}
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ display: 'block', width: '100%', padding: 11, marginBottom: 16, boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 }}
-          />
-          <button
-            type="submit"
-            disabled={cargando}
-            style={{ width: '100%', padding: 12, background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, fontWeight: 600 }}
-          >
-            {cargando ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
+      {/* Panel derecho: formulario */}
+      <div style={{ flex: 1, minWidth: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, background: '#fff' }}>
+        <div style={{ width: '100%', maxWidth: 340 }}>
+          <h2 style={{ fontSize: 22, margin: '0 0 4px 0' }}>Iniciar sesión</h2>
+          <p style={{ color: '#888', fontSize: 14, marginBottom: 28 }}>Ingresa tus datos para continuar.</p>
 
-        {error && <p style={{ color: '#c0392b', marginTop: 12, fontSize: 14 }}>{error}</p>}
+          <form onSubmit={handleSubmit}>
+            <label style={{ fontSize: 13, color: '#555', display: 'block', marginBottom: 4 }}>Correo electrónico</label>
+            <input
+              type="email"
+              placeholder="tucorreo@ejemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{ display: 'block', width: '100%', padding: 11, marginBottom: 16, boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 }}
+            />
+            <label style={{ fontSize: 13, color: '#555', display: 'block', marginBottom: 4 }}>Contraseña</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{ display: 'block', width: '100%', padding: 11, marginBottom: 20, boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 }}
+            />
+            <button
+              type="submit"
+              disabled={cargando}
+              style={{ width: '100%', padding: 12, background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, fontWeight: 600 }}
+            >
+              {cargando ? 'Entrando...' : 'Entrar'}
+            </button>
+          </form>
 
-        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: '#666' }}>
-          <Link href="/recuperar" style={{ color: '#4a90d9' }}>¿Olvidaste tu contraseña?</Link>
-          <br /><br />
-          ¿No tienes cuenta? <Link href="/registro" style={{ color: '#4a90d9' }}>Regístrate aquí</Link>
+          {error && <p style={{ color: '#c0392b', marginTop: 12, fontSize: 14 }}>{error}</p>}
+
+          <div style={{ marginTop: 24, textAlign: 'center', fontSize: 13, color: '#666' }}>
+            <Link href="/recuperar" style={{ color: '#4a90d9' }}>¿Olvidaste tu contraseña?</Link>
+            <br /><br />
+            ¿No tienes cuenta? <Link href="/registro" style={{ color: '#4a90d9' }}>Regístrate aquí</Link>
+          </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        @media (max-width: 700px) {
+          .panel-bienvenida { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 }

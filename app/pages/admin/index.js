@@ -34,6 +34,51 @@ export default function AdminPage() {
   const [alumnoSeleccionadoId, setAlumnoSeleccionadoId] = useState(null);
   const [detalleAlumno, setDetalleAlumno] = useState(null);
   const [cargandoAlumnos, setCargandoAlumnos] = useState(false);
+
+  // Usuarios administradores del panel
+  const [usuariosAdmin, setUsuariosAdmin] = useState(null);
+  const [nuevoAdminNombre, setNuevoAdminNombre] = useState('');
+  const [nuevoAdminEmail, setNuevoAdminEmail] = useState('');
+  const [nuevoAdminPassword, setNuevoAdminPassword] = useState('');
+  const [mensajeUsuarios, setMensajeUsuarios] = useState('');
+
+  async function cargarUsuariosAdmin() {
+    const res = await fetch('/api/admin/usuarios');
+    setUsuariosAdmin(await res.json());
+  }
+
+  async function crearUsuarioAdmin(e) {
+    e.preventDefault();
+    setMensajeUsuarios('');
+    const res = await fetch('/api/admin/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre: nuevoAdminNombre, email: nuevoAdminEmail, password: nuevoAdminPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setMensajeUsuarios(data.error);
+      return;
+    }
+    setNuevoAdminNombre('');
+    setNuevoAdminEmail('');
+    setNuevoAdminPassword('');
+    cargarUsuariosAdmin();
+    mostrarToast('Administrador agregado', 'exito');
+  }
+
+  function borrarUsuarioAdmin(u) {
+    pedirConfirmacion(`¿Eliminar el acceso de "${u.nombre}"?`, async () => {
+      const res = await fetch(`/api/admin/usuarios/${u.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) {
+        mostrarToast(data.error, 'error');
+        return;
+      }
+      cargarUsuariosAdmin();
+      mostrarToast('Administrador eliminado', 'exito');
+    });
+  }
   const [umbralAprobacion, setUmbralAprobacion] = useState(60);
   const [editandoUmbral, setEditandoUmbral] = useState(false);
   const [umbralInput, setUmbralInput] = useState(60);
@@ -247,6 +292,9 @@ export default function AdminPage() {
     if (vistaGeneral === 'alumnos') {
       if (!resultadosResumen) cargarResumenAlumnos();
       cargarUmbral();
+    }
+    if (vistaGeneral === 'usuarios' && !usuariosAdmin) {
+      cargarUsuariosAdmin();
     }
   }, [vistaGeneral]);
 
@@ -820,6 +868,12 @@ export default function AdminPage() {
           style={btnStyle(vistaGeneral === 'alumnos' ? 'primario' : 'secundario', { fontSize: 14 })}
         >
           👥 Alumnos
+        </button>
+        <button
+          onClick={() => setVistaGeneral('usuarios')}
+          style={btnStyle(vistaGeneral === 'usuarios' ? 'primario' : 'secundario', { fontSize: 14 })}
+        >
+          ⚙️ Usuarios
         </button>
       </div>
 
@@ -1569,6 +1623,73 @@ export default function AdminPage() {
               )}
             </>
           )}
+        </div>
+      )}
+
+      {vistaGeneral === 'usuarios' && (
+        <div style={{ maxWidth: 700, margin: '0 auto', padding: 24 }}>
+          <h1 style={{ marginTop: 0 }}>Usuarios del panel de administración</h1>
+          <p style={{ color: '#666', fontSize: 14, marginBottom: 24 }}>
+            Controla quién puede entrar al panel de administración con su propio correo y contraseña.
+          </p>
+
+          <div style={{ border: '2px solid #4a90d9', borderRadius: 8, padding: 20, marginBottom: 32 }}>
+            <h2 style={{ fontSize: 16, marginTop: 0 }}>Agregar administrador</h2>
+            <form onSubmit={crearUsuarioAdmin}>
+              <input
+                placeholder="Nombre completo"
+                value={nuevoAdminNombre}
+                onChange={(e) => setNuevoAdminNombre(e.target.value)}
+                required
+                style={{ display: 'block', width: '100%', padding: 8, marginBottom: 8, boxSizing: 'border-box' }}
+              />
+              <input
+                type="email"
+                placeholder="Correo electrónico"
+                value={nuevoAdminEmail}
+                onChange={(e) => setNuevoAdminEmail(e.target.value)}
+                required
+                style={{ display: 'block', width: '100%', padding: 8, marginBottom: 8, boxSizing: 'border-box' }}
+              />
+              <input
+                type="password"
+                placeholder="Contraseña (mínimo 6 caracteres)"
+                value={nuevoAdminPassword}
+                onChange={(e) => setNuevoAdminPassword(e.target.value)}
+                required
+                minLength={6}
+                style={{ display: 'block', width: '100%', padding: 8, marginBottom: 12, boxSizing: 'border-box' }}
+              />
+              <button type="submit" style={btnStyle('primario')}>+ Agregar administrador</button>
+            </form>
+            {mensajeUsuarios && <p style={{ color: '#c0392b', fontSize: 14 }}>{mensajeUsuarios}</p>}
+          </div>
+
+          <h2 style={{ fontSize: 16 }}>Administradores registrados</h2>
+          {!usuariosAdmin && <p style={{ color: '#888' }}>Cargando...</p>}
+          {usuariosAdmin && usuariosAdmin.length === 0 && (
+            <p style={{ color: '#888' }}>
+              Aún no hay administradores individuales — el acceso funciona con la clave maestra
+              (variable <code>ADMIN_PASSWORD</code>). Agrega el primero arriba.
+            </p>
+          )}
+          {usuariosAdmin && usuariosAdmin.map((u) => (
+            <div
+              key={u.id}
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: 14, border: '1px solid #eee', borderRadius: 8, marginBottom: 8,
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{u.nombre}</div>
+                <div style={{ fontSize: 13, color: '#888' }}>{u.email}</div>
+              </div>
+              <button onClick={() => borrarUsuarioAdmin(u)} style={btnStyle('peligro', { fontSize: 12, padding: '4px 10px' })}>
+                🗑️ Quitar acceso
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
