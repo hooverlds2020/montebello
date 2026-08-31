@@ -589,12 +589,13 @@ export default function AdminPage() {
             <button onClick={() => setEditandoMateriaId(null)} style={{ fontSize: 12 }}>✕</button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
             <button
               onClick={() => setCategoriaActivaId(c.id)}
               style={{
                 display: 'block',
                 flex: 1,
+                minWidth: 0,
                 textAlign: 'left',
                 padding: '8px 10px',
                 border: 'none',
@@ -605,35 +606,46 @@ export default function AdminPage() {
                 fontWeight: c.id === categoriaActivaId ? 'bold' : 'normal',
                 fontStyle: c.activa === false ? 'italic' : 'normal',
                 fontSize: 14,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
             >
               {c.nombre} {c.activa === false && '(deshabilitada)'}
             </button>
-            <button
-              onClick={() => iniciarEdicionMateria(c)}
-              title="Renombrar"
-              style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13 }}
-            >
-              ✏️
-            </button>
-            <button
-              onClick={() => toggleMateriaActiva(c)}
-              title={c.activa === false ? 'Habilitar' : 'Deshabilitar'}
-              style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13 }}
-            >
-              {c.activa === false ? '🔒' : '🔓'}
-            </button>
+            <div style={{ display: 'flex', flexShrink: 0, marginLeft: 'auto' }}>
+              <button
+                onClick={() => iniciarEdicionMateria(c)}
+                title="Renombrar"
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, padding: '4px 6px' }}
+              >
+                ✏️
+              </button>
+              <button
+                onClick={() => toggleMateriaActiva(c)}
+                title={c.activa === false ? 'Habilitar' : 'Deshabilitar'}
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, padding: '4px 6px' }}
+              >
+                {c.activa === false ? '🔒' : '🔓'}
+              </button>
+            </div>
           </div>
         )}
         {editandoMateriaId !== c.id && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 10, marginTop: 2 }}>
-            <span style={{ fontSize: 11, color: '#888' }}>En examen:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 10, marginTop: 6 }}>
+            <span
+              style={{ fontSize: 11, color: '#888', cursor: 'help' }}
+              title="Cuántas preguntas de esta materia se incluyen al azar en el examen de diagnóstico"
+            >
+              En examen: ⓘ
+            </span>
             <input
               type="number"
               min="0"
               defaultValue={c.cantidad_examen || 0}
               onBlur={(e) => actualizarCantidadExamen(c, e.target.value)}
-              style={{ width: 40, fontSize: 11, padding: 2 }}
+              title="Cuántas preguntas de esta materia se incluyen al azar en el examen"
+              style={{ width: 44, fontSize: 11, padding: 3 }}
             />
           </div>
         )}
@@ -825,7 +837,7 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '10px 14px', rowGap: 14, alignItems: 'center', marginBottom: 24, marginTop: 4, flexWrap: 'wrap' }}>
                 <label>
                   Número de preguntas:{' '}
                   <input
@@ -834,14 +846,14 @@ export default function AdminPage() {
                     max="30"
                     value={numPreguntas}
                     onChange={(e) => setNumPreguntas(parseInt(e.target.value, 10) || 1)}
-                    style={{ width: 60, padding: 4 }}
+                    style={{ width: 60, padding: 6 }}
                   />
                 </label>
-                <span>Tipo de opciones:</span>
-                <button type="button" onClick={() => generarCamposRapidos(2)} style={btnStyle('secundario')}>2 opciones</button>
-                <button type="button" onClick={() => generarCamposRapidos(3)} style={btnStyle('secundario')}>3 opciones</button>
-                <button type="button" onClick={() => generarCamposRapidos(4)} style={btnStyle('secundario')}>4 opciones</button>
-                <button type="button" onClick={() => generarCamposRapidos('vf')} style={btnStyle('secundario')}>Verdadero/Falso</button>
+                <span style={{ color: '#666', fontSize: 13 }}>Tipo de opciones:</span>
+                <button type="button" onClick={() => generarCamposRapidos(2)} style={btnStyle('secundario', { minWidth: 96 })}>2 opciones</button>
+                <button type="button" onClick={() => generarCamposRapidos(3)} style={btnStyle('secundario', { minWidth: 96 })}>3 opciones</button>
+                <button type="button" onClick={() => generarCamposRapidos(4)} style={btnStyle('secundario', { minWidth: 96 })}>4 opciones</button>
+                <button type="button" onClick={() => generarCamposRapidos('vf')} style={btnStyle('secundario', { minWidth: 96 })}>Verdadero/Falso</button>
               </div>
 
               {preguntasRapidas.length > 0 && (
@@ -1148,8 +1160,8 @@ export default function AdminPage() {
               ) : (
                 <>
                   <div style={{ display: 'flex', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 160, background: '#f0f4fa', borderRadius: 10, padding: 16, textAlign: 'center' }}>
-                      <div style={{ fontSize: 28, fontWeight: 'bold', color: '#4a90d9' }}>{resultadosResumen.totalAlumnosEvaluados}</div>
+                    <div style={{ flex: 1, minWidth: 160, background: '#f4f4f4', borderRadius: 10, padding: 16, textAlign: 'center' }}>
+                      <div style={{ fontSize: 28, fontWeight: 'bold', color: '#333' }}>{resultadosResumen.totalAlumnosEvaluados}</div>
                       <div style={{ fontSize: 12, color: '#666' }}>Alumnos evaluados</div>
                     </div>
                     <div style={{ flex: 1, minWidth: 160, background: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#eafaf1' : '#fdeceb', borderRadius: 10, padding: 16, textAlign: 'center' }}>
@@ -1163,12 +1175,12 @@ export default function AdminPage() {
                   <div style={{ marginBottom: 32 }}>
                     <h2 style={{ fontSize: 16, marginBottom: 12 }}>Promedio por materia</h2>
                     {resultadosResumen.promedioPorMateria.map((m) => (
-                      <div key={m.categoria} style={{ marginBottom: 10 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
+                      <div key={m.categoria} style={{ marginBottom: 14 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
                           <span>{m.categoria}</span>
                           <span style={{ fontWeight: 600, color: m.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>{m.porcentaje}%</span>
                         </div>
-                        <div style={{ background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+                        <div style={{ background: '#eee', borderRadius: 6, height: 14, overflow: 'hidden' }}>
                           <div style={{ width: `${m.porcentaje}%`, height: '100%', background: m.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }} />
                         </div>
                       </div>

@@ -281,8 +281,8 @@ export default function Examen() {
       {/* Tarjetas de estadísticas rápidas */}
       {historial && historial.length > 0 && (
         <div style={{ display: 'flex', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 140, background: '#f0f4fa', borderRadius: 10, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 28, fontWeight: 'bold', color: '#4a90d9' }}>{historial.length}</div>
+          <div style={{ flex: 1, minWidth: 140, background: '#f4f4f4', borderRadius: 10, padding: 16, textAlign: 'center' }}>
+            <div style={{ fontSize: 28, fontWeight: 'bold', color: '#333' }}>{historial.length}</div>
             <div style={{ fontSize: 12, color: '#666' }}>Intentos realizados</div>
           </div>
           <div style={{ flex: 1, minWidth: 140, background: '#eafaf1', borderRadius: 10, padding: 16, textAlign: 'center' }}>
