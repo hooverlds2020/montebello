@@ -369,6 +369,18 @@ export default function Examen() {
         <div className="ocultar-al-imprimir" style={{ textAlign: 'center', marginTop: 20 }}>
           <button onClick={() => window.print()} style={{ padding: '8px 16px' }}>🖨️ Imprimir / Descargar PDF</button>
         </div>
+
+        <style jsx global>{`
+          @media print {
+            .ocultar-al-imprimir { display: none !important; }
+            .solo-impresion { display: block !important; }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+          }
+        `}</style>
       </div>
     );
   }
