@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 
 const PALETA = ['#4a90d9', '#2e7d32', '#e08e2b', '#8e44ad', '#c0392b', '#16a085'];
@@ -64,6 +64,8 @@ export default function Examen() {
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState('');
   const [segundosRestantes, setSegundosRestantes] = useState(null);
+  const [transicionSeccion, setTransicionSeccion] = useState(null); // { preguntaPendiente }
+  const seccionActualRef = useRef(null);
 
   const [historial, setHistorial] = useState(null);
   const [resultadoHistorico, setResultadoHistorico] = useState(null);
@@ -114,7 +116,27 @@ export default function Examen() {
       return;
     }
     setExamenId(data.examenId);
+    seccionActualRef.current = null; // nuevo examen: reinicia la detección de cambio de sección
     cargarSiguiente(data.examenId);
+  }
+
+  function claveDeSeccion(data) {
+    return data.lectura ? `lectura-${data.lectura.id}` : `categoria-${data.categoria}`;
+  }
+
+  function descripcionSeccion(data) {
+    if (data.lectura) {
+      return {
+        titulo: 'Nueva lectura',
+        detalle: data.lectura.titulo
+          ? `A continuación un texto: "${data.lectura.titulo}". Léelo con calma antes de responder las preguntas relacionadas.`
+          : 'A continuación un nuevo texto de lectura. Léelo con calma antes de responder las preguntas relacionadas.',
+      };
+    }
+    return {
+      titulo: 'Nueva sección',
+      detalle: `A continuación, reactivos de ${data.categoria}, sin texto de apoyo.`,
+    };
   }
 
   async function cargarSiguiente(id) {
@@ -129,7 +151,20 @@ export default function Examen() {
       finalizarExamen(id);
       return;
     }
+    const clave = claveDeSeccion(data);
+    if (seccionActualRef.current !== null && seccionActualRef.current !== clave) {
+      setTransicionSeccion({ preguntaPendiente: data });
+      return;
+    }
+    seccionActualRef.current = clave;
     setPregunta(data);
+  }
+
+  function continuarTrasTransicion() {
+    const data = transicionSeccion.preguntaPendiente;
+    seccionActualRef.current = claveDeSeccion(data);
+    setPregunta(data);
+    setTransicionSeccion(null);
   }
 
   async function enviarRespuesta() {
@@ -211,6 +246,26 @@ export default function Examen() {
   }
 
   // ---- Pantalla de presentación de pregunta ----
+  // ---- Aviso de cambio de sección/lectura (antes de mostrar la siguiente pregunta) ----
+  if (transicionSeccion) {
+    const { titulo, detalle } = descripcionSeccion(transicionSeccion.preguntaPendiente);
+    return (
+      <div style={{ maxWidth: 480, margin: '80px auto', fontFamily: 'sans-serif', padding: 24, textAlign: 'center' }}>
+        <div style={{ background: '#eaf2fb', borderRadius: 14, padding: '32px 28px' }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>📘</div>
+          <h2 style={{ margin: '0 0 8px 0', color: '#2c5a86' }}>{titulo}</h2>
+          <p style={{ color: '#3a5b7a', fontSize: 15, marginBottom: 24 }}>{detalle}</p>
+          <button
+            onClick={continuarTrasTransicion}
+            style={{ padding: '10px 28px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, fontWeight: 600 }}
+          >
+            Continuar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (pregunta) {
     const tiempoBajo = segundosRestantes !== null && segundosRestantes <= 300; // últimos 5 min
     return (
