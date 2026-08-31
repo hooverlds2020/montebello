@@ -12,14 +12,14 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { nombre } = req.body;
+    const { nombre, categoria_padre_id } = req.body;
     if (!nombre || !nombre.trim()) {
       return res.status(400).json({ error: 'El nombre de la categoría es obligatorio' });
     }
     try {
       const { rows } = await pool.query(
-        'INSERT INTO categorias (nombre) VALUES ($1) RETURNING *',
-        [nombre.trim()]
+        'INSERT INTO categorias (nombre, categoria_padre_id) VALUES ($1, $2) RETURNING *',
+        [nombre.trim(), categoria_padre_id || null]
       );
       return res.status(201).json(rows[0]);
     } catch (e) {

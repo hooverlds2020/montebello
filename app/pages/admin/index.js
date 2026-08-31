@@ -222,13 +222,15 @@ export default function AdminPage() {
     }
   }, [vistaGeneral]);
 
+  const [nuevaCategoriaPadreId, setNuevaCategoriaPadreId] = useState('');
+
   async function crearCategoria(e) {
     e.preventDefault();
     setMensaje('');
     const res = await fetch('/api/admin/categorias', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre: nuevaCategoria }),
+      body: JSON.stringify({ nombre: nuevaCategoria, categoria_padre_id: nuevaCategoriaPadreId || null }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -236,6 +238,7 @@ export default function AdminPage() {
       return;
     }
     setNuevaCategoria('');
+    setNuevaCategoriaPadreId('');
     cargarCategorias();
     setCategoriaActivaId(data.id);
   }
@@ -772,6 +775,16 @@ export default function AdminPage() {
             onChange={(e) => setNuevaCategoria(e.target.value)}
             style={{ width: '100%', padding: 6, marginBottom: 6, boxSizing: 'border-box' }}
           />
+          <select
+            value={nuevaCategoriaPadreId}
+            onChange={(e) => setNuevaCategoriaPadreId(e.target.value)}
+            style={{ width: '100%', padding: 6, marginBottom: 6, boxSizing: 'border-box', fontSize: 13 }}
+          >
+            <option value="">— Materia de primer nivel (sin padre) —</option>
+            {categorias.filter((c) => !c.categoria_padre_id).map((c) => (
+              <option key={c.id} value={c.id}>Subcategoría de: {c.nombre}</option>
+            ))}
+          </select>
           <button type="submit" style={btnStyle('primario', { width: '100%', padding: 8 })}>+ Agregar materia</button>
         </form>
         {mensaje && <p style={{ color: 'red', fontSize: 13 }}>{mensaje}</p>}
