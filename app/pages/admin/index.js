@@ -851,9 +851,11 @@ export default function AdminPage() {
             opacity: 1;
           }
         }
+        @page { margin: 15mm; }
         @media print {
           .ocultar-al-imprimir { display: none !important; }
           .barra-superior-admin { display: none !important; }
+          .solo-impresion { display: block !important; }
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -1457,6 +1459,24 @@ export default function AdminPage() {
           {/* Vista de detalle de un alumno específico */}
           {detalleAlumno && (
             <div>
+              {/* Membrete de impresión: solo visible al imprimir */}
+              <div className="solo-impresion" style={{ display: 'none', marginBottom: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0d3b66', paddingBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/img/logo-montebello.webp" alt="" style={{ width: 42, height: 'auto' }} />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: '#0d3b66' }}>Instituto Educativo Montebello</div>
+                      <div style={{ fontSize: 10, color: '#888', fontStyle: 'italic' }}>Transformando la educación hacia la sociedad del conocimiento</div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', fontSize: 11, color: '#555' }}>
+                    <div>{detalleAlumno.alumno.nombre}</div>
+                    <div>{new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                  </div>
+                </div>
+              </div>
+
               <div style={{ background: '#f7f8fa', borderRadius: 10, padding: 16, marginBottom: 24, fontSize: 14 }}>
                 <div style={{ marginBottom: 6 }}><strong>Correo:</strong> {detalleAlumno.alumno.email}</div>
                 {detalleAlumno.alumno.telefono && (
@@ -1472,7 +1492,14 @@ export default function AdminPage() {
               {detalleAlumno.historial.length === 0 && (
                 <p style={{ color: '#888' }}>Este alumno aún no ha finalizado ningún examen.</p>
               )}
-              {detalleAlumno.historial.map((h) => (
+              {detalleAlumno.historial.map((h) => {
+                const urlVerifAdmin = typeof window !== 'undefined'
+                  ? `${window.location.origin}/verificar?folio=${h.examenId}`
+                  : '';
+                const urlQrAdmin = urlVerifAdmin
+                  ? `https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(urlVerifAdmin)}`
+                  : '';
+                return (
                 <div key={h.examenId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 20, marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                     <span style={{ fontWeight: 600, fontSize: 14 }}>
@@ -1486,8 +1513,20 @@ export default function AdminPage() {
                       porCategoria: h.porCategoria,
                     }}
                   />
+                  <div className="solo-impresion" style={{ display: 'none', marginTop: 20 }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }}>
+                      <div style={{ textAlign: 'right', fontSize: 10, color: '#888', maxWidth: 160 }}>
+                        Folio #{h.examenId}<br />Escanea para verificar la autenticidad
+                      </div>
+                      {urlQrAdmin && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={urlQrAdmin} alt="Código QR de verificación" style={{ width: 60, height: 60 }} />
+                      )}
+                    </div>
+                  </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
