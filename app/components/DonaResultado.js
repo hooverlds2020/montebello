@@ -32,11 +32,18 @@ export default function DonaResultado({ resultado, tamano = 220 }) {
 
       <div style={{ minWidth: 200 }}>
         {segmentos.map((s) => (
-          <div key={s.categoria} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <span style={{ width: 14, height: 14, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+          <div
+            key={s.categoria}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10,
+              borderLeft: `4px solid ${s.color}`, background: `${s.color}12`,
+              padding: '8px 12px', borderRadius: 6,
+            }}
+          >
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#333' }}>{s.categoria}</div>
-              <div style={{ fontSize: 13, color: '#888' }}>{s.correctas}/{s.total} correctas · {s.porcentaje}%</div>
+              <div style={{ fontSize: 13, color: '#666' }}>{s.correctas}/{s.total} correctas · <strong style={{ color: s.color }}>{s.porcentaje}%</strong></div>
             </div>
           </div>
         ))}

@@ -799,6 +799,11 @@ export default function AdminPage() {
         @media print {
           .ocultar-al-imprimir { display: none !important; }
           .barra-superior-admin { display: none !important; }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
         }
       `}</style>
 
