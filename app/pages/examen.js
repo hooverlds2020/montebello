@@ -205,17 +205,28 @@ export default function Examen() {
   if (resultado) {
     return (
       <div style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
+        <div className="solo-impresion" style={{ display: 'none', textAlign: 'center', marginBottom: 16 }}>
+          <strong>Instituto Educativo Montebello</strong> — Resultado de examen de diagnóstico<br />
+          {alumno?.nombre} · {alumno?.email} · {new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
+        </div>
         <h1 style={{ textAlign: 'center', marginBottom: 32 }}>Resultado del diagnóstico</h1>
         <DonaResultado resultado={resultado} />
-        <div style={{ textAlign: 'center', marginTop: 40, display: 'flex', gap: 12, justifyContent: 'center' }}>
+        <div className="ocultar-al-imprimir" style={{ textAlign: 'center', marginTop: 40, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
             onClick={() => { setResultado(null); }}
             style={{ padding: '8px 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
           >
             Ver mi panel
           </button>
+          <button onClick={() => window.print()} style={{ padding: '8px 16px' }}>🖨️ Imprimir / Guardar PDF</button>
           <button onClick={cerrarSesion} style={{ padding: '8px 16px' }}>Cerrar sesión</button>
         </div>
+        <style jsx global>{`
+          @media print {
+            .ocultar-al-imprimir { display: none !important; }
+            .solo-impresion { display: block !important; }
+          }
+        `}</style>
       </div>
     );
   }

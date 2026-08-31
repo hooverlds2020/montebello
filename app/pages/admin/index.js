@@ -39,6 +39,9 @@ export default function AdminPage() {
   const [tiempoLimiteMinutos, setTiempoLimiteMinutos] = useState(120);
   const [editandoTiempo, setEditandoTiempo] = useState(false);
   const [tiempoInput, setTiempoInput] = useState(120);
+  const [intentosPermitidos, setIntentosPermitidos] = useState(0);
+  const [editandoIntentos, setEditandoIntentos] = useState(false);
+  const [intentosInput, setIntentosInput] = useState(0);
 
   async function cargarUmbral() {
     const res = await fetch('/api/admin/configuracion');
@@ -47,6 +50,8 @@ export default function AdminPage() {
     setUmbralInput(data.umbral_aprobacion);
     setTiempoLimiteMinutos(data.tiempo_limite_minutos);
     setTiempoInput(data.tiempo_limite_minutos);
+    setIntentosPermitidos(data.intentos_permitidos ?? 0);
+    setIntentosInput(data.intentos_permitidos ?? 0);
   }
 
   async function guardarUmbral() {
@@ -79,6 +84,22 @@ export default function AdminPage() {
     setTiempoLimiteMinutos(tiempoInput);
     setEditandoTiempo(false);
     mostrarToast('Tiempo del examen actualizado (aplica a exámenes nuevos)', 'exito');
+  }
+
+  async function guardarIntentos() {
+    const res = await fetch('/api/admin/configuracion', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intentosPermitidos: intentosInput }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    setIntentosPermitidos(intentosInput);
+    setEditandoIntentos(false);
+    mostrarToast('Límite de intentos actualizado', 'exito');
   }
 
   async function cargarResumenAlumnos() {
@@ -1289,7 +1310,7 @@ export default function AdminPage() {
               ) : (
                 <>
                   <strong>{umbralAprobacion}%</strong>
-                  <button onClick={() => setEditandoUmbral(true)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>✏️ Editar</button>
+                  <button onClick={() => setEditandoUmbral(true)} title="Editar" style={btnStyle('secundario', { padding: '4px 8px', fontSize: 12 })}>✏️</button>
                 </>
               )}
             </div>
@@ -1312,7 +1333,29 @@ export default function AdminPage() {
               ) : (
                 <>
                   <strong>{tiempoLimiteMinutos} minutos</strong>
-                  <button onClick={() => setEditandoTiempo(true)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>✏️ Editar</button>
+                  <button onClick={() => setEditandoTiempo(true)} title="Editar" style={btnStyle('secundario', { padding: '4px 8px', fontSize: 12 })}>✏️</button>
+                </>
+              )}
+            </div>
+          )}
+
+          {!detalleAlumno && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, fontSize: 13, color: '#666', flexWrap: 'wrap' }}>
+              <span>Intentos permitidos por alumno (0 = ilimitados):</span>
+              {editandoIntentos ? (
+                <>
+                  <input
+                    type="number" min="0" max="20" value={intentosInput}
+                    onChange={(e) => setIntentosInput(parseInt(e.target.value, 10) || 0)}
+                    style={{ width: 60, padding: 4 }}
+                  />
+                  <button onClick={guardarIntentos} style={btnStyle('primario', { padding: '4px 10px', fontSize: 12 })}>Guardar</button>
+                  <button onClick={() => setEditandoIntentos(false)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>Cancelar</button>
+                </>
+              ) : (
+                <>
+                  <strong>{intentosPermitidos === 0 ? 'Ilimitados' : intentosPermitidos}</strong>
+                  <button onClick={() => setEditandoIntentos(true)} title="Editar" style={btnStyle('secundario', { padding: '4px 8px', fontSize: 12 })}>✏️</button>
                 </>
               )}
             </div>
@@ -1323,7 +1366,18 @@ export default function AdminPage() {
           {/* Vista de detalle de un alumno específico */}
           {detalleAlumno && (
             <div>
-              <p style={{ color: '#666', fontSize: 14, marginBottom: 20 }}>{detalleAlumno.alumno.email}</p>
+              <div style={{ background: '#f7f8fa', borderRadius: 10, padding: 16, marginBottom: 24, fontSize: 14 }}>
+                <div style={{ marginBottom: 6 }}><strong>Correo:</strong> {detalleAlumno.alumno.email}</div>
+                {detalleAlumno.alumno.telefono && (
+                  <div style={{ marginBottom: 6 }}><strong>Teléfono:</strong> {detalleAlumno.alumno.telefono}</div>
+                )}
+                {detalleAlumno.alumno.preparatoria_procedencia && (
+                  <div style={{ marginBottom: 6 }}><strong>Preparatoria de procedencia:</strong> {detalleAlumno.alumno.preparatoria_procedencia}</div>
+                )}
+                <div style={{ color: '#888', fontSize: 13 }}>
+                  Registrado el {new Date(detalleAlumno.alumno.creado_en).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
+                </div>
+              </div>
               {detalleAlumno.historial.length === 0 && (
                 <p style={{ color: '#888' }}>Este alumno aún no ha finalizado ningún examen.</p>
               )}

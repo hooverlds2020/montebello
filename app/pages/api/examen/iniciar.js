@@ -78,6 +78,21 @@ export default async function handler(req, res) {
     return res.status(200).json({ examenId: enProgreso.rows[0].id, retomado: true });
   }
 
+  // Verifica el límite de intentos permitidos (0 = ilimitados)
+  const { rows: configRows0 } = await pool.query('SELECT intentos_permitidos FROM configuracion ORDER BY id LIMIT 1');
+  const intentosPermitidos = configRows0[0]?.intentos_permitidos ?? 0;
+  if (intentosPermitidos > 0) {
+    const { rows: conteo } = await pool.query(
+      `SELECT count(*) FROM examenes WHERE alumno_id = $1 AND estado = 'finalizado'`,
+      [sesion.alumnoId]
+    );
+    if (parseInt(conteo[0].count, 10) >= intentosPermitidos) {
+      return res.status(403).json({
+        error: `Ya alcanzaste el número máximo de intentos permitidos (${intentosPermitidos}). Si crees que esto es un error, contacta al instituto.`,
+      });
+    }
+  }
+
   // Materias habilitadas con cantidad configurada para el examen
   const { rows: categorias } = await pool.query(
     `SELECT id, cantidad_examen FROM categorias WHERE activa = TRUE AND cantidad_examen > 0 ORDER BY orden, id`

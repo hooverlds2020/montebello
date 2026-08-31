@@ -5,6 +5,8 @@ import { useRouter } from 'next/router';
 export default function Registro() {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [preparatoriaProcedencia, setPreparatoriaProcedencia] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +24,7 @@ export default function Registro() {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, email, password }),
+      body: JSON.stringify({ nombre, email, password, telefono, preparatoriaProcedencia }),
     });
     const data = await res.json();
     setCargando(false);
@@ -33,8 +35,10 @@ export default function Registro() {
     router.push('/examen');
   }
 
+  const estiloInput = { display: 'block', width: '100%', padding: 10, marginBottom: 10, boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 6 };
+
   return (
-    <div style={{ maxWidth: 380, margin: '60px auto', fontFamily: 'sans-serif', padding: 24 }}>
+    <div style={{ maxWidth: 380, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
       <h1 style={{ fontSize: 22, textAlign: 'center' }}>Crear cuenta</h1>
       <p style={{ textAlign: 'center', color: '#666', marginBottom: 24 }}>Examen de diagnóstico</p>
 
@@ -44,7 +48,7 @@ export default function Registro() {
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           required
-          style={{ display: 'block', width: '100%', padding: 10, marginBottom: 10, boxSizing: 'border-box' }}
+          style={estiloInput}
         />
         <input
           type="email"
@@ -52,7 +56,20 @@ export default function Registro() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ display: 'block', width: '100%', padding: 10, marginBottom: 10, boxSizing: 'border-box' }}
+          style={estiloInput}
+        />
+        <input
+          type="tel"
+          placeholder="Teléfono (opcional)"
+          value={telefono}
+          onChange={(e) => setTelefono(e.target.value)}
+          style={estiloInput}
+        />
+        <input
+          placeholder="Preparatoria de procedencia (opcional)"
+          value={preparatoriaProcedencia}
+          onChange={(e) => setPreparatoriaProcedencia(e.target.value)}
+          style={estiloInput}
         />
         <input
           type="password"
@@ -61,7 +78,7 @@ export default function Registro() {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
-          style={{ display: 'block', width: '100%', padding: 10, marginBottom: 10, boxSizing: 'border-box' }}
+          style={estiloInput}
         />
         <input
           type="password"
@@ -69,7 +86,7 @@ export default function Registro() {
           value={password2}
           onChange={(e) => setPassword2(e.target.value)}
           required
-          style={{ display: 'block', width: '100%', padding: 10, marginBottom: 10, boxSizing: 'border-box' }}
+          style={estiloInput}
         />
         <button
           type="submit"
