@@ -433,6 +433,9 @@ export default function AdminPage() {
   }
 
   const categoriaActiva = categorias.find((c) => c.id === categoriaActivaId);
+  const categoriaPadreActiva = categoriaActiva?.categoria_padre_id
+    ? categorias.find((c) => c.id === categoriaActiva.categoria_padre_id)
+    : null;
 
   // Agrupa reactivos por lectura (manteniendo el orden en que aparecen), para no
   // mezclar en la vista preguntas de lecturas distintas ni las sueltas sin lectura.
@@ -455,6 +458,73 @@ export default function AdminPage() {
     setGruposAbiertos((prev) => ({ ...prev, [clave]: !prev[clave] }));
   }
 
+  function renderMateriaItem(c) {
+    return (
+      <>
+        {editandoMateriaId === c.id ? (
+          <div style={{ display: 'flex', gap: 4 }}>
+            <input
+              value={editMateriaNombre}
+              onChange={(e) => setEditMateriaNombre(e.target.value)}
+              style={{ flex: 1, padding: 4, fontSize: 13 }}
+              autoFocus
+            />
+            <button onClick={() => guardarNombreMateria(c.id)} style={{ fontSize: 12 }}>✓</button>
+            <button onClick={() => setEditandoMateriaId(null)} style={{ fontSize: 12 }}>✕</button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button
+              onClick={() => setCategoriaActivaId(c.id)}
+              style={{
+                display: 'block',
+                flex: 1,
+                textAlign: 'left',
+                padding: '8px 10px',
+                border: 'none',
+                borderRadius: 6,
+                cursor: 'pointer',
+                background: c.id === categoriaActivaId ? '#4a90d9' : 'transparent',
+                color: c.id === categoriaActivaId ? '#fff' : c.activa === false ? '#aaa' : '#333',
+                fontWeight: c.id === categoriaActivaId ? 'bold' : 'normal',
+                fontStyle: c.activa === false ? 'italic' : 'normal',
+                fontSize: 14,
+              }}
+            >
+              {c.nombre} {c.activa === false && '(deshabilitada)'}
+            </button>
+            <button
+              onClick={() => iniciarEdicionMateria(c)}
+              title="Renombrar"
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13 }}
+            >
+              ✏️
+            </button>
+            <button
+              onClick={() => toggleMateriaActiva(c)}
+              title={c.activa === false ? 'Habilitar' : 'Deshabilitar'}
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13 }}
+            >
+              {c.activa === false ? '🔒' : '🔓'}
+            </button>
+          </div>
+        )}
+        {editandoMateriaId !== c.id && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 10, marginTop: 2 }}>
+            <span style={{ fontSize: 11, color: '#888' }}>En examen:</span>
+            <input
+              type="number"
+              min="0"
+              defaultValue={c.cantidad_examen || 0}
+              onBlur={(e) => actualizarCantidadExamen(c, e.target.value)}
+              style={{ width: 40, fontSize: 11, padding: 2 }}
+            />
+          </div>
+        )}
+      </>
+    );
+  }
+
 
   return (
     <div className="admin-root" style={{ display: 'flex', minHeight: '100vh', fontFamily: 'sans-serif' }}>
@@ -472,72 +542,32 @@ export default function AdminPage() {
         }
       `}</style>
       {/* MENÚ LATERAL */}
-      <aside className="admin-sidebar" style={{ width: 220, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
+      <aside className="admin-sidebar" style={{ width: 240, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
         <h2 style={{ fontSize: 16, marginBottom: 12 }}>Materias</h2>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {categorias.map((c) => (
-            <li key={c.id} style={{ marginBottom: 4 }}>
-              {editandoMateriaId === c.id ? (
-                <div style={{ display: 'flex', gap: 4 }}>
-                  <input
-                    value={editMateriaNombre}
-                    onChange={(e) => setEditMateriaNombre(e.target.value)}
-                    style={{ flex: 1, padding: 4, fontSize: 13 }}
-                    autoFocus
-                  />
-                  <button onClick={() => guardarNombreMateria(c.id)} style={{ fontSize: 12 }}>✓</button>
-                  <button onClick={() => setEditandoMateriaId(null)} style={{ fontSize: 12 }}>✕</button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <button
-                    onClick={() => setCategoriaActivaId(c.id)}
-                    style={{
-                      display: 'block',
-                      flex: 1,
-                      textAlign: 'left',
-                      padding: '8px 10px',
-                      border: 'none',
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                      background: c.id === categoriaActivaId ? '#4a90d9' : 'transparent',
-                      color: c.id === categoriaActivaId ? '#fff' : c.activa === false ? '#aaa' : '#333',
-                      fontWeight: c.id === categoriaActivaId ? 'bold' : 'normal',
-                      fontStyle: c.activa === false ? 'italic' : 'normal',
-                    }}
-                  >
-                    {c.nombre} {c.activa === false && '(deshabilitada)'}
-                  </button>
-                  <button
-                    onClick={() => iniciarEdicionMateria(c)}
-                    title="Renombrar"
-                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13 }}
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => toggleMateriaActiva(c)}
-                    title={c.activa === false ? 'Habilitar' : 'Deshabilitar'}
-                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13 }}
-                  >
-                    {c.activa === false ? '🔒' : '🔓'}
-                  </button>
-                </div>
-              )}
-              {editandoMateriaId !== c.id && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 10, marginTop: 2 }}>
-                  <span style={{ fontSize: 11, color: '#888' }}>En examen:</span>
-                  <input
-                    type="number"
-                    min="0"
-                    defaultValue={c.cantidad_examen || 0}
-                    onBlur={(e) => actualizarCantidadExamen(c, e.target.value)}
-                    style={{ width: 40, fontSize: 11, padding: 2 }}
-                  />
-                </div>
-              )}
-            </li>
-          ))}
+          {categorias.filter((c) => !c.categoria_padre_id).map((padre) => {
+            const hijos = categorias.filter((h) => h.categoria_padre_id === padre.id);
+            return (
+              <li key={padre.id} style={{ marginBottom: hijos.length > 0 ? 10 : 4 }}>
+                {hijos.length > 0 ? (
+                  <>
+                    <div style={{ fontSize: 12, fontWeight: 'bold', color: '#888', textTransform: 'uppercase', padding: '4px 10px' }}>
+                      {padre.nombre}
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderLeft: '2px solid #eee', marginLeft: 10 }}>
+                      {hijos.map((h) => (
+                        <li key={h.id} style={{ marginBottom: 4 }}>
+                          {renderMateriaItem(h)}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  renderMateriaItem(padre)
+                )}
+              </li>
+            );
+          })}
         </ul>
 
         <form onSubmit={crearCategoria} style={{ marginTop: 16 }}>
@@ -555,7 +585,9 @@ export default function AdminPage() {
       {/* CONTENIDO PRINCIPAL */}
       <main className="admin-main" style={{ flex: 1, padding: 24, maxWidth: 900, minWidth: 0 }}>
         <h1 style={{ marginTop: 0, marginBottom: 20 }}>
-          {categoriaActiva ? categoriaActiva.nombre : 'Selecciona una materia'}
+          {categoriaActiva
+            ? (categoriaPadreActiva ? `${categoriaPadreActiva.nombre} › ${categoriaActiva.nombre}` : categoriaActiva.nombre)
+            : 'Selecciona una materia'}
         </h1>
 
         {categoriaActiva && categoriaActiva.activa === false && (
