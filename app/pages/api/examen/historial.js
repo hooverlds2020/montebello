@@ -20,6 +20,33 @@ export default async function handler(req, res) {
     [sesion.alumnoId]
   );
 
+  // Desglose por materia de cada examen, para mostrarlo directo en la lista
+  const { rows: filasCategoria } = await pool.query(
+    `SELECT e.id AS examen_id, c.nombre AS categoria,
+            count(er.id) AS total,
+            count(er.id) FILTER (WHERE o.es_correcta) AS correctas
+     FROM examenes e
+     JOIN examen_reactivos er ON er.examen_id = e.id
+     JOIN reactivos r ON r.id = er.reactivo_id
+     JOIN categorias c ON c.id = r.categoria_id
+     LEFT JOIN opciones o ON o.id = er.opcion_respondida_id
+     WHERE e.alumno_id = $1 AND e.estado = 'finalizado'
+     GROUP BY e.id, c.nombre
+     ORDER BY e.id, c.nombre`,
+    [sesion.alumnoId]
+  );
+
+  const categoriasPorExamen = {};
+  for (const f of filasCategoria) {
+    if (!categoriasPorExamen[f.examen_id]) categoriasPorExamen[f.examen_id] = [];
+    categoriasPorExamen[f.examen_id].push({
+      categoria: f.categoria,
+      total: parseInt(f.total, 10),
+      correctas: parseInt(f.correctas, 10),
+      porcentaje: Math.round((parseInt(f.correctas, 10) / parseInt(f.total, 10)) * 100),
+    });
+  }
+
   const historial = rows.map((r) => ({
     examenId: r.id,
     iniciadoEn: r.iniciado_en,
@@ -27,6 +54,7 @@ export default async function handler(req, res) {
     total: parseInt(r.total, 10),
     correctas: parseInt(r.correctas, 10),
     porcentaje: Math.round((parseInt(r.correctas, 10) / parseInt(r.total, 10)) * 100),
+    porCategoria: categoriasPorExamen[r.id] || [],
   }));
 
   return res.status(200).json(historial);

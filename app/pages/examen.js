@@ -314,25 +314,42 @@ export default function Examen() {
               key={h.examenId}
               onClick={() => verResultadoHistorico(h.examenId)}
               style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: 14, border: '1px solid #eee', borderRadius: 8, marginBottom: 8, cursor: 'pointer',
               }}
             >
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{formatearFecha(h.finalizadoEn)}</div>
-                <div style={{ fontSize: 13, color: '#888' }}>{h.correctas} de {h.total} correctas</div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div
-                  style={{
-                    fontSize: 15, fontWeight: 'bold', color: h.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
-                    background: h.porcentaje >= 60 ? '#eafaf1' : '#fdeceb', padding: '4px 10px', borderRadius: 20,
-                  }}
-                >
-                  {h.porcentaje}%
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: h.porCategoria.length > 0 ? 10 : 0 }}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{formatearFecha(h.finalizadoEn)}</div>
+                  <div style={{ fontSize: 13, color: '#888' }}>{h.correctas} de {h.total} correctas</div>
                 </div>
-                <span style={{ color: '#ccc' }}>›</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div
+                    style={{
+                      fontSize: 15, fontWeight: 'bold', color: h.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
+                      background: h.porcentaje >= 60 ? '#eafaf1' : '#fdeceb', padding: '4px 10px', borderRadius: 20,
+                    }}
+                  >
+                    {h.porcentaje}%
+                  </div>
+                  <span style={{ color: '#ccc' }}>›</span>
+                </div>
               </div>
+              {h.porCategoria.length > 0 && (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderTop: '1px solid #f2f2f2', paddingTop: 10 }}>
+                  {h.porCategoria.map((c) => (
+                    <div
+                      key={c.categoria}
+                      style={{
+                        fontSize: 12, padding: '3px 10px', borderRadius: 20,
+                        background: c.porcentaje >= 60 ? '#eafaf1' : '#fdeceb',
+                        color: c.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
+                      }}
+                    >
+                      {c.categoria}: {c.porcentaje}%
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
