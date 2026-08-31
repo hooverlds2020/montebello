@@ -12,6 +12,7 @@ function formatearFecha(iso) {
 export default function Examen() {
   const [alumno, setAlumno] = useState(null);
   const [umbralAprobacion, setUmbralAprobacion] = useState(60); // valor por defecto mientras carga
+  const [intentosPermitidos, setIntentosPermitidos] = useState(0); // 0 = ilimitados
   const [cargando, setCargando] = useState(true);
   const [examenId, setExamenId] = useState(null);
   const [pregunta, setPregunta] = useState(null);
@@ -44,8 +45,11 @@ export default function Examen() {
 
     fetch('/api/config/publico')
       .then((res) => res.json())
-      .then((data) => setUmbralAprobacion(data.umbralAprobacion))
-      .catch(() => {}); // si falla, se queda con el valor por defecto (60)
+      .then((data) => {
+        setUmbralAprobacion(data.umbralAprobacion);
+        setIntentosPermitidos(data.intentosPermitidos ?? 0);
+      })
+      .catch(() => {}); // si falla, se queda con los valores por defecto
   }, []);
 
   async function cargarHistorial() {
@@ -325,17 +329,45 @@ export default function Examen() {
 
   // ---- Ver el detalle de un intento pasado ----
   if (resultadoHistorico) {
+    const urlVerifHist = typeof window !== 'undefined'
+      ? `${window.location.origin}/verificar?folio=${resultadoHistorico.examenId}`
+      : '';
+    const urlQrHist = urlVerifHist
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(urlVerifHist)}`
+      : '';
+
     return (
       <div style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
         <button
           onClick={() => setResultadoHistorico(null)}
+          className="ocultar-al-imprimir"
           style={{ background: 'transparent', border: 'none', color: '#4a90d9', cursor: 'pointer', fontSize: 14, padding: 0, marginBottom: 24, display: 'block' }}
         >
           ← Volver al panel
         </button>
+
+        <div className="solo-impresion" style={{ display: 'none', textAlign: 'center', marginBottom: 16 }}>
+          <strong>Instituto Educativo Montebello</strong> — Resultado de examen de diagnóstico<br />
+          {alumno?.nombre} · {alumno?.email}
+        </div>
+
         <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 14, padding: '36px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
           <h1 style={{ textAlign: 'center', marginTop: 0, marginBottom: 28, fontSize: 20 }}>Detalle del intento</h1>
           <DonaResultado resultado={resultadoHistorico} />
+
+          <div className="solo-impresion" style={{ display: 'none', textAlign: 'center', marginTop: 32 }}>
+            {urlQrHist && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={urlQrHist} alt="Código QR de verificación" style={{ width: 100, height: 100 }} />
+            )}
+            <p style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+              Folio #{resultadoHistorico.examenId} — Escanea para verificar la autenticidad de este resultado
+            </p>
+          </div>
+        </div>
+
+        <div className="ocultar-al-imprimir" style={{ textAlign: 'center', marginTop: 20 }}>
+          <button onClick={() => window.print()} style={{ padding: '8px 16px' }}>🖨️ Imprimir / Descargar PDF</button>
         </div>
       </div>
     );
@@ -375,20 +407,37 @@ export default function Examen() {
         </div>
       )}
 
-      {/* Botón para nuevo examen */}
-      <div style={{ textAlign: 'center', marginBottom: 40, padding: 28, background: '#eaf2fb', borderRadius: 12 }}>
-        <p style={{ color: '#3a5b7a', marginBottom: 16, fontSize: 15 }}>
-          {historial && historial.length > 0
-            ? '¿Listo para presentar un nuevo diagnóstico?'
-            : 'Aún no has presentado tu examen de diagnóstico.'}
-        </p>
-        <button
-          onClick={iniciarExamen}
-          style={{ padding: '12px 28px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 600 }}
-        >
-          Iniciar examen
-        </button>
-      </div>
+      {/* Botón para nuevo examen (o mensaje de límite alcanzado) */}
+      {(() => {
+        const yaAlcanzoLimite = intentosPermitidos > 0 && historial && historial.length >= intentosPermitidos;
+
+        if (yaAlcanzoLimite) {
+          return (
+            <div style={{ textAlign: 'center', marginBottom: 40, padding: 28, background: '#fdf3e3', borderRadius: 12 }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
+              <p style={{ color: '#8a6416', margin: 0, fontSize: 15 }}>
+                Ya presentaste tu examen de diagnóstico. Puedes consultar tu resultado abajo en el historial.
+              </p>
+            </div>
+          );
+        }
+
+        return (
+          <div style={{ textAlign: 'center', marginBottom: 40, padding: 28, background: '#eaf2fb', borderRadius: 12 }}>
+            <p style={{ color: '#3a5b7a', marginBottom: 16, fontSize: 15 }}>
+              {historial && historial.length > 0
+                ? '¿Listo para presentar un nuevo diagnóstico?'
+                : 'Aún no has presentado tu examen de diagnóstico.'}
+            </p>
+            <button
+              onClick={iniciarExamen}
+              style={{ padding: '12px 28px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 600 }}
+            >
+              Iniciar examen
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Historial de intentos */}
       {historial && historial.length > 0 && (
