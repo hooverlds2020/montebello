@@ -1,4 +1,4 @@
-const { pool } = require('../../../lib/db');
+const { pool } = require('../../lib/db');
 
 // Endpoint público (sin login) para verificar la autenticidad de un resultado
 // impreso — solo expone datos mínimos, no respuestas ni datos sensibles.
