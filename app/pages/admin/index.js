@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 const { estaAutenticado } = require('../../lib/auth');
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
@@ -544,6 +545,12 @@ export default function AdminPage() {
       {/* MENÚ LATERAL */}
       <aside className="admin-sidebar" style={{ width: 240, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
         <h2 style={{ fontSize: 16, marginBottom: 12 }}>Materias</h2>
+        <Link
+          href="/admin/resultados"
+          style={{ display: 'block', marginBottom: 16, padding: '8px 10px', background: '#f0f4fa', borderRadius: 6, color: '#4a90d9', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+        >
+          📊 Ver resultados de alumnos
+        </Link>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {categorias.filter((c) => !c.categoria_padre_id).map((padre) => {
             const hijos = categorias.filter((h) => h.categoria_padre_id === padre.id);
