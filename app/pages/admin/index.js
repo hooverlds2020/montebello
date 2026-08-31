@@ -652,11 +652,11 @@ export default function AdminPage() {
               <input
                 value={editMateriaNombre}
                 onChange={(e) => setEditMateriaNombre(e.target.value)}
-                style={{ flex: 1, padding: 4, fontSize: 13 }}
+                style={{ flex: 1, minWidth: 0, padding: 4, fontSize: 13, boxSizing: 'border-box' }}
                 autoFocus
               />
-              <button onClick={() => guardarNombreMateria(c.id)} style={{ fontSize: 12 }}>✓</button>
-              <button onClick={() => setEditandoMateriaId(null)} style={{ fontSize: 12 }}>✕</button>
+              <button onClick={() => guardarNombreMateria(c.id)} title="Guardar" style={{ fontSize: 13, width: 26, height: 26, flexShrink: 0, padding: 0 }}>✓</button>
+              <button onClick={() => setEditandoMateriaId(null)} title="Cancelar" style={{ fontSize: 13, width: 26, height: 26, flexShrink: 0, padding: 0 }}>✕</button>
             </div>
             <input
               value={editMateriaCodigo}
@@ -773,7 +773,7 @@ export default function AdminPage() {
       {vistaGeneral === 'asignaturas' && (
       <div className="admin-body" style={{ display: 'flex' }}>
       {/* MENÚ LATERAL */}
-      <aside className="admin-sidebar" style={{ width: 240, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
+      <aside className="admin-sidebar" style={{ width: 300, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
         <h2 style={{ fontSize: 16, marginBottom: 12 }}>Materias</h2>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {categorias
@@ -803,11 +803,11 @@ export default function AdminPage() {
                         <input
                           value={editMateriaNombre}
                           onChange={(e) => setEditMateriaNombre(e.target.value)}
-                          style={{ flex: 1, padding: 4, fontSize: 12 }}
+                          style={{ flex: 1, minWidth: 0, padding: 4, fontSize: 12, boxSizing: 'border-box' }}
                           autoFocus
                         />
-                        <button onClick={() => guardarNombreMateria(padre.id)} style={{ fontSize: 12 }}>✓</button>
-                        <button onClick={() => setEditandoMateriaId(null)} style={{ fontSize: 12 }}>✕</button>
+                        <button onClick={() => guardarNombreMateria(padre.id)} title="Guardar" style={{ fontSize: 13, width: 26, height: 26, flexShrink: 0, padding: 0 }}>✓</button>
+                        <button onClick={() => setEditandoMateriaId(null)} title="Cancelar" style={{ fontSize: 13, width: 26, height: 26, flexShrink: 0, padding: 0 }}>✕</button>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 10px' }}>
