@@ -335,17 +335,21 @@ export default function Examen() {
                 </div>
               </div>
               {h.porCategoria.length > 0 && (
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', borderTop: '1px solid #f2f2f2', paddingTop: 10 }}>
+                <div style={{ borderTop: '1px solid #f2f2f2', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {h.porCategoria.map((c) => (
-                    <div
-                      key={c.categoria}
-                      style={{
-                        fontSize: 12, padding: '3px 10px', borderRadius: 20,
-                        background: c.porcentaje >= 60 ? '#eafaf1' : '#fdeceb',
-                        color: c.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
-                      }}
-                    >
-                      {c.categoria}: {c.porcentaje}%
+                    <div key={c.categoria}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#555', marginBottom: 3 }}>
+                        <span>{c.categoria}</span>
+                        <span style={{ fontWeight: 600, color: c.porcentaje >= 60 ? '#2e7d32' : '#c0392b' }}>{c.porcentaje}%</span>
+                      </div>
+                      <div style={{ background: '#eee', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            width: `${c.porcentaje}%`, height: '100%', borderRadius: 4,
+                            background: c.porcentaje >= 60 ? '#2e7d32' : '#c0392b',
+                          }}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
