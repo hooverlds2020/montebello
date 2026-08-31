@@ -52,6 +52,7 @@ export default async function handler(req, res) {
   const porcentajeGeneral = totalGeneral > 0 ? Math.round((correctasGeneral / totalGeneral) * 100) : 0;
 
   return res.status(200).json({
+    examenId: examen.id,
     porCategoria: resultado,
     general: { total: totalGeneral, correctas: correctasGeneral, porcentaje: porcentajeGeneral },
   });

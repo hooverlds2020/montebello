@@ -203,6 +203,13 @@ export default function Examen() {
 
   // ---- Pantalla de resultado (examen recién terminado) ----
   if (resultado) {
+    const urlVerificacion = typeof window !== 'undefined'
+      ? `${window.location.origin}/verificar?folio=${resultado.examenId}`
+      : '';
+    const urlQr = urlVerificacion
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(urlVerificacion)}`
+      : '';
+
     return (
       <div style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
         <div className="solo-impresion" style={{ display: 'none', textAlign: 'center', marginBottom: 16 }}>
@@ -211,6 +218,17 @@ export default function Examen() {
         </div>
         <h1 style={{ textAlign: 'center', marginBottom: 32 }}>Resultado del diagnóstico</h1>
         <DonaResultado resultado={resultado} />
+
+        <div className="solo-impresion" style={{ display: 'none', textAlign: 'center', marginTop: 32 }}>
+          {urlQr && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={urlQr} alt="Código QR de verificación" style={{ width: 100, height: 100 }} />
+          )}
+          <p style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+            Folio #{resultado.examenId} — Escanea para verificar la autenticidad de este resultado
+          </p>
+        </div>
+
         <div className="ocultar-al-imprimir" style={{ textAlign: 'center', marginTop: 40, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
             onClick={() => { setResultado(null); }}

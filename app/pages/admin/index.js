@@ -152,6 +152,12 @@ export default function AdminPage() {
     setTimeout(() => setToast(null), 3500);
   }
 
+  // Modal de confirmación: reemplaza al confirm() nativo del navegador
+  const [confirmacion, setConfirmacion] = useState(null); // { mensaje, onConfirmar }
+  function pedirConfirmacion(mensaje, onConfirmar) {
+    setConfirmacion({ mensaje, onConfirmar });
+  }
+
   // Paleta consistente de botones, para no depender del estilo por defecto del navegador
   function btnStyle(variant = 'secundario', extra = {}) {
     const base = {
@@ -329,16 +335,17 @@ export default function AdminPage() {
   }
 
   async function borrarMateria(c) {
-    if (!confirm(`¿Borrar "${c.nombre}"? Solo se puede si no tiene preguntas cargadas.`)) return;
-    const res = await fetch(`/api/admin/categorias/${c.id}`, { method: 'DELETE' });
-    const data = await res.json();
-    if (!res.ok) {
-      mostrarToast(data.error, 'error');
-      return;
-    }
-    if (categoriaActivaId === c.id) setCategoriaActivaId(null);
-    cargarCategorias();
-    mostrarToast(`"${c.nombre}" eliminada`, 'exito');
+    pedirConfirmacion(`¿Borrar "${c.nombre}"? Solo se puede si no tiene preguntas cargadas.`, async () => {
+      const res = await fetch(`/api/admin/categorias/${c.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) {
+        mostrarToast(data.error, 'error');
+        return;
+      }
+      if (categoriaActivaId === c.id) setCategoriaActivaId(null);
+      cargarCategorias();
+      mostrarToast(`"${c.nombre}" eliminada`, 'exito');
+    });
   }
 
   async function actualizarCantidadExamen(c, valor) {
@@ -410,14 +417,15 @@ export default function AdminPage() {
   }
 
   async function borrarLectura(id) {
-    if (!confirm('¿Borrar esta lectura?')) return;
-    const res = await fetch(`/api/admin/lecturas/${id}`, { method: 'DELETE' });
-    const data = await res.json();
-    if (!res.ok) {
-      mostrarToast(data.error, 'error');
-      return;
-    }
-    cargarLecturas();
+    pedirConfirmacion('¿Borrar esta lectura?', async () => {
+      const res = await fetch(`/api/admin/lecturas/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) {
+        mostrarToast(data.error, 'error');
+        return;
+      }
+      cargarLecturas();
+    });
   }
 
   function iniciarEdicionLectura(lecturaId) {
@@ -471,9 +479,10 @@ export default function AdminPage() {
 
 
   async function borrarReactivo(id) {
-    if (!confirm('¿Borrar este reactivo?')) return;
-    await fetch(`/api/admin/reactivos/${id}`, { method: 'DELETE' });
-    cargarReactivos(categoriaActivaId);
+    pedirConfirmacion('¿Borrar este reactivo?', async () => {
+      await fetch(`/api/admin/reactivos/${id}`, { method: 'DELETE' });
+      cargarReactivos(categoriaActivaId);
+    });
   }
 
   function iniciarEdicion(r) {
@@ -1578,6 +1587,35 @@ export default function AdminPage() {
           }}
         >
           {toast.texto}
+        </div>
+      )}
+
+      {confirmacion && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000,
+          }}
+          onClick={() => setConfirmacion(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: 12, padding: 24, maxWidth: 380, width: '90%',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+            }}
+          >
+            <p style={{ margin: '0 0 20px 0', fontSize: 15, color: '#333' }}>{confirmacion.mensaje}</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmacion(null)} style={btnStyle('secundario')}>Cancelar</button>
+              <button
+                onClick={() => { const fn = confirmacion.onConfirmar; setConfirmacion(null); fn(); }}
+                style={btnStyle('peligro')}
+              >
+                Sí, continuar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
