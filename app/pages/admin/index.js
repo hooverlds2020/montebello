@@ -666,7 +666,7 @@ export default function AdminPage() {
             />
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+          <div className="fila-materia" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
             <button
               onClick={() => setCategoriaActivaId(c.id)}
               style={{
@@ -690,7 +690,7 @@ export default function AdminPage() {
             >
               {c.nombre} {c.codigo && <span style={{ fontSize: 11, opacity: 0.7 }}>({c.codigo})</span>} {c.activa === false && '(deshabilitada)'}
             </button>
-            <div style={{ display: 'flex', flexShrink: 0, marginLeft: 'auto' }}>
+            <div className="iconos-materia" style={{ display: 'flex', flexShrink: 0, marginLeft: 'auto' }}>
               <button
                 onClick={() => iniciarEdicionMateria(c)}
                 title="Renombrar"
@@ -752,6 +752,19 @@ export default function AdminPage() {
           }
           .admin-main { max-width: 100% !important; padding: 16px !important; }
         }
+        .fila-materia .iconos-materia {
+          opacity: 0;
+          transition: opacity 0.15s ease;
+        }
+        .fila-materia:hover .iconos-materia {
+          opacity: 1;
+        }
+        /* En pantallas táctiles (sin hover real) los iconos se quedan siempre visibles */
+        @media (hover: none) {
+          .fila-materia .iconos-materia {
+            opacity: 1;
+          }
+        }
       `}</style>
 
       {/* BARRA SUPERIOR: cambia entre Asignaturas y Alumnos, un solo panel, sin roles separados */}
@@ -810,11 +823,11 @@ export default function AdminPage() {
                         <button onClick={() => setEditandoMateriaId(null)} title="Cancelar" style={{ fontSize: 13, width: 26, height: 26, flexShrink: 0, padding: 0 }}>✕</button>
                       </div>
                     ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 10px' }}>
+                      <div className="fila-materia" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 10px' }}>
                         <div style={{ fontSize: 12, fontWeight: 'bold', color: '#888', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ color: '#ccc' }}>⠿</span> {padre.nombre}
                         </div>
-                        <div style={{ display: 'flex', gap: 4 }}>
+                        <div className="iconos-materia" style={{ display: 'flex', gap: 4 }}>
                           <button
                             onClick={(e) => { e.stopPropagation(); iniciarEdicionMateria(padre); }}
                             title="Renombrar"
