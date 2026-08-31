@@ -307,6 +307,19 @@ export default function AdminPage() {
     );
   }
 
+  async function borrarMateria(c) {
+    if (!confirm(`¿Borrar "${c.nombre}"? Solo se puede si no tiene preguntas cargadas.`)) return;
+    const res = await fetch(`/api/admin/categorias/${c.id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) {
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    if (categoriaActivaId === c.id) setCategoriaActivaId(null);
+    cargarCategorias();
+    mostrarToast(`"${c.nombre}" eliminada`, 'exito');
+  }
+
   async function actualizarCantidadExamen(c, valor) {
     const n = parseInt(valor, 10) || 0;
     await fetch(`/api/admin/categorias/${c.id}`, {
@@ -691,6 +704,13 @@ export default function AdminPage() {
                 style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, padding: '4px 6px' }}
               >
                 {c.activa === false ? '🔒' : '🔓'}
+              </button>
+              <button
+                onClick={() => borrarMateria(c)}
+                title="Borrar (solo si no tiene preguntas)"
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, padding: '4px 6px' }}
+              >
+                🗑️
               </button>
             </div>
           </div>
