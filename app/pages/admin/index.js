@@ -727,6 +727,11 @@ export default function AdminPage() {
   const [gruposAbiertos, setGruposAbiertos] = useState({});
   function toggleGrupo(clave) {
     setGruposAbiertos((prev) => ({ ...prev, [clave]: !prev[clave] }));
+    // Si al plegar/desplegar el grupo hay un formulario de "Editar lectura" abierto
+    // para esta misma lectura, lo cerramos también, sin pedir Guardar/Cancelar primero.
+    if (editandoLecturaId === clave) {
+      setEditandoLecturaId(null);
+    }
   }
 
   function renderMateriaItem(c) {
