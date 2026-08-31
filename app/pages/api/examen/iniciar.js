@@ -116,7 +116,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'No hay reactivos disponibles para armar el examen. Contacta al administrador.' });
   }
 
-  const tiempoLimite = parseInt(process.env.EXAMEN_TIEMPO_LIMITE_MINUTOS || '120', 10);
+  const { rows: configRows } = await pool.query('SELECT tiempo_limite_minutos FROM configuracion ORDER BY id LIMIT 1');
+  const tiempoLimite = configRows[0]?.tiempo_limite_minutos ?? 120;
 
   const client = await pool.connect();
   try {

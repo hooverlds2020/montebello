@@ -28,42 +28,55 @@ export default function LoginAlumno() {
   }
 
   return (
-    <div style={{ maxWidth: 380, margin: '60px auto', fontFamily: 'sans-serif', padding: 24 }}>
-      <h1 style={{ fontSize: 22, textAlign: 'center' }}>Instituto Educativo Montebello</h1>
-      <p style={{ textAlign: 'center', color: '#666', marginBottom: 24 }}>Examen de diagnóstico</p>
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'sans-serif' }}>
+      <div style={{ width: '100%', maxWidth: 380, background: '#fff', borderRadius: 16, boxShadow: '0 10px 30px rgba(0,0,0,0.07)', padding: 36 }}>
+        {/* Placeholder de identidad institucional — reemplazar con el logo real cuando lo tengan */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: '50%', background: '#4a90d9',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontSize: 24, fontWeight: 'bold',
+          }}>
+            M
+          </div>
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ display: 'block', width: '100%', padding: 10, marginBottom: 10, boxSizing: 'border-box' }}
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ display: 'block', width: '100%', padding: 10, marginBottom: 10, boxSizing: 'border-box' }}
-        />
-        <button
-          type="submit"
-          disabled={cargando}
-          style={{ width: '100%', padding: 10, background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
-        >
-          {cargando ? 'Entrando...' : 'Entrar'}
-        </button>
-      </form>
+        <h1 style={{ fontSize: 20, textAlign: 'center', margin: 0 }}>Instituto Educativo Montebello</h1>
+        <p style={{ textAlign: 'center', color: '#888', marginTop: 4, marginBottom: 28, fontSize: 14 }}>Examen de diagnóstico</p>
 
-      {error && <p style={{ color: '#c0392b', marginTop: 10 }}>{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="Correo electrónico"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ display: 'block', width: '100%', padding: 11, marginBottom: 12, boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 }}
+          />
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ display: 'block', width: '100%', padding: 11, marginBottom: 16, boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 }}
+          />
+          <button
+            type="submit"
+            disabled={cargando}
+            style={{ width: '100%', padding: 12, background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 15, fontWeight: 600 }}
+          >
+            {cargando ? 'Entrando...' : 'Entrar'}
+          </button>
+        </form>
 
-      <div style={{ marginTop: 16, textAlign: 'center', fontSize: 14 }}>
-        <Link href="/recuperar">¿Olvidaste tu contraseña?</Link>
-        <br /><br />
-        ¿No tienes cuenta? <Link href="/registro">Regístrate aquí</Link>
+        {error && <p style={{ color: '#c0392b', marginTop: 12, fontSize: 14 }}>{error}</p>}
+
+        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: '#666' }}>
+          <Link href="/recuperar" style={{ color: '#4a90d9' }}>¿Olvidaste tu contraseña?</Link>
+          <br /><br />
+          ¿No tienes cuenta? <Link href="/registro" style={{ color: '#4a90d9' }}>Regístrate aquí</Link>
+        </div>
       </div>
     </div>
   );

@@ -63,6 +63,7 @@ export default function Examen() {
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState('');
+  const [segundosRestantes, setSegundosRestantes] = useState(null);
 
   const [historial, setHistorial] = useState(null);
   const [resultadoHistorico, setResultadoHistorico] = useState(null);
@@ -156,6 +157,33 @@ export default function Examen() {
     cargarHistorial();
   }
 
+  // Cronómetro de cuenta regresiva: se calcula a partir de cuándo inició el examen
+  // (no del reloj del navegador del alumno), así que no se puede "hacer trampa"
+  // cerrando y reabriendo la pestaña.
+  useEffect(() => {
+    if (!pregunta || !pregunta.iniciadoEn || !pregunta.tiempoLimiteMinutos) {
+      setSegundosRestantes(null);
+      return;
+    }
+    function calcularRestante() {
+      const finLimite = new Date(pregunta.iniciadoEn).getTime() + pregunta.tiempoLimiteMinutos * 60 * 1000;
+      const restante = Math.max(0, Math.floor((finLimite - Date.now()) / 1000));
+      setSegundosRestantes(restante);
+      if (restante <= 0 && examenId) {
+        finalizarExamen(examenId);
+      }
+    }
+    calcularRestante();
+    const intervalo = setInterval(calcularRestante, 1000);
+    return () => clearInterval(intervalo);
+  }, [pregunta?.examenReactivoId]);
+
+  function formatearTiempo(segundos) {
+    const m = Math.floor(segundos / 60);
+    const s = segundos % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
   async function cerrarSesion() {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
@@ -184,18 +212,30 @@ export default function Examen() {
 
   // ---- Pantalla de presentación de pregunta ----
   if (pregunta) {
+    const tiempoBajo = segundosRestantes !== null && segundosRestantes <= 300; // últimos 5 min
     return (
       <div style={{ maxWidth: pregunta.lectura ? 680 : 560, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#666', marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#666', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
           <span>{pregunta.categoria}</span>
           <span>Pregunta {pregunta.numero} de {pregunta.total}</span>
+          {segundosRestantes !== null && (
+            <span
+              style={{
+                fontWeight: 'bold', padding: '2px 10px', borderRadius: 20,
+                background: tiempoBajo ? '#fdeceb' : '#f4f4f4',
+                color: tiempoBajo ? '#c0392b' : '#555',
+              }}
+            >
+              ⏱ {formatearTiempo(segundosRestantes)}
+            </span>
+          )}
         </div>
         <div style={{ background: '#eee', borderRadius: 6, height: 6, marginBottom: 20 }}>
           <div style={{ width: `${(pregunta.respondidas / pregunta.total) * 100}%`, height: '100%', background: '#4a90d9', borderRadius: 6 }} />
         </div>
 
         {pregunta.lectura && (
-          <div style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 20, marginBottom: 20 }}>
+          <div className="panel-lectura" style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 20, marginBottom: 20 }}>
             {pregunta.lectura.titulo && (
               <h2 style={{ textAlign: 'center', fontSize: 18, marginBottom: 4 }}>{pregunta.lectura.titulo}</h2>
             )}
@@ -238,13 +278,34 @@ export default function Examen() {
 
         {error && <p style={{ color: '#c0392b' }}>{error}</p>}
 
-        <button
-          onClick={enviarRespuesta}
-          disabled={!seleccion || enviando}
-          style={{ width: '100%', padding: 12, marginTop: 12, background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: !seleccion || enviando ? 0.6 : 1 }}
-        >
-          {enviando ? 'Guardando...' : 'Siguiente'}
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            onClick={enviarRespuesta}
+            disabled={!seleccion || enviando}
+            className="btn-siguiente"
+            style={{ width: '100%', padding: 12, marginTop: 12, background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: !seleccion || enviando ? 0.6 : 1 }}
+          >
+            {enviando ? 'Guardando...' : 'Siguiente'}
+          </button>
+        </div>
+
+        <style jsx>{`
+          .panel-lectura {
+            max-height: none;
+          }
+          @media (min-width: 900px) {
+            .panel-lectura {
+              max-height: 420px;
+              overflow-y: auto;
+            }
+            .btn-siguiente {
+              width: auto !important;
+              min-width: 160px;
+              padding-left: 32px !important;
+              padding-right: 32px !important;
+            }
+          }
+        `}</style>
       </div>
     );
   }
@@ -253,11 +314,16 @@ export default function Examen() {
   if (resultadoHistorico) {
     return (
       <div style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
-        <button onClick={() => setResultadoHistorico(null)} style={{ marginBottom: 20, padding: '6px 12px' }}>
-          ← Volver a mi panel
+        <button
+          onClick={() => setResultadoHistorico(null)}
+          style={{ background: 'transparent', border: 'none', color: '#4a90d9', cursor: 'pointer', fontSize: 14, padding: 0, marginBottom: 24, display: 'block' }}
+        >
+          ← Volver al panel
         </button>
-        <h1 style={{ textAlign: 'center', marginBottom: 32 }}>Detalle del intento</h1>
-        <DonaResultado resultado={resultadoHistorico} />
+        <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 14, padding: '36px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
+          <h1 style={{ textAlign: 'center', marginTop: 0, marginBottom: 28, fontSize: 20 }}>Detalle del intento</h1>
+          <DonaResultado resultado={resultadoHistorico} />
+        </div>
       </div>
     );
   }
@@ -285,27 +351,27 @@ export default function Examen() {
             <div style={{ fontSize: 28, fontWeight: 'bold', color: '#333' }}>{historial.length}</div>
             <div style={{ fontSize: 12, color: '#666' }}>Intentos realizados</div>
           </div>
-          <div style={{ flex: 1, minWidth: 140, background: '#eafaf1', borderRadius: 10, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 28, fontWeight: 'bold', color: '#2e7d32' }}>{mejor}%</div>
+          <div style={{ flex: 1, minWidth: 140, background: mejor >= umbralAprobacion ? '#eafaf1' : '#fdeceb', borderRadius: 10, padding: 16, textAlign: 'center' }}>
+            <div style={{ fontSize: 28, fontWeight: 'bold', color: mejor >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>{mejor}%</div>
             <div style={{ fontSize: 12, color: '#666' }}>Mejor resultado</div>
           </div>
-          <div style={{ flex: 1, minWidth: 140, background: '#fdf3e3', borderRadius: 10, padding: 16, textAlign: 'center' }}>
-            <div style={{ fontSize: 28, fontWeight: 'bold', color: '#e08e2b' }}>{masReciente.porcentaje}%</div>
+          <div style={{ flex: 1, minWidth: 140, background: masReciente.porcentaje >= umbralAprobacion ? '#eafaf1' : '#fdeceb', borderRadius: 10, padding: 16, textAlign: 'center' }}>
+            <div style={{ fontSize: 28, fontWeight: 'bold', color: masReciente.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>{masReciente.porcentaje}%</div>
             <div style={{ fontSize: 12, color: '#666' }}>Último intento</div>
           </div>
         </div>
       )}
 
       {/* Botón para nuevo examen */}
-      <div style={{ textAlign: 'center', marginBottom: 40, padding: 24, border: '2px dashed #ddd', borderRadius: 10 }}>
-        <p style={{ color: '#666', marginBottom: 16 }}>
+      <div style={{ textAlign: 'center', marginBottom: 40, padding: 28, background: '#eaf2fb', borderRadius: 12 }}>
+        <p style={{ color: '#3a5b7a', marginBottom: 16, fontSize: 15 }}>
           {historial && historial.length > 0
             ? '¿Listo para presentar un nuevo diagnóstico?'
             : 'Aún no has presentado tu examen de diagnóstico.'}
         </p>
         <button
           onClick={iniciarExamen}
-          style={{ padding: '12px 28px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 16 }}
+          style={{ padding: '12px 28px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 600 }}
         >
           Iniciar examen
         </button>

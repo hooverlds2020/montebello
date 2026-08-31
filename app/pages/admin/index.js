@@ -32,12 +32,17 @@ export default function AdminPage() {
   const [umbralAprobacion, setUmbralAprobacion] = useState(60);
   const [editandoUmbral, setEditandoUmbral] = useState(false);
   const [umbralInput, setUmbralInput] = useState(60);
+  const [tiempoLimiteMinutos, setTiempoLimiteMinutos] = useState(120);
+  const [editandoTiempo, setEditandoTiempo] = useState(false);
+  const [tiempoInput, setTiempoInput] = useState(120);
 
   async function cargarUmbral() {
     const res = await fetch('/api/admin/configuracion');
     const data = await res.json();
     setUmbralAprobacion(data.umbral_aprobacion);
     setUmbralInput(data.umbral_aprobacion);
+    setTiempoLimiteMinutos(data.tiempo_limite_minutos);
+    setTiempoInput(data.tiempo_limite_minutos);
   }
 
   async function guardarUmbral() {
@@ -54,6 +59,22 @@ export default function AdminPage() {
     setUmbralAprobacion(umbralInput);
     setEditandoUmbral(false);
     mostrarToast('Umbral de aprobación actualizado', 'exito');
+  }
+
+  async function guardarTiempo() {
+    const res = await fetch('/api/admin/configuracion', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tiempoLimiteMinutos: tiempoInput }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    setTiempoLimiteMinutos(tiempoInput);
+    setEditandoTiempo(false);
+    mostrarToast('Tiempo del examen actualizado (aplica a exámenes nuevos)', 'exito');
   }
 
   async function cargarResumenAlumnos() {
@@ -1106,6 +1127,29 @@ export default function AdminPage() {
                 <>
                   <strong>{umbralAprobacion}%</strong>
                   <button onClick={() => setEditandoUmbral(true)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>✏️ Editar</button>
+                </>
+              )}
+            </div>
+          )}
+
+          {!detalleAlumno && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, fontSize: 13, color: '#666', flexWrap: 'wrap' }}>
+              <span>Tiempo límite del examen (para exámenes nuevos):</span>
+              {editandoTiempo ? (
+                <>
+                  <input
+                    type="number" min="1" max="600" value={tiempoInput}
+                    onChange={(e) => setTiempoInput(parseInt(e.target.value, 10) || 1)}
+                    style={{ width: 70, padding: 4 }}
+                  />
+                  <span>minutos</span>
+                  <button onClick={guardarTiempo} style={btnStyle('primario', { padding: '4px 10px', fontSize: 12 })}>Guardar</button>
+                  <button onClick={() => setEditandoTiempo(false)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>Cancelar</button>
+                </>
+              ) : (
+                <>
+                  <strong>{tiempoLimiteMinutos} minutos</strong>
+                  <button onClick={() => setEditandoTiempo(true)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>✏️ Editar</button>
                 </>
               )}
             </div>
