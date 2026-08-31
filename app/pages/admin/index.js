@@ -250,6 +250,26 @@ export default function AdminPage() {
   }
 
   const [editandoMateriaId, setEditandoMateriaId] = useState(null);
+  const [agregandoSubPara, setAgregandoSubPara] = useState(null); // id de la materia padre, o null
+  const [nuevaSubNombre, setNuevaSubNombre] = useState('');
+
+  async function crearSubcategoriaRapida(padreId) {
+    if (!nuevaSubNombre.trim()) return;
+    const res = await fetch('/api/admin/categorias', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre: nuevaSubNombre, categoria_padre_id: padreId }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    setNuevaSubNombre('');
+    setAgregandoSubPara(null);
+    cargarCategorias();
+    setCategoriaActivaId(data.id);
+  }
   const [editMateriaNombre, setEditMateriaNombre] = useState('');
   const [editMateriaCodigo, setEditMateriaCodigo] = useState('');
 
@@ -758,9 +778,54 @@ export default function AdminPage() {
               >
                 {hijos.length > 0 ? (
                   <>
-                    <div style={{ fontSize: 12, fontWeight: 'bold', color: '#888', textTransform: 'uppercase', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ color: '#ccc' }}>⠿</span> {padre.nombre}
-                    </div>
+                    {editandoMateriaId === padre.id ? (
+                      <div style={{ display: 'flex', gap: 4, padding: '0 10px', marginBottom: 4 }}>
+                        <input
+                          value={editMateriaNombre}
+                          onChange={(e) => setEditMateriaNombre(e.target.value)}
+                          style={{ flex: 1, padding: 4, fontSize: 12 }}
+                          autoFocus
+                        />
+                        <button onClick={() => guardarNombreMateria(padre.id)} style={{ fontSize: 12 }}>✓</button>
+                        <button onClick={() => setEditandoMateriaId(null)} style={{ fontSize: 12 }}>✕</button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 10px' }}>
+                        <div style={{ fontSize: 12, fontWeight: 'bold', color: '#888', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ color: '#ccc' }}>⠿</span> {padre.nombre}
+                        </div>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); iniciarEdicionMateria(padre); }}
+                            title="Renombrar"
+                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12 }}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setAgregandoSubPara(padre.id); setNuevaSubNombre(''); }}
+                            title="Agregar subcategoría"
+                            style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12 }}
+                          >
+                            ➕
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {agregandoSubPara === padre.id && (
+                      <div style={{ display: 'flex', gap: 4, padding: '0 10px', marginBottom: 6 }}>
+                        <input
+                          placeholder="Nombre de la subcategoría"
+                          value={nuevaSubNombre}
+                          onChange={(e) => setNuevaSubNombre(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') crearSubcategoriaRapida(padre.id); }}
+                          style={{ flex: 1, padding: 4, fontSize: 12 }}
+                          autoFocus
+                        />
+                        <button onClick={() => crearSubcategoriaRapida(padre.id)} style={{ fontSize: 12 }}>✓</button>
+                        <button onClick={() => setAgregandoSubPara(null)} style={{ fontSize: 12 }}>✕</button>
+                      </div>
+                    )}
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0, borderLeft: '2px solid #eee', marginLeft: 10 }}>
                       {hijos.map((h) => (
                         <li
@@ -777,7 +842,30 @@ export default function AdminPage() {
                     </ul>
                   </>
                 ) : (
-                  renderMateriaItem(padre)
+                  <>
+                    {renderMateriaItem(padre)}
+                    {agregandoSubPara === padre.id ? (
+                      <div style={{ display: 'flex', gap: 4, padding: '4px 10px 0' }}>
+                        <input
+                          placeholder="Nombre de la subcategoría"
+                          value={nuevaSubNombre}
+                          onChange={(e) => setNuevaSubNombre(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') crearSubcategoriaRapida(padre.id); }}
+                          style={{ flex: 1, padding: 4, fontSize: 12 }}
+                          autoFocus
+                        />
+                        <button onClick={() => crearSubcategoriaRapida(padre.id)} style={{ fontSize: 12 }}>✓</button>
+                        <button onClick={() => setAgregandoSubPara(null)} style={{ fontSize: 12 }}>✕</button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setAgregandoSubPara(padre.id); setNuevaSubNombre(''); }}
+                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 11, color: '#4a90d9', paddingLeft: 10, marginTop: 2 }}
+                      >
+                        ➕ Agregar subcategoría
+                      </button>
+                    )}
+                  </>
                 )}
               </li>
             );
