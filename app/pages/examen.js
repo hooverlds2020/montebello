@@ -245,7 +245,14 @@ export default function Examen() {
         </div>
 
         {esNuevaSeccion && (
-          <div style={{ display: 'inline-block', fontSize: 12, color: '#4a90d9', background: '#eaf2fb', padding: '3px 10px', borderRadius: 20, marginBottom: 10 }}>
+          <div
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 14, fontWeight: 600, color: '#fff', background: '#4a90d9',
+              padding: '7px 16px', borderRadius: 20, marginBottom: 14,
+              boxShadow: '0 2px 6px rgba(74,144,217,0.3)',
+            }}
+          >
             {pregunta.lectura ? '📘 Nueva lectura' : '📄 Nueva sección'}
           </div>
         )}
