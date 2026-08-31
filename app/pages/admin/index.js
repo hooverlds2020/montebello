@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import DonaResultado from '../../components/DonaResultado';
 const { estaAutenticado } = require('../../lib/auth');
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
@@ -1400,32 +1401,19 @@ export default function AdminPage() {
                 <p style={{ color: '#888' }}>Este alumno aún no ha finalizado ningún examen.</p>
               )}
               {detalleAlumno.historial.map((h) => (
-                <div key={h.examenId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 12 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div key={h.examenId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 20, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                     <span style={{ fontWeight: 600, fontSize: 14 }}>
                       {new Date(h.finalizadoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </span>
-                    <span
-                      style={{
-                        fontWeight: 'bold', padding: '3px 10px', borderRadius: 20,
-                        background: h.porcentaje >= umbralAprobacion ? '#eafaf1' : '#fdeceb',
-                        color: h.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b',
-                      }}
-                    >
-                      {h.correctas}/{h.total} ({h.porcentaje}%)
-                    </span>
                   </div>
-                  {h.porCategoria.map((c) => (
-                    <div key={c.categoria} style={{ marginBottom: 6 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#555', marginBottom: 2 }}>
-                        <span>{c.categoria}</span>
-                        <span>{c.porcentaje}%</span>
-                      </div>
-                      <div style={{ background: '#eee', borderRadius: 4, height: 6, overflow: 'hidden' }}>
-                        <div style={{ width: `${c.porcentaje}%`, height: '100%', background: c.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }} />
-                      </div>
-                    </div>
-                  ))}
+                  <DonaResultado
+                    tamano={160}
+                    resultado={{
+                      general: { total: h.total, correctas: h.correctas, porcentaje: h.porcentaje },
+                      porCategoria: h.porCategoria,
+                    }}
+                  />
                 </div>
               ))}
             </div>
