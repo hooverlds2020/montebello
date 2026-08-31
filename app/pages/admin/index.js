@@ -223,6 +223,7 @@ export default function AdminPage() {
   }, [vistaGeneral]);
 
   const [nuevaCategoriaPadreId, setNuevaCategoriaPadreId] = useState('');
+  const [nuevaCategoriaCodigo, setNuevaCategoriaCodigo] = useState('');
 
   async function crearCategoria(e) {
     e.preventDefault();
@@ -230,7 +231,11 @@ export default function AdminPage() {
     const res = await fetch('/api/admin/categorias', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre: nuevaCategoria, categoria_padre_id: nuevaCategoriaPadreId || null }),
+      body: JSON.stringify({
+        nombre: nuevaCategoria,
+        categoria_padre_id: nuevaCategoriaPadreId || null,
+        codigo: nuevaCategoriaCodigo || null,
+      }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -239,23 +244,26 @@ export default function AdminPage() {
     }
     setNuevaCategoria('');
     setNuevaCategoriaPadreId('');
+    setNuevaCategoriaCodigo('');
     cargarCategorias();
     setCategoriaActivaId(data.id);
   }
 
   const [editandoMateriaId, setEditandoMateriaId] = useState(null);
   const [editMateriaNombre, setEditMateriaNombre] = useState('');
+  const [editMateriaCodigo, setEditMateriaCodigo] = useState('');
 
   function iniciarEdicionMateria(c) {
     setEditandoMateriaId(c.id);
     setEditMateriaNombre(c.nombre);
+    setEditMateriaCodigo(c.codigo || '');
   }
 
   async function guardarNombreMateria(id) {
     const res = await fetch(`/api/admin/categorias/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre: editMateriaNombre }),
+      body: JSON.stringify({ nombre: editMateriaNombre, codigo: editMateriaCodigo }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -606,15 +614,23 @@ export default function AdminPage() {
     return (
       <>
         {editandoMateriaId === c.id ? (
-          <div style={{ display: 'flex', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <input
+                value={editMateriaNombre}
+                onChange={(e) => setEditMateriaNombre(e.target.value)}
+                style={{ flex: 1, padding: 4, fontSize: 13 }}
+                autoFocus
+              />
+              <button onClick={() => guardarNombreMateria(c.id)} style={{ fontSize: 12 }}>✓</button>
+              <button onClick={() => setEditandoMateriaId(null)} style={{ fontSize: 12 }}>✕</button>
+            </div>
             <input
-              value={editMateriaNombre}
-              onChange={(e) => setEditMateriaNombre(e.target.value)}
-              style={{ flex: 1, padding: 4, fontSize: 13 }}
-              autoFocus
+              value={editMateriaCodigo}
+              onChange={(e) => setEditMateriaCodigo(e.target.value)}
+              placeholder="Código CENEVAL (opcional)"
+              style={{ padding: 4, fontSize: 12 }}
             />
-            <button onClick={() => guardarNombreMateria(c.id)} style={{ fontSize: 12 }}>✓</button>
-            <button onClick={() => setEditandoMateriaId(null)} style={{ fontSize: 12 }}>✕</button>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
@@ -639,7 +655,7 @@ export default function AdminPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {c.nombre} {c.activa === false && '(deshabilitada)'}
+              {c.nombre} {c.codigo && <span style={{ fontSize: 11, opacity: 0.7 }}>({c.codigo})</span>} {c.activa === false && '(deshabilitada)'}
             </button>
             <div style={{ display: 'flex', flexShrink: 0, marginLeft: 'auto' }}>
               <button
@@ -775,6 +791,12 @@ export default function AdminPage() {
             onChange={(e) => setNuevaCategoria(e.target.value)}
             style={{ width: '100%', padding: 6, marginBottom: 6, boxSizing: 'border-box' }}
           />
+          <input
+            placeholder="Código CENEVAL (opcional, ej. EXIICL1)"
+            value={nuevaCategoriaCodigo}
+            onChange={(e) => setNuevaCategoriaCodigo(e.target.value)}
+            style={{ width: '100%', padding: 6, marginBottom: 6, boxSizing: 'border-box', fontSize: 13 }}
+          />
           <select
             value={nuevaCategoriaPadreId}
             onChange={(e) => setNuevaCategoriaPadreId(e.target.value)}
@@ -796,6 +818,9 @@ export default function AdminPage() {
           {categoriaActiva
             ? (categoriaPadreActiva ? `${categoriaPadreActiva.nombre} › ${categoriaActiva.nombre}` : categoriaActiva.nombre)
             : 'Selecciona una materia'}
+          {categoriaActiva?.codigo && (
+            <span style={{ fontSize: 15, color: '#888', fontWeight: 'normal', marginLeft: 10 }}>({categoriaActiva.codigo})</span>
+          )}
         </h1>
 
         {categoriaActiva && categoriaActiva.activa === false && (
