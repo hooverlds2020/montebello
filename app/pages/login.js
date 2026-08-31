@@ -36,7 +36,10 @@ export default function LoginAlumno() {
         </div>
 
         <h1 style={{ fontSize: 20, textAlign: 'center', margin: 0 }}>Instituto Educativo Montebello</h1>
-        <p style={{ textAlign: 'center', color: '#888', marginTop: 4, marginBottom: 28, fontSize: 14 }}>Examen de diagnóstico</p>
+        <p style={{ textAlign: 'center', color: '#4a90d9', fontStyle: 'italic', fontSize: 12, marginTop: 2, marginBottom: 10 }}>
+          Transformando la educación hacia la sociedad del conocimiento
+        </p>
+        <p style={{ textAlign: 'center', color: '#888', marginTop: 0, marginBottom: 28, fontSize: 14 }}>Examen de diagnóstico</p>
 
         <form onSubmit={handleSubmit}>
           <input
