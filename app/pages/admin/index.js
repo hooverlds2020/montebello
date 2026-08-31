@@ -795,10 +795,14 @@ export default function AdminPage() {
             opacity: 1;
           }
         }
+        @media print {
+          .ocultar-al-imprimir { display: none !important; }
+          .barra-superior-admin { display: none !important; }
+        }
       `}</style>
 
       {/* BARRA SUPERIOR: cambia entre Asignaturas y Alumnos, un solo panel, sin roles separados */}
-      <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderBottom: '1px solid #ddd', background: '#fafbfc' }}>
+      <div className="barra-superior-admin ocultar-al-imprimir" style={{ display: 'flex', gap: 8, padding: '12px 16px', borderBottom: '1px solid #ddd', background: '#fafbfc' }}>
         <button
           onClick={() => setVistaGeneral('asignaturas')}
           style={btnStyle(vistaGeneral === 'asignaturas' ? 'primario' : 'secundario', { fontSize: 14 })}
@@ -1289,9 +1293,14 @@ export default function AdminPage() {
               {detalleAlumno ? detalleAlumno.alumno.nombre : 'Resultados del diagnóstico'}
             </h1>
             {detalleAlumno ? (
-              <button onClick={() => { setAlumnoSeleccionadoId(null); setDetalleAlumno(null); }} style={btnStyle('secundario')}>
-                ← Volver a la lista
-              </button>
+              <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => { setAlumnoSeleccionadoId(null); setDetalleAlumno(null); }} style={btnStyle('secundario')}>
+                  ← Volver a la lista
+                </button>
+                <button onClick={() => window.print()} style={btnStyle('primario')}>
+                  🖨️ Imprimir / Guardar PDF
+                </button>
+              </div>
             ) : (
               <button
                 onClick={exportarCSV}
