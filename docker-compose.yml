@@ -3,10 +3,12 @@ services:
     image: postgres:16
     container_name: montebello-db
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: montebello_diagnostico
       POSTGRES_USER: montebello
-      POSTGRES_PASSWORD: CAMBIA_ESTA_CLAVE
+      # POSTGRES_PASSWORD viene de .env (ver .env.example)
     volumes:
       - montebello_db_data:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/1_init.sql
@@ -20,23 +22,15 @@ services:
     restart: unless-stopped
     depends_on:
       - montebello-db
+    env_file:
+      - .env
     environment:
       PGHOST: montebello-db
       PGPORT: 5432
       PGDATABASE: montebello_diagnostico
       PGUSER: montebello
-      PGPASSWORD: CAMBIA_ESTA_CLAVE
-      ADMIN_PASSWORD: CAMBIA_ESTA_CLAVE_ADMIN
-      ADMIN_JWT_SECRET: CAMBIA_ESTE_SECRETO_LARGO_Y_ALEATORIO
-      ALUMNO_JWT_SECRET: CAMBIA_ESTE_OTRO_SECRETO_LARGO_Y_ALEATORIO
-      SITE_URL: https://montebello.clicknube.site
-      # SMTP opcional: si no se configura, el link de recuperación queda en los logs
-      # (docker logs montebello-app) para pruebas, en vez de enviarse por correo real.
-      # SMTP_HOST: smtp.tuproveedor.com
-      # SMTP_PORT: 587
-      # SMTP_USER: usuario@tudominio.com
-      # SMTP_PASS: clave_smtp
-      # SMTP_FROM: no-reply@institutomontebello.com
+      # PGPASSWORD, ADMIN_PASSWORD, ADMIN_JWT_SECRET, ALUMNO_JWT_SECRET,
+      # SITE_URL y las variables SMTP_* vienen todas de .env (ver .env.example)
     volumes:
       - ./uploads:/app/public/uploads
     expose:
