@@ -26,6 +26,10 @@ export default function AdminPage() {
   // Vista general del panel: 'asignaturas' (banco de reactivos) o 'alumnos' (resultados)
   const [vistaGeneral, setVistaGeneral] = useState('asignaturas');
   const [resultadosResumen, setResultadosResumen] = useState(null);
+  const [busquedaAlumno, setBusquedaAlumno] = useState('');
+  const [filtroFechaAlumno, setFiltroFechaAlumno] = useState('');
+  const [paginaAlumnos, setPaginaAlumnos] = useState(1);
+  const ALUMNOS_POR_PAGINA = 20;
   const [alumnoSeleccionadoId, setAlumnoSeleccionadoId] = useState(null);
   const [detalleAlumno, setDetalleAlumno] = useState(null);
   const [cargandoAlumnos, setCargandoAlumnos] = useState(false);
@@ -1233,33 +1237,109 @@ export default function AdminPage() {
 
                   <div>
                     <h2 style={{ fontSize: 16, marginBottom: 12 }}>Lista de alumnos</h2>
-                    {resultadosResumen.alumnos.map((a) => (
-                      <div
-                        key={a.alumnoId}
-                        onClick={() => verDetalleAlumno(a.alumnoId)}
-                        style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: 14, border: '1px solid #eee', borderRadius: 8, marginBottom: 8, cursor: 'pointer',
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontWeight: 600, fontSize: 14 }}>{a.nombre}</div>
-                          <div style={{ fontSize: 13, color: '#888' }}>{a.email} · {a.intentos} intento(s)</div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span
-                            style={{
-                              fontWeight: 'bold', padding: '3px 10px', borderRadius: 20,
-                              background: a.porcentaje >= umbralAprobacion ? '#eafaf1' : '#fdeceb',
-                              color: a.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b',
-                            }}
-                          >
-                            {a.porcentaje}%
-                          </span>
-                          <span style={{ color: '#ccc' }}>›</span>
-                        </div>
-                      </div>
-                    ))}
+
+                    <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+                      <input
+                        placeholder="Buscar por nombre o correo..."
+                        value={busquedaAlumno}
+                        onChange={(e) => { setBusquedaAlumno(e.target.value); setPaginaAlumnos(1); }}
+                        style={{ flex: 1, minWidth: 200, padding: 8, border: '1px solid #ddd', borderRadius: 6 }}
+                      />
+                      <input
+                        type="date"
+                        value={filtroFechaAlumno}
+                        onChange={(e) => { setFiltroFechaAlumno(e.target.value); setPaginaAlumnos(1); }}
+                        style={{ padding: 8, border: '1px solid #ddd', borderRadius: 6 }}
+                        title="Filtrar por fecha del último intento"
+                      />
+                      {(busquedaAlumno || filtroFechaAlumno) && (
+                        <button
+                          onClick={() => { setBusquedaAlumno(''); setFiltroFechaAlumno(''); setPaginaAlumnos(1); }}
+                          style={btnStyle('secundario')}
+                        >
+                          Limpiar filtros
+                        </button>
+                      )}
+                    </div>
+
+                    {(() => {
+                      const filtrados = resultadosResumen.alumnos.filter((a) => {
+                        const coincideTexto =
+                          !busquedaAlumno ||
+                          a.nombre.toLowerCase().includes(busquedaAlumno.toLowerCase()) ||
+                          a.email.toLowerCase().includes(busquedaAlumno.toLowerCase());
+                        const coincideFecha =
+                          !filtroFechaAlumno ||
+                          (a.finalizadoEn && a.finalizadoEn.slice(0, 10) === filtroFechaAlumno);
+                        return coincideTexto && coincideFecha;
+                      });
+
+                      const totalPaginas = Math.max(1, Math.ceil(filtrados.length / ALUMNOS_POR_PAGINA));
+                      const paginaSegura = Math.min(paginaAlumnos, totalPaginas);
+                      const inicio = (paginaSegura - 1) * ALUMNOS_POR_PAGINA;
+                      const paginaActualAlumnos = filtrados.slice(inicio, inicio + ALUMNOS_POR_PAGINA);
+
+                      if (filtrados.length === 0) {
+                        return <p style={{ color: '#888' }}>Ningún alumno coincide con la búsqueda.</p>;
+                      }
+
+                      return (
+                        <>
+                          <p style={{ fontSize: 13, color: '#888', marginBottom: 10 }}>
+                            {filtrados.length} alumno(s) encontrado(s)
+                          </p>
+                          {paginaActualAlumnos.map((a) => (
+                            <div
+                              key={a.alumnoId}
+                              onClick={() => verDetalleAlumno(a.alumnoId)}
+                              style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                padding: 14, border: '1px solid #eee', borderRadius: 8, marginBottom: 8, cursor: 'pointer',
+                              }}
+                            >
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: 14 }}>{a.nombre}</div>
+                                <div style={{ fontSize: 13, color: '#888' }}>{a.email} · {a.intentos} intento(s)</div>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <span
+                                  style={{
+                                    fontWeight: 'bold', padding: '3px 10px', borderRadius: 20,
+                                    background: a.porcentaje >= umbralAprobacion ? '#eafaf1' : '#fdeceb',
+                                    color: a.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b',
+                                  }}
+                                >
+                                  {a.porcentaje}%
+                                </span>
+                                <span style={{ color: '#ccc' }}>›</span>
+                              </div>
+                            </div>
+                          ))}
+
+                          {totalPaginas > 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 16 }}>
+                              <button
+                                onClick={() => setPaginaAlumnos(paginaSegura - 1)}
+                                disabled={paginaSegura === 1}
+                                style={btnStyle('secundario', { opacity: paginaSegura === 1 ? 0.5 : 1 })}
+                              >
+                                ← Anterior
+                              </button>
+                              <span style={{ fontSize: 13, color: '#666' }}>
+                                Página {paginaSegura} de {totalPaginas}
+                              </span>
+                              <button
+                                onClick={() => setPaginaAlumnos(paginaSegura + 1)}
+                                disabled={paginaSegura === totalPaginas}
+                                style={btnStyle('secundario', { opacity: paginaSegura === totalPaginas ? 0.5 : 1 })}
+                              >
+                                Siguiente →
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </>
               )}
