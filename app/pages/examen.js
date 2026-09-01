@@ -86,37 +86,48 @@ export default function Examen() {
 
   async function cargarSiguiente(id) {
     setSeleccion(null);
-    const res = await fetch(`/api/examen/siguiente?examenId=${id}`);
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error);
-      return;
+    try {
+      const res = await fetch(`/api/examen/siguiente?examenId=${id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+      if (data.terminado) {
+        finalizarExamen(id);
+        return;
+      }
+      const clave = claveDeSeccion(data);
+      setEsNuevaSeccion(seccionActualRef.current !== null && seccionActualRef.current !== clave);
+      seccionActualRef.current = clave;
+      setPregunta(data);
+    } catch (e) {
+      setError('No se pudo cargar la siguiente pregunta — revisa tu conexión a internet. Tu progreso está guardado, puedes reintentar.');
     }
-    if (data.terminado) {
-      finalizarExamen(id);
-      return;
-    }
-    const clave = claveDeSeccion(data);
-    setEsNuevaSeccion(seccionActualRef.current !== null && seccionActualRef.current !== clave);
-    seccionActualRef.current = clave;
-    setPregunta(data);
   }
 
   async function enviarRespuesta() {
     if (!seleccion) return;
     setEnviando(true);
-    const res = await fetch('/api/examen/responder', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ examenReactivoId: pregunta.examenReactivoId, opcionId: seleccion }),
-    });
-    setEnviando(false);
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error);
-      return;
+    setError('');
+    try {
+      const res = await fetch('/api/examen/responder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ examenReactivoId: pregunta.examenReactivoId, opcionId: seleccion }),
+      });
+      const data = res.ok ? null : await res.json();
+      if (!res.ok) {
+        setError(data.error);
+        setEnviando(false);
+        return;
+      }
+      cargarSiguiente(examenId);
+    } catch (e) {
+      // Sin conexión a internet en este momento: no se perdió nada, solo hay que reintentar.
+      setError('No se pudo guardar tu respuesta — revisa tu conexión a internet e intenta de nuevo.');
+      setEnviando(false);
     }
-    cargarSiguiente(examenId);
   }
 
   async function finalizarExamen(id) {
