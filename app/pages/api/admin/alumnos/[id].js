@@ -8,6 +8,43 @@ export default async function handler(req, res) {
 
   const { id } = req.query;
 
+  if (req.method === 'DELETE') {
+    const { rows: existe } = await pool.query('SELECT id FROM alumnos WHERE id = $1', [id]);
+    if (!existe[0]) {
+      return res.status(404).json({ error: 'Alumno no encontrado' });
+    }
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      // Siempre se borra primero el historial de examenes (examen_reactivos
+      // depende de examenes por llave foránea).
+      const { rows: examenesDelAlumno } = await client.query('SELECT id FROM examenes WHERE alumno_id = $1', [id]);
+      const idsExamenes = examenesDelAlumno.map((e) => e.id);
+      if (idsExamenes.length > 0) {
+        await client.query('DELETE FROM examen_reactivos WHERE examen_id = ANY($1)', [idsExamenes]);
+        await client.query('DELETE FROM examenes WHERE id = ANY($1)', [idsExamenes]);
+      }
+
+      // ?soloHistorial=1 : deja la cuenta del alumno intacta, solo borra sus
+      // intentos de examen (para "empezar de cero" sin perder el registro).
+      if (req.query.soloHistorial) {
+        await client.query('COMMIT');
+        return res.status(200).json({ ok: true, soloHistorial: true });
+      }
+
+      // Sin ese parámetro: borra la cuenta completa del alumno.
+      await client.query('DELETE FROM password_resets WHERE alumno_id = $1', [id]);
+      await client.query('DELETE FROM alumnos WHERE id = $1', [id]);
+      await client.query('COMMIT');
+      return res.status(200).json({ ok: true, soloHistorial: false });
+    } catch (e) {
+      await client.query('ROLLBACK');
+      return res.status(500).json({ error: e.message });
+    } finally {
+      client.release();
+    }
+  }
+
   const { rows: alumnoRows } = await pool.query('SELECT id, nombre, email, telefono, preparatoria_procedencia, creado_en FROM alumnos WHERE id = $1', [id]);
   const alumno = alumnoRows[0];
   if (!alumno) {

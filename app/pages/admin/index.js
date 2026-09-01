@@ -199,6 +199,41 @@ export default function AdminPage() {
     setDetalleAlumno(data);
   }
 
+  function borrarHistorialAlumno(id, nombre) {
+    pedirConfirmacion(
+      `¿Borrar TODO el historial de exámenes de "${nombre}"? La cuenta del alumno se conserva (puede volver a presentar), pero esta acción no se puede deshacer.`,
+      async () => {
+        const res = await fetch(`/api/admin/alumnos/${id}?soloHistorial=1`, { method: 'DELETE' });
+        if (!res.ok) {
+          const data = await res.json();
+          mostrarToast(data.error, 'error');
+          return;
+        }
+        mostrarToast('Historial borrado ✓', 'exito');
+        verDetalleAlumno(id);
+        cargarResumenAlumnos();
+      }
+    );
+  }
+
+  function borrarAlumnoCompleto(id, nombre) {
+    pedirConfirmacion(
+      `¿Borrar por completo la cuenta de "${nombre}" junto con todo su historial? Esta acción no se puede deshacer.`,
+      async () => {
+        const res = await fetch(`/api/admin/alumnos/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const data = await res.json();
+          mostrarToast(data.error, 'error');
+          return;
+        }
+        mostrarToast('Alumno borrado ✓', 'exito');
+        setDetalleAlumno(null);
+        setAlumnoSeleccionadoId(null);
+        cargarResumenAlumnos();
+      }
+    );
+  }
+
   function exportarCSV() {
     if (!resultadosResumen) return;
     const encabezados = ['Nombre', 'Correo', 'Intentos', 'Correctas', 'Total', 'Porcentaje', 'Fecha de último intento'];
@@ -1602,12 +1637,26 @@ export default function AdminPage() {
               {detalleAlumno ? detalleAlumno.alumno.nombre : 'Resultados del diagnóstico'}
             </h1>
             {detalleAlumno ? (
-              <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 8 }}>
+              <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button onClick={() => { setAlumnoSeleccionadoId(null); setDetalleAlumno(null); }} style={btnStyle('secundario')}>
                   ← Volver a la lista
                 </button>
                 <button onClick={() => window.print()} style={btnStyle('primario')}>
                   🖨️ Imprimir / Guardar PDF
+                </button>
+                <button
+                  onClick={() => borrarHistorialAlumno(detalleAlumno.alumno.id, detalleAlumno.alumno.nombre)}
+                  style={btnStyle('secundario', { color: '#c0392b' })}
+                  title="Borra sus intentos de examen, pero conserva la cuenta"
+                >
+                  🧹 Borrar historial
+                </button>
+                <button
+                  onClick={() => borrarAlumnoCompleto(detalleAlumno.alumno.id, detalleAlumno.alumno.nombre)}
+                  style={{ ...btnStyle('secundario'), background: '#fdeceb', color: '#c0392b' }}
+                  title="Borra la cuenta completa junto con su historial"
+                >
+                  🗑️ Borrar alumno
                 </button>
               </div>
             ) : (
