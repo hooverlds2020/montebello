@@ -815,14 +815,19 @@ export default function AdminPage() {
   function agruparPorLectura(lista) {
     const grupos = [];
     const indiceGrupo = {};
-    for (const r of lista) {
+    lista.forEach((r, i) => {
+      // Numeración continua para toda la materia (no reinicia en cada lectura),
+      // en el mismo orden en que se fueron capturando — así el número que ves
+      // aquí coincide con el de "Pregunta N" en Carga rápida y te sirve para
+      // ubicar rápido un error que te reporten (ej. "la 26 está mal").
+      const rNum = { ...r, numero: i + 1 };
       const clave = r.lectura_id || 'sin-lectura';
       if (!(clave in indiceGrupo)) {
         indiceGrupo[clave] = grupos.length;
         grupos.push({ clave, titulo: r.lectura_titulo || null, activa: r.lectura_activa !== false, items: [] });
       }
-      grupos[indiceGrupo[clave]].items.push(r);
-    }
+      grupos[indiceGrupo[clave]].items.push(rNum);
+    });
     return grupos;
   }
   const gruposReactivos = agruparPorLectura(reactivos);
@@ -1261,7 +1266,7 @@ export default function AdminPage() {
                   {preguntasRapidas.map((p, idxP) => (
                     <div key={idxP} style={{ border: '1px solid #ddd', padding: 10, marginBottom: 8, borderRadius: 6 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <strong>Pregunta {idxP + 1}</strong>
+                        <strong>Pregunta {reactivos.length + idxP + 1}</strong>
                         <button
                           type="button"
                           onClick={() => quitarPreguntaRapida(idxP)}
@@ -1394,6 +1399,7 @@ export default function AdminPage() {
                     <div key={r.id} style={{ border: '1px solid #eee', padding: 12, marginBottom: 8, borderRadius: 6 }}>
                       {editandoId === r.id ? (
                         <div>
+                          <div style={{ color: '#4a90d9', fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>Editando pregunta {r.numero}</div>
                           <select
                             value={editLecturaId}
                             onChange={(e) => setEditLecturaId(e.target.value)}
@@ -1435,6 +1441,7 @@ export default function AdminPage() {
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div style={{ flex: 1 }}>
+                              <div style={{ color: '#4a90d9', fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>Pregunta {r.numero}</div>
                               <div dangerouslySetInnerHTML={{ __html: r.pregunta }} />
                               {r.imagen_url && <div><em>Imagen: {r.imagen_url}</em></div>}
                               <ul>
