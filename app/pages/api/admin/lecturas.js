@@ -12,13 +12,13 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { titulo, subtitulo, texto_html, imagen_url } = req.body;
+    const { titulo, subtitulo, texto_html, imagen_url, instruccion } = req.body;
     if (!texto_html || !texto_html.trim()) {
       return res.status(400).json({ error: 'El texto de la lectura no puede estar vacío' });
     }
     const { rows } = await pool.query(
-      'INSERT INTO lecturas (titulo, subtitulo, texto, imagen_url) VALUES ($1, $2, $3, $4) RETURNING *',
-      [titulo || null, subtitulo || null, texto_html, imagen_url || null]
+      'INSERT INTO lecturas (titulo, subtitulo, texto, imagen_url, instruccion) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [titulo || null, subtitulo || null, texto_html, imagen_url || null, instruccion || null]
     );
     return res.status(201).json(rows[0]);
   }

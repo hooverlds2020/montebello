@@ -42,6 +42,21 @@ CREATE TABLE opciones (
   es_correcta BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+-- Igual que 'configuracion': se creó a mano en producción, documentada aquí
+-- con IF NOT EXISTS para no afectar la base de datos ya existente.
+CREATE TABLE IF NOT EXISTS lecturas (
+  id SERIAL PRIMARY KEY,
+  titulo TEXT,
+  subtitulo TEXT,
+  texto TEXT NOT NULL,
+  imagen_url TEXT,
+  activa BOOLEAN NOT NULL DEFAULT TRUE,
+  -- Instrucción específica de ESTA lectura (ej. "Lee con atención..."),
+  -- opcional. Se muestra en el examen separada del texto de la lectura, para
+  -- no mezclar "instrucción de qué hacer" con "contenido a leer".
+  instruccion TEXT
+);
+
 CREATE TABLE alumnos (
   id SERIAL PRIMARY KEY,
   nombre VARCHAR(200) NOT NULL,

@@ -15,7 +15,7 @@ const SELECT_PREGUNTA = `
          r.id AS reactivo_id, r.pregunta, r.imagen_url, r.lectura_id,
          c.nombre AS categoria,
          l.titulo AS lectura_titulo, l.subtitulo AS lectura_subtitulo,
-         l.texto AS lectura_texto, l.imagen_url AS lectura_imagen_url
+         l.texto AS lectura_texto, l.imagen_url AS lectura_imagen_url, l.instruccion AS lectura_instruccion
   FROM examen_reactivos er
   JOIN reactivos r ON r.id = er.reactivo_id
   JOIN categorias c ON c.id = r.categoria_id
@@ -114,6 +114,7 @@ export default async function handler(req, res) {
           subtitulo: objetivo.lectura_subtitulo,
           texto: objetivo.lectura_texto,
           imagenUrl: objetivo.lectura_imagen_url,
+          instruccion: objetivo.lectura_instruccion,
         }
       : null,
     opciones,

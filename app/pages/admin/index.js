@@ -322,6 +322,7 @@ export default function AdminPage() {
   const [editLecturaSubtitulo, setEditLecturaSubtitulo] = useState('');
   const [editLecturaTexto, setEditLecturaTexto] = useState('');
   const [editLecturaImagenUrl, setEditLecturaImagenUrl] = useState('');
+  const [editLecturaInstruccion, setEditLecturaInstruccion] = useState('');
 
 
   // Lectura inline dentro de "Carga rápida de reactivos"
@@ -330,6 +331,7 @@ export default function AdminPage() {
   const [lecturaInlineSubtitulo, setLecturaInlineSubtitulo] = useState('');
   const [lecturaInlineTexto, setLecturaInlineTexto] = useState('');
   const [lecturaInlineImagenUrl, setLecturaInlineImagenUrl] = useState('');
+  const [lecturaInlineInstruccion, setLecturaInlineInstruccion] = useState('');
 
   // Recordar en qué materia / pestaña / edición en curso se quedó el admin,
   // para restaurarlo si la página se refresca (F5, o pierde la sesión de red un momento).
@@ -387,6 +389,7 @@ export default function AdminPage() {
           setEditLecturaSubtitulo(g.editLecturaSubtitulo || '');
           setEditLecturaTexto(g.editLecturaTexto || '');
           setEditLecturaImagenUrl(g.editLecturaImagenUrl || '');
+          setEditLecturaInstruccion(g.editLecturaInstruccion || '');
         }
       }
     } catch (e) {
@@ -429,6 +432,7 @@ export default function AdminPage() {
           editLecturaSubtitulo,
           editLecturaTexto,
           editLecturaImagenUrl,
+          editLecturaInstruccion,
         })
       );
     } catch (e) {
@@ -447,6 +451,7 @@ export default function AdminPage() {
     editLecturaSubtitulo,
     editLecturaTexto,
     editLecturaImagenUrl,
+    editLecturaInstruccion,
   ]);
 
   useEffect(() => {
@@ -655,6 +660,7 @@ export default function AdminPage() {
     setEditLecturaSubtitulo(l.subtitulo || '');
     setEditLecturaTexto(l.texto || '');
     setEditLecturaImagenUrl(l.imagen_url || '');
+    setEditLecturaInstruccion(l.instruccion || '');
   }
 
   function cancelarEdicionLectura() {
@@ -670,6 +676,7 @@ export default function AdminPage() {
         subtitulo: editLecturaSubtitulo,
         texto_html: editLecturaTexto,
         imagen_url: editLecturaImagenUrl,
+        instruccion: editLecturaInstruccion,
       }),
     });
     if (!res.ok) {
@@ -824,6 +831,7 @@ export default function AdminPage() {
             subtitulo: lecturaInlineSubtitulo,
             texto_html: lecturaInlineTexto,
             imagen_url: lecturaInlineImagenUrl,
+            instruccion: lecturaInlineInstruccion,
           }),
         });
         const dataLectura = await resLectura.json();
@@ -863,6 +871,7 @@ export default function AdminPage() {
       setLecturaInlineSubtitulo('');
       setLecturaInlineTexto('');
       setLecturaInlineImagenUrl('');
+      setLecturaInlineInstruccion('');
       setInsertarInfo(null);
       cargarReactivos(categoriaActivaId);
       mostrarToast(
@@ -1320,6 +1329,12 @@ export default function AdminPage() {
                     onChange={(e) => setLecturaInlineImagenUrl(e.target.value)}
                     style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%', boxSizing: 'border-box' }}
                   />
+                  <input
+                    placeholder='Instrucción (opcional, ej. "Lee con atención el siguiente texto y contesta...")'
+                    value={lecturaInlineInstruccion}
+                    onChange={(e) => setLecturaInlineInstruccion(e.target.value)}
+                    style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%', boxSizing: 'border-box' }}
+                  />
                   <div style={{ background: '#fff' }}>
                     <ReactQuill theme="snow" value={lecturaInlineTexto} onChange={setLecturaInlineTexto} placeholder="Cuerpo del texto..." />
                   </div>
@@ -1469,6 +1484,12 @@ export default function AdminPage() {
                         placeholder="URL de imagen (opcional)"
                         value={editLecturaImagenUrl}
                         onChange={(e) => setEditLecturaImagenUrl(e.target.value)}
+                        style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%', boxSizing: 'border-box' }}
+                      />
+                      <input
+                        placeholder='Instrucción (opcional, ej. "Lee con atención el siguiente texto y contesta...")'
+                        value={editLecturaInstruccion}
+                        onChange={(e) => setEditLecturaInstruccion(e.target.value)}
                         style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%', boxSizing: 'border-box' }}
                       />
                       <div style={{ marginBottom: 8, background: '#fff' }}>

@@ -386,6 +386,10 @@ export default function Examen() {
             </div>
           )}
 
+          {pregunta.lectura && pregunta.lectura.instruccion && (
+            <div style={{ background: '#eaf2fb', border: '1px solid #cfe0f5', borderRadius: 8, padding: '12px 16px', marginBottom: 14, fontSize: 14, color: '#2a5f9e', lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pregunta.lectura.instruccion }} />
+          )}
+
           {pregunta.lectura && (
             <div className="panel-lectura" style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 20, marginBottom: 20 }}>
               {pregunta.lectura.titulo && (
