@@ -1136,7 +1136,7 @@ export default function AdminPage() {
             opacity: 1;
           }
         }
-        @page { margin: 15mm; }
+        @page { size: letter; margin: 15mm; }
         @media print {
           .ocultar-al-imprimir { display: none !important; }
           .barra-superior-admin { display: none !important; }
@@ -1145,6 +1145,22 @@ export default function AdminPage() {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
+          }
+          /* La Ficha de Registro imprime en tamaño carta, con el mismo look
+             del PDF oficial: marco azul marino, sin sombra de tarjeta, y el
+             pie de contacto del instituto que solo se ve al imprimir. */
+          .ficha-registro {
+            max-width: none !important;
+            border: 3px solid #0d3b66 !important;
+            border-radius: 4px !important;
+            box-shadow: none !important;
+            padding: 22px !important;
+          }
+          .ficha-registro input {
+            border: none !important;
+            border-bottom: 1px solid #999 !important;
+            border-radius: 0 !important;
+            padding: 2px 0 !important;
           }
         }
       `}</style>
@@ -2127,6 +2143,23 @@ export default function AdminPage() {
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: 12, color: '#666', fontStyle: 'italic', marginBottom: 20 }}>
                     Rosario Culebro Alfaro — Directora del Instituto Montebello
+                  </div>
+
+                  {/* Pie de contacto del instituto: igual al de la ficha oficial en papel, solo visible al imprimir */}
+                  <div
+                    className="solo-impresion"
+                    style={{
+                      display: 'none', marginTop: 10, marginLeft: -22, marginRight: -22, marginBottom: -22,
+                      background: '#0d3b66', color: '#f0d99a', padding: '10px 22px', fontSize: 10,
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
+                      <span>📱 963 159 75 28</span>
+                      <span>📞 963 59 37 094</span>
+                      <span>📍 6a. Av. Ote. Sur 31 B, Barrio Pilita Seca</span>
+                      <span>👍 Instituto Montebello A.C.</span>
+                      <span>🌐 www.institutomontebello.mx</span>
+                    </div>
                   </div>
 
                   <div className="ocultar-al-imprimir">
