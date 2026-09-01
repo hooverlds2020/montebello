@@ -31,6 +31,7 @@ export default function Examen() {
   const [cargandoHistorico, setCargandoHistorico] = useState(false);
   const [enProgreso, setEnProgreso] = useState(null); // { examenId, total, respondidas } o null si no hay examen a medias
   const [modalFinalizar, setModalFinalizar] = useState(null); // { faltan } o null: confirmación propia (no window.confirm) al finalizar con preguntas pendientes
+  const [modalTerminado, setModalTerminado] = useState(false); // true cuando ya contestó todas y le ofrecemos finalizar
 
   const router = useRouter();
 
@@ -186,8 +187,22 @@ export default function Examen() {
     const mapaData = await cargarMapa(examenId);
     const flat = aplanarMapa(mapaData);
     const idx = flat.findIndex((i) => i.examenReactivoId === idActual);
-    const siguienteId = idx >= 0 && idx < flat.length - 1 ? flat[idx + 1].examenReactivoId : idActual;
-    await cargarPregunta(examenId, siguienteId);
+    const hayUnaSiguiente = idx >= 0 && idx < flat.length - 1;
+
+    if (hayUnaSiguiente) {
+      await cargarPregunta(examenId, flat[idx + 1].examenReactivoId);
+    } else {
+      // No hay "siguiente" en orden — si aún queda alguna sin contestar en
+      // cualquier otra parte del examen, la buscamos y saltamos ahí en vez
+      // de dejar al alumno trabado en la última pregunta sin avisarle nada.
+      const primeraSinContestar = flat.find((i) => !i.respondida);
+      if (primeraSinContestar) {
+        await cargarPregunta(examenId, primeraSinContestar.examenReactivoId);
+      } else {
+        // Ya no queda ninguna: felicitamos y ofrecemos finalizar de una vez.
+        setModalTerminado(true);
+      }
+    }
     setEnviando(false);
   }
 
@@ -535,6 +550,41 @@ export default function Examen() {
                   style={{ flex: 1, minWidth: 140, padding: '10px 16px', background: '#c0392b', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
                 >
                   Finalizar de todas formas
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Aviso de felicitación cuando ya contestó todas las preguntas del
+            examen, con la opción de finalizar ahí mismo. */}
+        {modalTerminado && (
+          <div
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 20, zIndex: 1000,
+            }}
+          >
+            <div style={{ background: '#fff', borderRadius: 12, padding: 28, maxWidth: 420, width: '100%', boxShadow: '0 10px 40px rgba(0,0,0,0.2)', textAlign: 'center' }}>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: 19 }}>¡Ya contestaste todo!</h3>
+              <p style={{ color: '#555', fontSize: 14, lineHeight: 1.5, marginBottom: 22 }}>
+                Respondiste las {aplanarMapa(mapa).length} preguntas del examen. Si quieres repasar alguna
+                antes de entregar, usa el mapa de preguntas de la derecha. Cuando estés listo, finaliza tu examen.
+              </p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setModalTerminado(false)}
+                  style={{ flex: 1, minWidth: 140, padding: '10px 16px', background: '#eef1f5', color: '#333', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+                >
+                  Repasar mis respuestas
+                </button>
+                <button
+                  onClick={() => { setModalTerminado(false); finalizarExamen(examenId); }}
+                  style={{ flex: 1, minWidth: 140, padding: '10px 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+                >
+                  🏁 Finalizar examen
                 </button>
               </div>
             </div>
