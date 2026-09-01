@@ -18,10 +18,12 @@ export default async function handler(req, res) {
   }
 
   const { rows } = await pool.query(
-    `SELECT er.id AS examen_reactivo_id, er.opcion_respondida_id, c.nombre AS categoria
+    `SELECT er.id AS examen_reactivo_id, er.opcion_respondida_id, c.nombre AS categoria,
+            r.lectura_id, l.titulo AS lectura_titulo
      FROM examen_reactivos er
      JOIN reactivos r ON r.id = er.reactivo_id
      JOIN categorias c ON c.id = r.categoria_id
+     LEFT JOIN lecturas l ON l.id = r.lectura_id
      WHERE er.examen_id = $1
      ORDER BY er.orden ASC`,
     [examenId]
@@ -30,18 +32,28 @@ export default async function handler(req, res) {
   // Las preguntas de una misma materia siempre quedan juntas y consecutivas
   // (así se arma el examen desde /api/examen/iniciar), así que basta con
   // detectar cuándo cambia la materia para separar en bloques y numerar
-  // 1..N dentro de cada uno — igual que en el panel admin.
+  // 1..N dentro de cada uno — igual que en el panel admin. Dentro de cada
+  // materia, además se sub-agrupa por lectura (también siempre consecutivas),
+  // para poder mostrar un mini título tipo "Redes sociales (7-15)" sobre esos
+  // circulitos y que el alumno ubique de un vistazo a qué bloque pertenecen.
   const categorias = [];
-  let actual = null;
+  let actualCat = null;
   let contador = 0;
+  let actualBloque = null;
   for (const row of rows) {
-    if (!actual || actual.nombre !== row.categoria) {
-      actual = { nombre: row.categoria, items: [] };
-      categorias.push(actual);
+    if (!actualCat || actualCat.nombre !== row.categoria) {
+      actualCat = { nombre: row.categoria, bloques: [] };
+      categorias.push(actualCat);
       contador = 0;
+      actualBloque = null;
     }
     contador++;
-    actual.items.push({
+    const lecturaId = row.lectura_id || null;
+    if (!actualBloque || actualBloque.lecturaId !== lecturaId) {
+      actualBloque = { lecturaId, titulo: row.lectura_titulo || null, items: [] };
+      actualCat.bloques.push(actualBloque);
+    }
+    actualBloque.items.push({
       examenReactivoId: row.examen_reactivo_id,
       numero: contador,
       respondida: !!row.opcion_respondida_id,

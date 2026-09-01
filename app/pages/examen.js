@@ -98,7 +98,7 @@ export default function Examen() {
   // orden en que se presenta el examen. Se usa para saber "cuál sigue",
   // "en qué posición voy" y el total/contestadas para la barra de progreso.
   function aplanarMapa(mapaData) {
-    return mapaData ? mapaData.categorias.flatMap((c) => c.items) : [];
+    return mapaData ? mapaData.categorias.flatMap((c) => c.bloques.flatMap((b) => b.items)) : [];
   }
 
   function primeraSinResponder(mapaData) {
@@ -443,28 +443,42 @@ export default function Examen() {
             </div>
             {mapa && mapa.categorias.map((cat) => (
               <div key={cat.nombre} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 6 }}>{cat.nombre}</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {cat.items.map((it) => {
-                    const esActual = it.examenReactivoId === pregunta.examenReactivoId;
-                    return (
-                      <button
-                        key={it.examenReactivoId}
-                        onClick={() => irAPregunta(it.examenReactivoId)}
-                        title={`Pregunta ${it.numero}${it.respondida ? ' — ya contestada' : ' — sin contestar'}`}
-                        style={{
-                          width: 28, height: 28, borderRadius: '50%', fontSize: 11, fontWeight: 'bold',
-                          border: esActual ? '2px solid #4a90d9' : '1px solid #ccc',
-                          background: it.respondida ? '#2e7d32' : '#fff',
-                          color: it.respondida ? '#fff' : '#666',
-                          cursor: 'pointer', padding: 0,
-                        }}
-                      >
-                        {it.numero}
-                      </button>
-                    );
-                  })}
-                </div>
+                <div style={{ fontSize: 11, color: '#888', marginBottom: 6, fontWeight: 700 }}>{cat.nombre}</div>
+                {cat.bloques.map((bloque, idxBloque) => {
+                  const primero = bloque.items[0]?.numero;
+                  const ultimo = bloque.items[bloque.items.length - 1]?.numero;
+                  const rango = primero === ultimo ? `${primero}` : `${primero}-${ultimo}`;
+                  return (
+                    <div key={idxBloque} style={{ marginBottom: 8 }}>
+                      {bloque.titulo && (
+                        <div style={{ fontSize: 10, color: '#4a90d9', marginBottom: 4, fontStyle: 'italic' }}>
+                          📘 {bloque.titulo} ({rango})
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {bloque.items.map((it) => {
+                          const esActual = it.examenReactivoId === pregunta.examenReactivoId;
+                          return (
+                            <button
+                              key={it.examenReactivoId}
+                              onClick={() => irAPregunta(it.examenReactivoId)}
+                              title={`Pregunta ${it.numero}${it.respondida ? ' — ya contestada' : ' — sin contestar'}${bloque.titulo ? ` (${bloque.titulo})` : ''}`}
+                              style={{
+                                width: 28, height: 28, borderRadius: '50%', fontSize: 11, fontWeight: 'bold',
+                                border: esActual ? '2px solid #4a90d9' : '1px solid #ccc',
+                                background: it.respondida ? '#2e7d32' : '#fff',
+                                color: it.respondida ? '#fff' : '#666',
+                                cursor: 'pointer', padding: 0,
+                              }}
+                            >
+                              {it.numero}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ))}
             <button
