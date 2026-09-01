@@ -1501,7 +1501,7 @@ export default function AdminPage() {
                   )}
 
                   {abierto && grupo.items.map((r) => (
-                    <div key={r.id} style={{ border: '1px solid #eee', padding: 12, marginBottom: 8, borderRadius: 6 }}>
+                    <div key={r.id} style={{ border: '1px solid #eee', padding: 12, marginBottom: 8, borderRadius: 6, background: r.numero % 2 === 1 ? '#fff' : '#f7f7f7' }}>
                       {editandoId === r.id ? (
                         <div>
                           <div style={{ color: '#4a90d9', fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>Editando pregunta {r.numero}</div>
@@ -1877,13 +1877,14 @@ export default function AdminPage() {
                           <p style={{ fontSize: 13, color: '#888', marginBottom: 10 }}>
                             {filtrados.length} alumno(s) encontrado(s)
                           </p>
-                          {paginaActualAlumnos.map((a) => (
+                          {paginaActualAlumnos.map((a, idx) => (
                             <div
                               key={a.alumnoId}
                               onClick={() => verDetalleAlumno(a.alumnoId)}
                               style={{
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                 padding: 14, border: '1px solid #eee', borderRadius: 8, marginBottom: 8, cursor: 'pointer',
+                                background: idx % 2 === 0 ? '#fff' : '#f7f7f7',
                               }}
                             >
                               <div>
