@@ -1750,7 +1750,7 @@ export default function AdminPage() {
               {detalleAlumno.historial.length === 0 && (
                 <p style={{ color: '#888' }}>Este alumno aún no ha finalizado ningún examen.</p>
               )}
-              {detalleAlumno.historial.map((h) => {
+              {detalleAlumno.historial.map((h, idx) => {
                 const urlVerifAdmin = typeof window !== 'undefined'
                   ? `${window.location.origin}/verificar?folio=${h.examenId}`
                   : '';
@@ -1758,11 +1758,12 @@ export default function AdminPage() {
                   ? `https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(urlVerifAdmin)}`
                   : '';
                 return (
-                <div key={h.examenId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 20, marginBottom: 16 }}>
+                <div key={h.examenId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 20, marginBottom: 16, background: idx % 2 === 0 ? '#fff' : '#f7f7f7' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                     <span style={{ fontWeight: 600, fontSize: 14 }}>
                       {new Date(h.finalizadoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </span>
+                    <span style={{ fontSize: 12, color: '#999' }}>Folio #{h.examenId}</span>
                   </div>
                   <DonaResultado
                     tamano={160}
