@@ -49,8 +49,8 @@ export default function AdminLogin() {
         </p>
       </div>
 
-      <div style={{ flex: '1 1 60%', minWidth: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, background: '#f7f9fb' }}>
-        <div style={{ width: '100%', maxWidth: 380, background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(13,59,102,0.08)', border: '1px solid #eef1f5', padding: 36 }}>
+      <div className="panel-formulario" style={{ flex: '1 1 60%', minWidth: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, background: '#f7f9fb' }}>
+        <div className="tarjeta-formulario" style={{ width: '100%', maxWidth: 380, background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(13,59,102,0.08)', border: '1px solid #eef1f5', padding: 36 }}>
           <h2 style={{ fontSize: 22, margin: '0 0 4px 0' }}>Iniciar sesión</h2>
           <p style={{ color: '#888', fontSize: 14, marginBottom: 28 }}>Ingresa tus credenciales para acceder.</p>
 
@@ -106,6 +106,10 @@ export default function AdminLogin() {
         }
         @media (max-width: 700px) {
           .panel-bienvenida-admin { display: none !important; }
+        }
+        @media (max-width: 480px) {
+          .panel-formulario { padding: 16px !important; }
+          .tarjeta-formulario { padding: 22px !important; border-radius: 12px !important; box-shadow: none !important; border: none !important; }
         }
       `}</style>
     </div>

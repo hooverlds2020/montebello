@@ -11,6 +11,7 @@ export default function Home() {
           <img
             src="/img/logo-montebello.webp"
             alt="Instituto Educativo Montebello"
+            className="logo-selector"
             style={{ width: 190, height: 'auto', marginBottom: 8 }}
           />
 
@@ -49,6 +50,9 @@ export default function Home() {
         .tarjeta-selector:hover {
           transform: translateY(-4px);
           box-shadow: 0 10px 28px rgba(13, 59, 102, 0.22);
+        }
+        @media (max-width: 480px) {
+          .logo-selector { width: 130px !important; }
         }
       `}</style>
     </div>
