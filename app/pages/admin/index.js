@@ -1438,9 +1438,9 @@ export default function AdminPage() {
                               <div dangerouslySetInnerHTML={{ __html: r.pregunta }} />
                               {r.imagen_url && <div><em>Imagen: {r.imagen_url}</em></div>}
                               <ul>
-                                {r.opciones.map((o) => (
+                                {r.opciones.map((o, idx) => (
                                   <li key={o.id} style={{ color: o.es_correcta ? 'green' : 'inherit' }}>
-                                    {o.texto} {o.imagen_url && `[img: ${o.imagen_url}]`} {o.es_correcta && '✓'}
+                                    <strong>{String.fromCharCode(97 + idx)})</strong> {o.texto} {o.imagen_url && `[img: ${o.imagen_url}]`} {o.es_correcta && '✓'}
                                   </li>
                                 ))}
                               </ul>

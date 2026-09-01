@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   }
 
   const { rows: siguienteRows } = await pool.query(
-    `SELECT er.id AS examen_reactivo_id, r.id AS reactivo_id, r.pregunta, r.imagen_url, r.lectura_id,
+    `SELECT er.id AS examen_reactivo_id, er.opciones_orden, r.id AS reactivo_id, r.pregunta, r.imagen_url, r.lectura_id,
             c.nombre AS categoria,
             l.titulo AS lectura_titulo, l.subtitulo AS lectura_subtitulo,
             l.texto AS lectura_texto, l.imagen_url AS lectura_imagen_url
@@ -63,10 +63,37 @@ export default async function handler(req, res) {
     return res.status(200).json({ terminado: true, total, respondidas });
   }
 
-  const { rows: opciones } = await pool.query(
+  const { rows: opcionesDb } = await pool.query(
     `SELECT id, texto, imagen_url FROM opciones WHERE reactivo_id = $1`,
     [siguiente.reactivo_id]
   );
+
+  // El orden de las opciones se decide UNA sola vez por alumno/pregunta y se
+  // guarda, para que no cambie si el alumno refresca o pierde conexión a
+  // medio responder (si no, la letra a/b/c se movería de lugar bajo sus pies).
+  let opciones;
+  if (siguiente.opciones_orden) {
+    let ordenIds = [];
+    try {
+      ordenIds = JSON.parse(siguiente.opciones_orden);
+    } catch (e) {
+      ordenIds = [];
+    }
+    const porId = new Map(opcionesDb.map((o) => [o.id, o]));
+    opciones = ordenIds.map((id) => porId.get(id)).filter(Boolean);
+    // Por si se agregó/borró una opción después de haber guardado el orden
+    // (caso raro, edición del admin a medio examen): agregamos al final las
+    // que falten y descartamos las que ya no existan.
+    for (const o of opcionesDb) {
+      if (!opciones.includes(o)) opciones.push(o);
+    }
+  } else {
+    opciones = barajar(opcionesDb);
+    await pool.query(`UPDATE examen_reactivos SET opciones_orden = $1 WHERE id = $2`, [
+      JSON.stringify(opciones.map((o) => o.id)),
+      siguiente.examen_reactivo_id,
+    ]);
+  }
 
   return res.status(200).json({
     terminado: false,
@@ -86,7 +113,7 @@ export default async function handler(req, res) {
           imagenUrl: siguiente.lectura_imagen_url,
         }
       : null,
-    opciones: barajar(opciones), // orden aleatorio para que no sea igual entre alumnos
+    opciones,
     tiempoLimiteMinutos: examen.tiempo_limite_minutos,
     iniciadoEn: examen.iniciado_en,
   });

@@ -52,7 +52,13 @@ CREATE TABLE examen_reactivos (
   reactivo_id INTEGER NOT NULL REFERENCES reactivos(id),
   orden INTEGER NOT NULL,
   opcion_respondida_id INTEGER REFERENCES opciones(id),
-  respondido_en TIMESTAMP
+  respondido_en TIMESTAMP,
+  -- Orden en el que se le mostraron las opciones a ESTE alumno para ESTA
+  -- pregunta (arreglo JSON de ids de opciones). Se decide una sola vez, la
+  -- primera vez que se le sirve la pregunta, y se reutiliza si vuelve a
+  -- pedirla (p. ej. si refresca o se reconecta) para que las opciones no
+  -- cambien de posición ni de letra (a/b/c) a medio examen.
+  opciones_orden TEXT
 );
 
 CREATE INDEX idx_reactivos_categoria ON reactivos(categoria_id);

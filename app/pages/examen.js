@@ -304,21 +304,24 @@ export default function Examen() {
           <img src={pregunta.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16 }} />
         )}
 
-        {pregunta.opciones.map((o) => (
+        {pregunta.opciones.map((o, idx) => (
           <label
             key={o.id}
             style={{
-              display: 'block', padding: 12, marginBottom: 8,
+              display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12, marginBottom: 8,
               border: `1px solid ${seleccion === o.id ? '#4a90d9' : '#ddd'}`,
               borderRadius: 6, background: seleccion === o.id ? '#eef4fb' : '#fff', cursor: 'pointer',
             }}
           >
-            <input type="radio" name="opcion" checked={seleccion === o.id} onChange={() => setSeleccion(o.id)} style={{ marginRight: 8 }} />
-            {o.texto}
-            {o.imagen_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={o.imagen_url} alt="" style={{ display: 'block', maxWidth: '100%', marginTop: 6 }} />
-            )}
+            <input type="radio" name="opcion" checked={seleccion === o.id} onChange={() => setSeleccion(o.id)} style={{ marginTop: 3, flexShrink: 0 }} />
+            <span style={{ fontWeight: 'bold', flexShrink: 0 }}>{String.fromCharCode(97 + idx)})</span>
+            <span>
+              {o.texto}
+              {o.imagen_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={o.imagen_url} alt="" style={{ display: 'block', maxWidth: '100%', marginTop: 6 }} />
+              )}
+            </span>
           </label>
         ))}
 
