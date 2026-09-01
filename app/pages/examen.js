@@ -246,6 +246,16 @@ export default function Examen() {
     return () => clearInterval(intervalo);
   }, [pregunta?.examenReactivoId]);
 
+  // Al entrar a una lectura/sección nueva, sube la pantalla hasta arriba. Sin
+  // esto, si el alumno estaba desplazado hacia abajo (cerca del botón
+  // "Siguiente") en la lectura anterior, no ve el inicio del texto nuevo a
+  // menos que suba manualmente. Dentro de la misma lectura no se mueve la
+  // pantalla, para no ser intrusivos en cada pregunta.
+  useEffect(() => {
+    if (!pregunta || !esNuevaSeccion) return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [pregunta?.examenReactivoId, esNuevaSeccion]);
+
   function formatearTiempo(segundos) {
     const m = Math.floor(segundos / 60);
     const s = segundos % 60;
