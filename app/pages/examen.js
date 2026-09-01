@@ -16,6 +16,7 @@ export default function Examen() {
   const [cargando, setCargando] = useState(true);
   const [examenId, setExamenId] = useState(null);
   const [pregunta, setPregunta] = useState(null);
+  const [mapa, setMapa] = useState(null); // { categorias: [{ nombre, items: [{examenReactivoId, numero, respondida}] }] }
   const [seleccion, setSeleccion] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState(null);
@@ -77,17 +78,48 @@ export default function Examen() {
     }
     setExamenId(data.examenId);
     seccionActualRef.current = null; // nuevo examen: reinicia la detección de cambio de sección
-    cargarSiguiente(data.examenId);
+    const mapaData = await cargarMapa(data.examenId);
+    const primera = primeraSinResponder(mapaData);
+    cargarPregunta(data.examenId, primera);
   }
 
   function claveDeSeccion(data) {
     return data.lectura ? `lectura-${data.lectura.id}` : `categoria-${data.categoria}`;
   }
 
-  async function cargarSiguiente(id) {
-    setSeleccion(null);
+  // Aplana el mapa (agrupado por materia) en una sola lista, en el mismo
+  // orden en que se presenta el examen. Se usa para saber "cuál sigue",
+  // "en qué posición voy" y el total/contestadas para la barra de progreso.
+  function aplanarMapa(mapaData) {
+    return mapaData ? mapaData.categorias.flatMap((c) => c.items) : [];
+  }
+
+  function primeraSinResponder(mapaData) {
+    const flat = aplanarMapa(mapaData);
+    const sinResponder = flat.find((i) => !i.respondida);
+    return (sinResponder || flat[0])?.examenReactivoId || null;
+  }
+
+  async function cargarMapa(id) {
     try {
-      const res = await fetch(`/api/examen/siguiente?examenId=${id}`);
+      const res = await fetch(`/api/examen/mapa?examenId=${id}`);
+      const data = await res.json();
+      if (res.ok) {
+        setMapa(data);
+        return data;
+      }
+    } catch (e) {
+      // si falla, simplemente no se actualiza el mapa de circulitos; no es crítico
+    }
+    return null;
+  }
+
+  async function cargarPregunta(id, examenReactivoId) {
+    try {
+      const url = examenReactivoId
+        ? `/api/examen/pregunta?examenId=${id}&examenReactivoId=${examenReactivoId}`
+        : `/api/examen/pregunta?examenId=${id}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (!res.ok) {
         setError(data.error);
@@ -101,33 +133,79 @@ export default function Examen() {
       setEsNuevaSeccion(seccionActualRef.current !== null && seccionActualRef.current !== clave);
       seccionActualRef.current = clave;
       setPregunta(data);
+      setSeleccion(data.opcionSeleccionadaId || null);
     } catch (e) {
-      setError('No se pudo cargar la siguiente pregunta — revisa tu conexión a internet. Tu progreso está guardado, puedes reintentar.');
+      setError('No se pudo cargar la pregunta — revisa tu conexión a internet. Tu progreso está guardado, puedes reintentar.');
     }
   }
 
-  async function enviarRespuesta() {
-    if (!seleccion) return;
-    setEnviando(true);
-    setError('');
+  // Guarda la selección actual solo si cambió respecto a lo que ya estaba
+  // guardado para esta pregunta (evita llamadas de más al solo pasar de
+  // pregunta sin haber tocado nada).
+  async function guardarSeleccionActual() {
+    if (!pregunta || seleccion == null || seleccion === pregunta.opcionSeleccionadaId) return true;
     try {
       const res = await fetch('/api/examen/responder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ examenReactivoId: pregunta.examenReactivoId, opcionId: seleccion }),
       });
-      const data = res.ok ? null : await res.json();
       if (!res.ok) {
+        const data = await res.json();
         setError(data.error);
-        setEnviando(false);
-        return;
+        return false;
       }
-      cargarSiguiente(examenId);
+      return true;
     } catch (e) {
-      // Sin conexión a internet en este momento: no se perdió nada, solo hay que reintentar.
       setError('No se pudo guardar tu respuesta — revisa tu conexión a internet e intenta de nuevo.');
-      setEnviando(false);
+      return false;
     }
+  }
+
+  // Botón "Siguiente": guarda si hace falta y avanza a la pregunta que sigue
+  // en el examen (sin importar si ya estaba contestada o no).
+  async function irASiguiente() {
+    setError('');
+    setEnviando(true);
+    const idActual = pregunta.examenReactivoId;
+    const guardadoOk = await guardarSeleccionActual();
+    if (!guardadoOk) {
+      setEnviando(false);
+      return;
+    }
+    const mapaData = await cargarMapa(examenId);
+    const flat = aplanarMapa(mapaData);
+    const idx = flat.findIndex((i) => i.examenReactivoId === idActual);
+    const siguienteId = idx >= 0 && idx < flat.length - 1 ? flat[idx + 1].examenReactivoId : idActual;
+    await cargarPregunta(examenId, siguienteId);
+    setEnviando(false);
+  }
+
+  // Clic en un circulito del mapa: guarda la selección pendiente (si hay) y
+  // salta directo a esa pregunta, contestada o no.
+  async function irAPregunta(examenReactivoId) {
+    if (pregunta && examenReactivoId === pregunta.examenReactivoId) return;
+    setError('');
+    const guardadoOk = await guardarSeleccionActual();
+    if (!guardadoOk) return;
+    await cargarMapa(examenId);
+    await cargarPregunta(examenId, examenReactivoId);
+  }
+
+  async function confirmarFinalizar() {
+    setError('');
+    const guardadoOk = await guardarSeleccionActual();
+    if (!guardadoOk) return;
+    const mapaData = await cargarMapa(examenId);
+    const flat = aplanarMapa(mapaData);
+    const faltan = flat.filter((i) => !i.respondida).length;
+    if (faltan > 0) {
+      const continuar = window.confirm(
+        `Todavía tienes ${faltan} pregunta${faltan === 1 ? '' : 's'} sin responder. Si finalizas ahora, esas quedarán como incorrectas y no podrás volver a responderlas. ¿Quieres finalizar de todas formas?`
+      );
+      if (!continuar) return;
+    }
+    finalizarExamen(examenId);
   }
 
   async function finalizarExamen(id) {
@@ -135,6 +213,7 @@ export default function Examen() {
     const data = await res.json();
     setResultado(data);
     setPregunta(null);
+    setMapa(null);
     cargarHistorial();
   }
 
@@ -246,96 +325,147 @@ export default function Examen() {
   // ---- Pantalla de presentación de pregunta ----
   if (pregunta) {
     const tiempoBajo = segundosRestantes !== null && segundosRestantes <= 300; // últimos 5 min
+    const flatList = aplanarMapa(mapa);
+    const totalPreguntas = flatList.length;
+    const respondidasCount = flatList.filter((i) => i.respondida).length;
+    const posicionActual = flatList.findIndex((i) => i.examenReactivoId === pregunta.examenReactivoId) + 1;
+
     return (
-      <div style={{ maxWidth: pregunta.lectura ? 680 : 560, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#666', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
-          <span>{pregunta.categoria}</span>
-          <span>Pregunta {pregunta.numero} de {pregunta.total}</span>
-          {segundosRestantes !== null && (
-            <span
+      <div style={{ maxWidth: pregunta.lectura ? 980 : 860, margin: '40px auto', fontFamily: 'sans-serif', padding: 24, display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 480px', minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#666', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
+            <span>{pregunta.categoria}</span>
+            {totalPreguntas > 0 && <span>Pregunta {posicionActual} de {totalPreguntas}</span>}
+            {segundosRestantes !== null && (
+              <span
+                style={{
+                  fontWeight: 'bold', padding: '2px 10px', borderRadius: 20,
+                  background: tiempoBajo ? '#fdeceb' : '#f4f4f4',
+                  color: tiempoBajo ? '#c0392b' : '#555',
+                }}
+              >
+                ⏱ {formatearTiempo(segundosRestantes)}
+              </span>
+            )}
+          </div>
+          {totalPreguntas > 0 && (
+            <div style={{ background: '#eee', borderRadius: 6, height: 6, marginBottom: 20 }}>
+              <div style={{ width: `${(respondidasCount / totalPreguntas) * 100}%`, height: '100%', background: '#4a90d9', borderRadius: 6 }} />
+            </div>
+          )}
+
+          {esNuevaSeccion && (
+            <div
               style={{
-                fontWeight: 'bold', padding: '2px 10px', borderRadius: 20,
-                background: tiempoBajo ? '#fdeceb' : '#f4f4f4',
-                color: tiempoBajo ? '#c0392b' : '#555',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                fontSize: 14, fontWeight: 600, color: '#fff', background: '#4a90d9',
+                padding: '7px 16px', borderRadius: 20, marginBottom: 14,
+                boxShadow: '0 2px 6px rgba(74,144,217,0.3)',
               }}
             >
-              ⏱ {formatearTiempo(segundosRestantes)}
-            </span>
+              {pregunta.lectura ? '📘 Nueva lectura' : '📄 Nueva sección'}
+            </div>
           )}
-        </div>
-        <div style={{ background: '#eee', borderRadius: 6, height: 6, marginBottom: 20 }}>
-          <div style={{ width: `${(pregunta.respondidas / pregunta.total) * 100}%`, height: '100%', background: '#4a90d9', borderRadius: 6 }} />
-        </div>
 
-        {esNuevaSeccion && (
-          <div
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 14, fontWeight: 600, color: '#fff', background: '#4a90d9',
-              padding: '7px 16px', borderRadius: 20, marginBottom: 14,
-              boxShadow: '0 2px 6px rgba(74,144,217,0.3)',
-            }}
-          >
-            {pregunta.lectura ? '📘 Nueva lectura' : '📄 Nueva sección'}
-          </div>
-        )}
-
-        {pregunta.lectura && (
-          <div className="panel-lectura" style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 20, marginBottom: 20 }}>
-            {pregunta.lectura.titulo && (
-              <h2 style={{ textAlign: 'center', fontSize: 18, marginBottom: 4 }}>{pregunta.lectura.titulo}</h2>
-            )}
-            {pregunta.lectura.subtitulo && (
-              <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#666', fontSize: 14, marginBottom: 16 }}>
-                {pregunta.lectura.subtitulo}
-              </p>
-            )}
-            {pregunta.lectura.imagenUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={pregunta.lectura.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16, display: 'block' }} />
-            )}
-            <div style={{ fontSize: 15, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: pregunta.lectura.texto }} />
-          </div>
-        )}
-
-        <div style={{ fontSize: 17, marginBottom: 16, lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pregunta.pregunta }} />
-        {pregunta.imagenUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={pregunta.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16 }} />
-        )}
-
-        {pregunta.opciones.map((o, idx) => (
-          <label
-            key={o.id}
-            style={{
-              display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12, marginBottom: 8,
-              border: `1px solid ${seleccion === o.id ? '#4a90d9' : '#ddd'}`,
-              borderRadius: 6, background: seleccion === o.id ? '#eef4fb' : '#fff', cursor: 'pointer',
-            }}
-          >
-            <input type="radio" name="opcion" checked={seleccion === o.id} onChange={() => setSeleccion(o.id)} style={{ marginTop: 3, flexShrink: 0 }} />
-            <span style={{ fontWeight: 'bold', flexShrink: 0 }}>{String.fromCharCode(97 + idx)})</span>
-            <span>
-              {o.texto}
-              {o.imagen_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={o.imagen_url} alt="" style={{ display: 'block', maxWidth: '100%', marginTop: 6 }} />
+          {pregunta.lectura && (
+            <div className="panel-lectura" style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 20, marginBottom: 20 }}>
+              {pregunta.lectura.titulo && (
+                <h2 style={{ textAlign: 'center', fontSize: 18, marginBottom: 4 }}>{pregunta.lectura.titulo}</h2>
               )}
-            </span>
-          </label>
-        ))}
+              {pregunta.lectura.subtitulo && (
+                <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#666', fontSize: 14, marginBottom: 16 }}>
+                  {pregunta.lectura.subtitulo}
+                </p>
+              )}
+              {pregunta.lectura.imagenUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={pregunta.lectura.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16, display: 'block' }} />
+              )}
+              <div style={{ fontSize: 15, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: pregunta.lectura.texto }} />
+            </div>
+          )}
 
-        {error && <p style={{ color: '#c0392b' }}>{error}</p>}
+          <div style={{ fontSize: 17, marginBottom: 16, lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pregunta.pregunta }} />
+          {pregunta.imagenUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pregunta.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16 }} />
+          )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            onClick={enviarRespuesta}
-            disabled={!seleccion || enviando}
-            className="btn-siguiente"
-            style={{ width: '100%', padding: 12, marginTop: 12, background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: !seleccion || enviando ? 0.6 : 1 }}
-          >
-            {enviando ? 'Guardando...' : 'Siguiente'}
-          </button>
+          {pregunta.opciones.map((o, idx) => (
+            <label
+              key={o.id}
+              style={{
+                display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12, marginBottom: 8,
+                border: `1px solid ${seleccion === o.id ? '#4a90d9' : '#ddd'}`,
+                borderRadius: 6, background: seleccion === o.id ? '#eef4fb' : '#fff', cursor: 'pointer',
+              }}
+            >
+              <input type="radio" name="opcion" checked={seleccion === o.id} onChange={() => setSeleccion(o.id)} style={{ marginTop: 3, flexShrink: 0 }} />
+              <span style={{ fontWeight: 'bold', flexShrink: 0 }}>{String.fromCharCode(97 + idx)})</span>
+              <span>
+                {o.texto}
+                {o.imagen_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={o.imagen_url} alt="" style={{ display: 'block', maxWidth: '100%', marginTop: 6 }} />
+                )}
+              </span>
+            </label>
+          ))}
+
+          {error && <p style={{ color: '#c0392b' }}>{error}</p>}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={irASiguiente}
+              disabled={!seleccion || enviando}
+              className="btn-siguiente"
+              style={{ width: '100%', padding: 12, marginTop: 12, background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: !seleccion || enviando ? 0.6 : 1 }}
+            >
+              {enviando ? 'Guardando...' : 'Siguiente'}
+            </button>
+          </div>
+        </div>
+
+        {/* Mapa de preguntas: circulitos por materia para ver de un vistazo
+            cuáles ya están contestadas y saltar directo a cualquiera. */}
+        <div style={{ width: 220, flexShrink: 0 }}>
+          <div style={{ position: 'sticky', top: 20, background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+              Mapa de preguntas
+            </div>
+            {mapa && mapa.categorias.map((cat) => (
+              <div key={cat.nombre} style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 11, color: '#888', marginBottom: 6 }}>{cat.nombre}</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {cat.items.map((it) => {
+                    const esActual = it.examenReactivoId === pregunta.examenReactivoId;
+                    return (
+                      <button
+                        key={it.examenReactivoId}
+                        onClick={() => irAPregunta(it.examenReactivoId)}
+                        title={`Pregunta ${it.numero}${it.respondida ? ' — ya contestada' : ' — sin contestar'}`}
+                        style={{
+                          width: 28, height: 28, borderRadius: '50%', fontSize: 11, fontWeight: 'bold',
+                          border: esActual ? '2px solid #4a90d9' : '1px solid #ccc',
+                          background: it.respondida ? '#2e7d32' : '#fff',
+                          color: it.respondida ? '#fff' : '#666',
+                          cursor: 'pointer', padding: 0,
+                        }}
+                      >
+                        {it.numero}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={confirmarFinalizar}
+              style={{ marginTop: 6, width: '100%', padding: '9px', background: '#fdeceb', color: '#c0392b', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+            >
+              🏁 Finalizar examen
+            </button>
+          </div>
         </div>
 
         <style jsx>{`
