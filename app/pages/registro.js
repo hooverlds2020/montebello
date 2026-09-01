@@ -44,7 +44,7 @@ export default function Registro() {
 
       <form onSubmit={handleSubmit}>
         <input
-          placeholder="Nombre completo"
+          placeholder="Nombre y apellido"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           required
@@ -60,15 +60,17 @@ export default function Registro() {
         />
         <input
           type="tel"
-          placeholder="Teléfono (opcional)"
+          placeholder="Teléfono"
           value={telefono}
           onChange={(e) => setTelefono(e.target.value)}
+          required
           style={estiloInput}
         />
         <input
-          placeholder="Preparatoria de procedencia (opcional)"
+          placeholder="Escuela de procedencia"
           value={preparatoriaProcedencia}
           onChange={(e) => setPreparatoriaProcedencia(e.target.value)}
+          required
           style={estiloInput}
         />
         <input

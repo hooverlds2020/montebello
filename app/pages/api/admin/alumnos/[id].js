@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     }
   }
 
-  const { rows: alumnoRows } = await pool.query('SELECT id, nombre, email, telefono, preparatoria_procedencia, creado_en FROM alumnos WHERE id = $1', [id]);
+  const { rows: alumnoRows } = await pool.query('SELECT id, nombre, email, telefono, preparatoria_procedencia, creado_en, ficha_registro FROM alumnos WHERE id = $1', [id]);
   const alumno = alumnoRows[0];
   if (!alumno) {
     return res.status(404).json({ error: 'Alumno no encontrado' });

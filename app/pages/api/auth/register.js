@@ -16,6 +16,12 @@ export default async function handler(req, res) {
   if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
     return res.status(400).json({ error: 'Correo inválido' });
   }
+  if (!telefono || !telefono.trim()) {
+    return res.status(400).json({ error: 'El teléfono es obligatorio' });
+  }
+  if (!preparatoriaProcedencia || !preparatoriaProcedencia.trim()) {
+    return res.status(400).json({ error: 'La escuela de procedencia es obligatoria' });
+  }
   if (!password || password.length < 6) {
     return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
   }

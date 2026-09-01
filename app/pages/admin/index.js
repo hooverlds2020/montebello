@@ -47,6 +47,8 @@ export default function AdminPage() {
   const ALUMNOS_POR_PAGINA = 20;
   const [alumnoSeleccionadoId, setAlumnoSeleccionadoId] = useState(null);
   const [detalleAlumno, setDetalleAlumno] = useState(null);
+  const [mostrandoFicha, setMostrandoFicha] = useState(false);
+  const [fichaInput, setFichaInput] = useState({});
   const [cargandoAlumnos, setCargandoAlumnos] = useState(false);
 
   // Usuarios administradores del panel
@@ -194,9 +196,36 @@ export default function AdminPage() {
   async function verDetalleAlumno(id) {
     setAlumnoSeleccionadoId(id);
     setDetalleAlumno(null);
+    setMostrandoFicha(false);
     const res = await fetch(`/api/admin/alumnos/${id}`);
     const data = await res.json();
     setDetalleAlumno(data);
+    setFichaInput(data.alumno.ficha_registro || {});
+  }
+
+  function actualizarCampoFicha(campo, valor) {
+    setFichaInput((prev) => ({ ...prev, [campo]: valor }));
+  }
+
+  function actualizarPuntajeArea(categoria, valor) {
+    setFichaInput((prev) => ({
+      ...prev,
+      puntajesPorArea: { ...(prev.puntajesPorArea || {}), [categoria]: valor },
+    }));
+  }
+
+  async function guardarFicha() {
+    const res = await fetch(`/api/admin/alumnos/${detalleAlumno.alumno.id}/ficha`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ficha_registro: fichaInput }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    mostrarToast('Ficha guardada ✓', 'exito');
   }
 
   function borrarHistorialAlumno(id, nombre) {
@@ -1641,6 +1670,9 @@ export default function AdminPage() {
                 <button onClick={() => { setAlumnoSeleccionadoId(null); setDetalleAlumno(null); }} style={btnStyle('secundario')}>
                   ← Volver a la lista
                 </button>
+                <button onClick={() => setMostrandoFicha((v) => !v)} style={btnStyle(mostrandoFicha ? 'primario' : 'secundario')}>
+                  📋 {mostrandoFicha ? 'Ver historial' : 'Ficha de registro'}
+                </button>
                 <button onClick={() => window.print()} style={btnStyle('primario')}>
                   🖨️ Imprimir / Guardar PDF
                 </button>
@@ -1796,10 +1828,12 @@ export default function AdminPage() {
                   Registrado el {new Date(detalleAlumno.alumno.creado_en).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
                 </div>
               </div>
-              {detalleAlumno.historial.length === 0 && (
-                <p style={{ color: '#888' }}>Este alumno aún no ha finalizado ningún examen.</p>
-              )}
-              {detalleAlumno.historial.map((h, idx) => {
+              {!mostrandoFicha && (
+                <>
+                  {detalleAlumno.historial.length === 0 && (
+                    <p style={{ color: '#888' }}>Este alumno aún no ha finalizado ningún examen.</p>
+                  )}
+                  {detalleAlumno.historial.map((h, idx) => {
                 const urlVerifAdmin = typeof window !== 'undefined'
                   ? `${window.location.origin}/verificar?folio=${h.examenId}`
                   : '';
@@ -1834,7 +1868,174 @@ export default function AdminPage() {
                   </div>
                 </div>
                 );
-              })}
+                  })}
+                </>
+              )}
+
+              {mostrandoFicha && (
+                <div className="ficha-registro" style={{ background: '#fff', border: '1px solid #dde3ea', borderRadius: 10, padding: 28, maxWidth: 820 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '3px solid #0d3b66', paddingBottom: 14, marginBottom: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/img/logo-montebello.webp" alt="" style={{ width: 54, height: 'auto' }} />
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 15, color: '#0d3b66' }}>INSTITUTO EDUCATIVO MONTEBELLO</div>
+                        <div style={{ fontSize: 11, color: '#888', fontStyle: 'italic' }}>"Transformando la educación hacia la sociedad del conocimiento"</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, marginTop: 4 }}>FICHA DE REGISTRO</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: 11, color: '#a8791b', fontWeight: 700, border: '1px solid #e8d9b0', borderRadius: 6, padding: '4px 10px' }}>
+                      Modelo<br />CENEVAL
+                    </div>
+                  </div>
+
+                  {/* --- Datos que ya calcula el sistema (solo lectura) --- */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 24px', marginBottom: 18, fontSize: 13 }}>
+                    <div><strong>Fecha de diagnóstico:</strong> {detalleAlumno.historial[0] ? new Date(detalleAlumno.historial[0].finalizadoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}</div>
+                    <div><strong>Promedio general de examen:</strong> {detalleAlumno.historial[0] ? `${detalleAlumno.historial[0].porcentaje}%` : '—'}</div>
+                    <div style={{ gridColumn: '1 / -1' }}><strong>Nombre del alumno:</strong> {detalleAlumno.alumno.nombre}</div>
+                    <div><strong>Teléfono del alumno:</strong> {detalleAlumno.alumno.telefono || '—'}</div>
+                  </div>
+
+                  {/* --- Campos que se llenan en la entrevista --- */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 20 }}>
+                    <label style={{ fontSize: 12, color: '#555' }}>
+                      Fecha de nacimiento
+                      <input type="date" value={fichaInput.fechaNacimiento || ''} onChange={(e) => actualizarCampoFicha('fechaNacimiento', e.target.value)} style={{ display: 'block', width: '100%', padding: 7, marginTop: 3, border: '1px solid #ddd', borderRadius: 5 }} />
+                    </label>
+                    <label style={{ fontSize: 12, color: '#555', gridColumn: 'span 2' }}>
+                      Secundaria/Bachillerato de procedencia
+                      <input value={fichaInput.escuelaProcedencia ?? detalleAlumno.alumno.preparatoria_procedencia ?? ''} onChange={(e) => actualizarCampoFicha('escuelaProcedencia', e.target.value)} style={{ display: 'block', width: '100%', padding: 7, marginTop: 3, border: '1px solid #ddd', borderRadius: 5, boxSizing: 'border-box' }} />
+                    </label>
+                    <label style={{ fontSize: 12, color: '#555', gridColumn: 'span 3' }}>
+                      Área o carrera que desea estudiar
+                      <input value={fichaInput.areaCarrera || ''} onChange={(e) => actualizarCampoFicha('areaCarrera', e.target.value)} style={{ display: 'block', width: '100%', padding: 7, marginTop: 3, border: '1px solid #ddd', borderRadius: 5, boxSizing: 'border-box' }} />
+                    </label>
+                    <label style={{ fontSize: 12, color: '#555', gridColumn: 'span 3' }}>
+                      Preparatoria(s)/universidad(es) a la(s) que aplica
+                      <input value={fichaInput.preparatoriasAplica || ''} onChange={(e) => actualizarCampoFicha('preparatoriasAplica', e.target.value)} style={{ display: 'block', width: '100%', padding: 7, marginTop: 3, border: '1px solid #ddd', borderRadius: 5, boxSizing: 'border-box' }} />
+                    </label>
+                    <label style={{ fontSize: 12, color: '#555', gridColumn: 'span 2' }}>
+                      Nombre del padre/tutor
+                      <input value={fichaInput.nombrePadreTutor || ''} onChange={(e) => actualizarCampoFicha('nombrePadreTutor', e.target.value)} style={{ display: 'block', width: '100%', padding: 7, marginTop: 3, border: '1px solid #ddd', borderRadius: 5, boxSizing: 'border-box' }} />
+                    </label>
+                    <label style={{ fontSize: 12, color: '#555' }}>
+                      Teléfono del padre/tutor
+                      <input value={fichaInput.telefonoPadreTutor || ''} onChange={(e) => actualizarCampoFicha('telefonoPadreTutor', e.target.value)} style={{ display: 'block', width: '100%', padding: 7, marginTop: 3, border: '1px solid #ddd', borderRadius: 5, boxSizing: 'border-box' }} />
+                    </label>
+                  </div>
+
+                  {/* --- Tabla de resultados CENEVAL --- */}
+                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
+                    Resultados de examen diagnóstico CENEVAL
+                    <span style={{ fontWeight: 400, color: '#888', marginLeft: 8 }}>(el % lo calcula el sistema; "puntaje" es el que asigne la institución según su escala)</span>
+                  </p>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 20 }}>
+                    <thead>
+                      <tr style={{ background: '#f0f3f7' }}>
+                        <th style={{ textAlign: 'left', padding: 8, border: '1px solid #e0e6ec' }}>Área</th>
+                        <th style={{ padding: 8, border: '1px solid #e0e6ec' }}>Resultado en %</th>
+                        <th style={{ padding: 8, border: '1px solid #e0e6ec' }}>Resultado en puntaje</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(detalleAlumno.historial[0]?.porCategoria || []).map((c) => (
+                        <tr key={c.categoria}>
+                          <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>{c.categoria}</td>
+                          <td style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>{c.porcentaje}%</td>
+                          <td style={{ padding: 4, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                            <input
+                              value={fichaInput.puntajesPorArea?.[c.categoria] || ''}
+                              onChange={(e) => actualizarPuntajeArea(c.categoria, e.target.value)}
+                              style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, textAlign: 'center', boxSizing: 'border-box' }}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                      {!detalleAlumno.historial[0] && (
+                        <tr><td colSpan={3} style={{ padding: 10, textAlign: 'center', color: '#aaa', border: '1px solid #e0e6ec' }}>Sin examen finalizado aún</td></tr>
+                      )}
+                      <tr>
+                        <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>Total de Aciertos</td>
+                        <td colSpan={2} style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>{detalleAlumno.historial[0]?.correctas ?? '—'} de {detalleAlumno.historial[0]?.total ?? '—'}</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>Total de Errores</td>
+                        <td colSpan={2} style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                          {detalleAlumno.historial[0] ? detalleAlumno.historial[0].total - detalleAlumno.historial[0].correctas : '—'}
+                        </td>
+                      </tr>
+                      <tr style={{ background: '#fdf3e3' }}>
+                        <td style={{ padding: 8, border: '1px solid #e0e6ec', fontWeight: 700, color: '#a8791b' }}>Puntaje total de examen completo</td>
+                        <td colSpan={2} style={{ padding: 4, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                          <input value={fichaInput.puntajeTotal || ''} onChange={(e) => actualizarCampoFicha('puntajeTotal', e.target.value)} style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, textAlign: 'center', boxSizing: 'border-box' }} />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  {/* --- Comprensión lectora extra (cronometraje manual) --- */}
+                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>Resultados de examen de comprensión lectora</p>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 20 }}>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>Total de palabras en el texto</td>
+                        <td style={{ padding: 4, border: '1px solid #e0e6ec', width: 140 }}>
+                          <input type="number" value={fichaInput.palabrasTexto || ''} onChange={(e) => actualizarCampoFicha('palabrasTexto', e.target.value)} style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' }} />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>Tiempo de lectura (minutos)</td>
+                        <td style={{ padding: 4, border: '1px solid #e0e6ec' }}>
+                          <input type="number" value={fichaInput.tiempoLecturaMin || ''} onChange={(e) => actualizarCampoFicha('tiempoLecturaMin', e.target.value)} style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, boxSizing: 'border-box' }} />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>Número de palabras por minuto (ppm)</td>
+                        <td style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                          {fichaInput.palabrasTexto && fichaInput.tiempoLecturaMin
+                            ? Math.round(fichaInput.palabrasTexto / fichaInput.tiempoLecturaMin)
+                            : '—'}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>Total de aciertos en examen de comprensión lectora</td>
+                        <td style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                          {(() => {
+                            const cl = detalleAlumno.historial[0]?.porCategoria?.find((c) => c.categoria.toLowerCase().includes('comprensión lectora'));
+                            return cl ? `${cl.correctas}/${cl.total} · ${cl.porcentaje}%` : '—';
+                          })()}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
+                    <label style={{ fontSize: 12, color: '#555' }}>
+                      Fecha de ingreso al curso
+                      <input type="date" value={fichaInput.fechaIngreso || ''} onChange={(e) => actualizarCampoFicha('fechaIngreso', e.target.value)} style={{ display: 'block', width: '100%', padding: 7, marginTop: 3, border: '1px solid #ddd', borderRadius: 5 }} />
+                    </label>
+                    <div>
+                      <div style={{ fontSize: 12, color: '#555', marginBottom: 4 }}>Turno</div>
+                      <div style={{ display: 'flex', gap: 14 }}>
+                        {['Matutino', 'Vespertino', 'Sábado'].map((t) => (
+                          <label key={t} style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <input type="radio" name="turno" checked={fichaInput.turno === t} onChange={() => actualizarCampoFicha('turno', t)} /> {t}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: 12, color: '#666', fontStyle: 'italic', marginBottom: 20 }}>
+                    Rosario Culebro Alfaro — Directora del Instituto Montebello
+                  </div>
+
+                  <div className="ocultar-al-imprimir">
+                    <button onClick={guardarFicha} style={btnStyle('primario')}>💾 Guardar ficha</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

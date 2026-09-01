@@ -62,7 +62,20 @@ CREATE TABLE alumnos (
   nombre VARCHAR(200) NOT NULL,
   email VARCHAR(200) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  creado_en TIMESTAMP DEFAULT NOW()
+  creado_en TIMESTAMP DEFAULT NOW(),
+  -- telefono y preparatoria_procedencia: capturados en el registro del
+  -- alumno; tampoco estaban documentados aquí (se agregaron a mano en
+  -- producción en su momento).
+  telefono VARCHAR(30),
+  preparatoria_procedencia TEXT,
+  -- Todo lo que se captura durante la entrevista (Ficha de Registro en papel):
+  -- fecha de nacimiento, área/carrera deseada, preparatorias a las que
+  -- aplica, datos del padre/tutor, turno, fecha de ingreso, y los puntajes
+  -- manuales del CENEVAL que no tienen una fórmula definida en el sistema.
+  -- Se guarda como JSON en vez de una columna por campo porque este
+  -- formulario es del instituto y puede cambiar de forma; así se ajusta sin
+  -- tener que alterar el esquema cada vez.
+  ficha_registro JSONB
 );
 
 CREATE TABLE password_resets (
