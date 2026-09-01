@@ -8,6 +8,18 @@ const { estaAutenticado } = require('../../lib/auth');
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
 
+// Toolbar reducida para el enunciado de las preguntas: negritas, cursiva,
+// subrayado y resaltado tipo marcador (fondo amarillo). Quill no trae
+// "highlight" por defecto, así que se habilita vía el formato "background".
+const quillPreguntaModules = {
+  toolbar: [
+    ['bold', 'italic', 'underline'],
+    [{ background: ['#fff2a8', false] }],
+    ['clean'],
+  ],
+};
+const quillPreguntaFormats = ['bold', 'italic', 'underline', 'background'];
+
 export async function getServerSideProps({ req }) {
   if (!estaAutenticado(req)) {
     return { redirect: { destination: '/admin/login', permanent: false } };
@@ -1168,12 +1180,16 @@ export default function AdminPage() {
                           ✕ quitar
                         </button>
                       </div>
-                      <textarea
-                        value={p.pregunta}
-                        onChange={(e) => actualizarPreguntaRapida(idxP, e.target.value)}
-                        placeholder="Texto de la pregunta"
-                        style={{ display: 'block', marginTop: 4, marginBottom: 6, padding: 8, width: '100%', minHeight: 90, boxSizing: 'border-box', fontSize: 14, lineHeight: 1.4 }}
-                      />
+                      <div style={{ marginTop: 4, marginBottom: 6, background: '#fff' }}>
+                        <ReactQuill
+                          theme="snow"
+                          value={p.pregunta}
+                          onChange={(html) => actualizarPreguntaRapida(idxP, html)}
+                          placeholder="Texto de la pregunta"
+                          modules={quillPreguntaModules}
+                          formats={quillPreguntaFormats}
+                        />
+                      </div>
                       <input
                         value={p.imagen_url || ''}
                         onChange={(e) => actualizarImagenPreguntaRapida(idxP, e.target.value)}
@@ -1298,11 +1314,15 @@ export default function AdminPage() {
                               <option key={l.id} value={l.id}>{l.titulo || `Lectura #${l.id}`}</option>
                             ))}
                           </select>
-                          <textarea
-                            value={editPregunta}
-                            onChange={(e) => setEditPregunta(e.target.value)}
-                            style={{ display: 'block', marginBottom: 8, padding: 8, width: '100%', minHeight: 90, boxSizing: 'border-box', fontSize: 14, lineHeight: 1.4 }}
-                          />
+                          <div style={{ marginBottom: 8, background: '#fff' }}>
+                            <ReactQuill
+                              theme="snow"
+                              value={editPregunta}
+                              onChange={setEditPregunta}
+                              modules={quillPreguntaModules}
+                              formats={quillPreguntaFormats}
+                            />
+                          </div>
                           {editOpciones.map((o, i) => (
                             <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 4, alignItems: 'center' }}>
                               <input
@@ -1325,7 +1345,7 @@ export default function AdminPage() {
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div style={{ flex: 1 }}>
-                              {r.pregunta}
+                              <div dangerouslySetInnerHTML={{ __html: r.pregunta }} />
                               {r.imagen_url && <div><em>Imagen: {r.imagen_url}</em></div>}
                               <ul>
                                 {r.opciones.map((o) => (

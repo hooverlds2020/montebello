@@ -298,7 +298,7 @@ export default function Examen() {
           </div>
         )}
 
-        <p style={{ fontSize: 17, marginBottom: 16 }}>{pregunta.pregunta}</p>
+        <div style={{ fontSize: 17, marginBottom: 16, lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pregunta.pregunta }} />
         {pregunta.imagenUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={pregunta.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16 }} />
