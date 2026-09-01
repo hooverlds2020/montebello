@@ -30,6 +30,7 @@ export default function Examen() {
   const [resultadoHistorico, setResultadoHistorico] = useState(null);
   const [cargandoHistorico, setCargandoHistorico] = useState(false);
   const [enProgreso, setEnProgreso] = useState(null); // { examenId, total, respondidas } o null si no hay examen a medias
+  const [modalFinalizar, setModalFinalizar] = useState(null); // { faltan } o null: confirmación propia (no window.confirm) al finalizar con preguntas pendientes
 
   const router = useRouter();
 
@@ -209,10 +210,8 @@ export default function Examen() {
     const flat = aplanarMapa(mapaData);
     const faltan = flat.filter((i) => !i.respondida).length;
     if (faltan > 0) {
-      const continuar = window.confirm(
-        `Todavía tienes ${faltan} pregunta${faltan === 1 ? '' : 's'} sin responder. Si finalizas ahora, esas quedarán como incorrectas y no podrás volver a responderlas. ¿Quieres finalizar de todas formas?`
-      );
-      if (!continuar) return;
+      setModalFinalizar({ faltan });
+      return;
     }
     finalizarExamen(examenId);
   }
@@ -501,6 +500,42 @@ export default function Examen() {
             </button>
           </div>
         </div>
+
+        {/* Modal propio de confirmación (en vez de window.confirm nativo del
+            navegador) al finalizar con preguntas sin responder. */}
+        {modalFinalizar && (
+          <div
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 20, zIndex: 1000,
+            }}
+          >
+            <div style={{ background: '#fff', borderRadius: 12, padding: 28, maxWidth: 420, width: '100%', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>⚠️</div>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: 18 }}>Todavía no terminas</h3>
+              <p style={{ color: '#555', fontSize: 14, lineHeight: 1.5, marginBottom: 22 }}>
+                Te falta{modalFinalizar.faltan === 1 ? '' : 'n'}{' '}
+                <strong>{modalFinalizar.faltan} pregunta{modalFinalizar.faltan === 1 ? '' : 's'}</strong> por responder.
+                Si finalizas ahora, esas quedarán como incorrectas y no podrás volver a responderlas.
+              </p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setModalFinalizar(null)}
+                  style={{ flex: 1, minWidth: 140, padding: '10px 16px', background: '#eef1f5', color: '#333', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+                >
+                  Seguir respondiendo
+                </button>
+                <button
+                  onClick={() => { setModalFinalizar(null); finalizarExamen(examenId); }}
+                  style={{ flex: 1, minWidth: 140, padding: '10px 16px', background: '#c0392b', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+                >
+                  Finalizar de todas formas
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <style jsx>{`
           .panel-lectura {
