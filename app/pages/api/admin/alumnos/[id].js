@@ -8,6 +8,32 @@ export default async function handler(req, res) {
 
   const { id } = req.query;
 
+  if (req.method === 'PUT') {
+    const { rows: existe } = await pool.query('SELECT id FROM alumnos WHERE id = $1', [id]);
+    if (!existe[0]) {
+      return res.status(404).json({ error: 'Alumno no encontrado' });
+    }
+    const { nombre, email, telefono, preparatoria_procedencia } = req.body;
+    if (!nombre || !nombre.trim()) {
+      return res.status(400).json({ error: 'El nombre es obligatorio' });
+    }
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ error: 'Correo inválido' });
+    }
+    try {
+      await pool.query(
+        'UPDATE alumnos SET nombre = $1, email = $2, telefono = $3, preparatoria_procedencia = $4 WHERE id = $5',
+        [nombre.trim(), email.trim().toLowerCase(), telefono || null, preparatoria_procedencia || null, id]
+      );
+      return res.status(200).json({ ok: true });
+    } catch (e) {
+      if (e.code === '23505') {
+        return res.status(409).json({ error: 'Ya existe otra cuenta con ese correo' });
+      }
+      return res.status(500).json({ error: 'Error al guardar. Intenta de nuevo.' });
+    }
+  }
+
   if (req.method === 'DELETE') {
     const { rows: existe } = await pool.query('SELECT id FROM alumnos WHERE id = $1', [id]);
     if (!existe[0]) {

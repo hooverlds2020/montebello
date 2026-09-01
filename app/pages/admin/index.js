@@ -49,6 +49,9 @@ export default function AdminPage() {
   const [detalleAlumno, setDetalleAlumno] = useState(null);
   const [mostrandoFicha, setMostrandoFicha] = useState(false);
   const [fichaInput, setFichaInput] = useState({});
+  const [editandoPerfilAlumno, setEditandoPerfilAlumno] = useState(false);
+  const [perfilInput, setPerfilInput] = useState({});
+  const [menuOpcionesAbierto, setMenuOpcionesAbierto] = useState(false);
   const [cargandoAlumnos, setCargandoAlumnos] = useState(false);
 
   // Usuarios administradores del panel
@@ -197,10 +200,34 @@ export default function AdminPage() {
     setAlumnoSeleccionadoId(id);
     setDetalleAlumno(null);
     setMostrandoFicha(false);
+    setEditandoPerfilAlumno(false);
+    setMenuOpcionesAbierto(false);
     const res = await fetch(`/api/admin/alumnos/${id}`);
     const data = await res.json();
     setDetalleAlumno(data);
     setFichaInput(data.alumno.ficha_registro || {});
+    setPerfilInput({
+      nombre: data.alumno.nombre,
+      email: data.alumno.email,
+      telefono: data.alumno.telefono || '',
+      preparatoria_procedencia: data.alumno.preparatoria_procedencia || '',
+    });
+  }
+
+  async function guardarPerfilAlumno() {
+    const res = await fetch(`/api/admin/alumnos/${detalleAlumno.alumno.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(perfilInput),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    mostrarToast('Perfil actualizado ✓', 'exito');
+    setEditandoPerfilAlumno(false);
+    verDetalleAlumno(detalleAlumno.alumno.id);
   }
 
   function actualizarCampoFicha(campo, valor) {
@@ -1666,30 +1693,38 @@ export default function AdminPage() {
               {detalleAlumno ? detalleAlumno.alumno.nombre : 'Resultados del diagnóstico'}
             </h1>
             {detalleAlumno ? (
-              <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <button onClick={() => { setAlumnoSeleccionadoId(null); setDetalleAlumno(null); }} style={btnStyle('secundario')}>
                   ← Volver a la lista
-                </button>
-                <button onClick={() => setMostrandoFicha((v) => !v)} style={btnStyle(mostrandoFicha ? 'primario' : 'secundario')}>
-                  📋 {mostrandoFicha ? 'Ver historial' : 'Ficha de registro'}
                 </button>
                 <button onClick={() => window.print()} style={btnStyle('primario')}>
                   🖨️ Imprimir / Guardar PDF
                 </button>
-                <button
-                  onClick={() => borrarHistorialAlumno(detalleAlumno.alumno.id, detalleAlumno.alumno.nombre)}
-                  style={btnStyle('secundario', { color: '#c0392b' })}
-                  title="Borra sus intentos de examen, pero conserva la cuenta"
-                >
-                  🧹 Borrar historial
-                </button>
-                <button
-                  onClick={() => borrarAlumnoCompleto(detalleAlumno.alumno.id, detalleAlumno.alumno.nombre)}
-                  style={{ ...btnStyle('secundario'), background: '#fdeceb', color: '#c0392b' }}
-                  title="Borra la cuenta completa junto con su historial"
-                >
-                  🗑️ Borrar alumno
-                </button>
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => setMenuOpcionesAbierto((v) => !v)}
+                    title="Más opciones"
+                    style={btnStyle('secundario', { padding: '10px 12px' })}
+                  >
+                    ⋯
+                  </button>
+                  {menuOpcionesAbierto && (
+                    <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #e0e6ec', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.12)', minWidth: 220, zIndex: 20, overflow: 'hidden' }}>
+                      <button
+                        onClick={() => { setMenuOpcionesAbierto(false); borrarHistorialAlumno(detalleAlumno.alumno.id, detalleAlumno.alumno.nombre); }}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', color: '#c0392b', fontSize: 13 }}
+                      >
+                        🧹 Borrar historial
+                      </button>
+                      <button
+                        onClick={() => { setMenuOpcionesAbierto(false); borrarAlumnoCompleto(detalleAlumno.alumno.id, detalleAlumno.alumno.nombre); }}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', color: '#c0392b', fontSize: 13 }}
+                      >
+                        🗑️ Borrar alumno
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <button
@@ -1816,18 +1851,72 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div style={{ background: '#f7f8fa', borderRadius: 10, padding: 16, marginBottom: 24, fontSize: 14 }}>
-                <div style={{ marginBottom: 6 }}><strong>Correo:</strong> {detalleAlumno.alumno.email}</div>
-                {detalleAlumno.alumno.telefono && (
-                  <div style={{ marginBottom: 6 }}><strong>Teléfono:</strong> {detalleAlumno.alumno.telefono}</div>
+              <div style={{ background: '#f7f8fa', borderRadius: 10, padding: 16, marginBottom: 20, fontSize: 14 }}>
+                {editandoPerfilAlumno ? (
+                  <div>
+                    <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 3 }}>Nombre</label>
+                    <input value={perfilInput.nombre} onChange={(e) => setPerfilInput({ ...perfilInput, nombre: e.target.value })} style={{ display: 'block', width: '100%', padding: 8, marginBottom: 8, border: '1px solid #ddd', borderRadius: 6, boxSizing: 'border-box' }} />
+                    <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 3 }}>Correo</label>
+                    <input value={perfilInput.email} onChange={(e) => setPerfilInput({ ...perfilInput, email: e.target.value })} style={{ display: 'block', width: '100%', padding: 8, marginBottom: 8, border: '1px solid #ddd', borderRadius: 6, boxSizing: 'border-box' }} />
+                    <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 3 }}>Teléfono</label>
+                    <input value={perfilInput.telefono} onChange={(e) => setPerfilInput({ ...perfilInput, telefono: e.target.value })} style={{ display: 'block', width: '100%', padding: 8, marginBottom: 8, border: '1px solid #ddd', borderRadius: 6, boxSizing: 'border-box' }} />
+                    <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 3 }}>Escuela de procedencia</label>
+                    <input value={perfilInput.preparatoria_procedencia} onChange={(e) => setPerfilInput({ ...perfilInput, preparatoria_procedencia: e.target.value })} style={{ display: 'block', width: '100%', padding: 8, marginBottom: 10, border: '1px solid #ddd', borderRadius: 6, boxSizing: 'border-box' }} />
+                    <button onClick={guardarPerfilAlumno} style={btnStyle('primario', { marginRight: 8 })}>Guardar</button>
+                    <button onClick={() => setEditandoPerfilAlumno(false)} style={btnStyle('secundario')}>Cancelar</button>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ marginBottom: 6 }}><strong>Correo:</strong> {detalleAlumno.alumno.email}</div>
+                        {detalleAlumno.alumno.telefono && (
+                          <div style={{ marginBottom: 6 }}><strong>Teléfono:</strong> {detalleAlumno.alumno.telefono}</div>
+                        )}
+                        {detalleAlumno.alumno.preparatoria_procedencia && (
+                          <div style={{ marginBottom: 6 }}><strong>Preparatoria de procedencia:</strong> {detalleAlumno.alumno.preparatoria_procedencia}</div>
+                        )}
+                        <div style={{ color: '#888', fontSize: 13 }}>
+                          Registrado el {new Date(detalleAlumno.alumno.creado_en).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setEditandoPerfilAlumno(true)}
+                        title="Editar perfil"
+                        className="ocultar-al-imprimir"
+                        style={{ border: 'none', background: '#eef1f5', cursor: 'pointer', fontSize: 14, borderRadius: 6, width: 30, height: 30, flexShrink: 0 }}
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                  </>
                 )}
-                {detalleAlumno.alumno.preparatoria_procedencia && (
-                  <div style={{ marginBottom: 6 }}><strong>Preparatoria de procedencia:</strong> {detalleAlumno.alumno.preparatoria_procedencia}</div>
-                )}
-                <div style={{ color: '#888', fontSize: 13 }}>
-                  Registrado el {new Date(detalleAlumno.alumno.creado_en).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
-                </div>
               </div>
+
+              {/* Pestañas: Desempeño (resultados de examen) vs Ficha de Ingreso (entrevista) */}
+              <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '2px solid #eee' }}>
+                <button
+                  onClick={() => setMostrandoFicha(false)}
+                  style={{
+                    padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+                    color: !mostrandoFicha ? '#0d3b66' : '#999',
+                    borderBottom: !mostrandoFicha ? '2px solid #0d3b66' : '2px solid transparent', marginBottom: -2,
+                  }}
+                >
+                  📊 Desempeño
+                </button>
+                <button
+                  onClick={() => setMostrandoFicha(true)}
+                  style={{
+                    padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+                    color: mostrandoFicha ? '#0d3b66' : '#999',
+                    borderBottom: mostrandoFicha ? '2px solid #0d3b66' : '2px solid transparent', marginBottom: -2,
+                  }}
+                >
+                  📋 Ficha de Ingreso
+                </button>
+              </div>
+
               {!mostrandoFicha && (
                 <>
                   {detalleAlumno.historial.length === 0 && (
@@ -1926,10 +2015,19 @@ export default function AdminPage() {
                   </div>
 
                   {/* --- Tabla de resultados CENEVAL --- */}
-                  <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>
-                    Resultados de examen diagnóstico CENEVAL
-                    <span style={{ fontWeight: 400, color: '#888', marginLeft: 8 }}>(el % lo calcula el sistema; "puntaje" es el que asigne la institución según su escala)</span>
-                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 10, flexWrap: 'wrap' }}>
+                    <p style={{ fontWeight: 700, fontSize: 13, margin: 0 }}>
+                      Resultados de examen diagnóstico CENEVAL
+                      <span style={{ fontWeight: 400, color: '#888', marginLeft: 8 }}>(el % lo calcula el sistema; "puntaje" es el que asigne la institución según su escala)</span>
+                    </p>
+                    <div style={{ display: 'flex', gap: 12, marginLeft: 'auto' }}>
+                      {['EXANI I', 'EXANI II'].map((modelo) => (
+                        <label key={modelo} style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <input type="radio" name="modeloExani" checked={fichaInput.modeloExani === modelo} onChange={() => actualizarCampoFicha('modeloExani', modelo)} /> {modelo}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 20 }}>
                     <thead>
                       <tr style={{ background: '#f0f3f7' }}>
