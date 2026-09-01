@@ -78,7 +78,7 @@ export default async function handler(req, res) {
   }
 
   const { rows: examenes } = await pool.query(
-    `SELECT e.id, e.iniciado_en, e.finalizado_en,
+    `SELECT e.id, e.iniciado_en, e.finalizado_en, e.salidas_pantalla,
             count(er.id) AS total,
             count(er.id) FILTER (WHERE o.es_correcta) AS correctas
      FROM examenes e
@@ -121,6 +121,7 @@ export default async function handler(req, res) {
     examenId: e.id,
     iniciadoEn: e.iniciado_en,
     finalizadoEn: e.finalizado_en,
+    salidasPantalla: e.salidas_pantalla || 0,
     total: parseInt(e.total, 10),
     correctas: parseInt(e.correctas, 10),
     porcentaje: Math.round((parseInt(e.correctas, 10) / parseInt(e.total, 10)) * 100),

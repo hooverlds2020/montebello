@@ -32,6 +32,7 @@ export default function Examen() {
   const [enProgreso, setEnProgreso] = useState(null); // { examenId, total, respondidas } o null si no hay examen a medias
   const [modalFinalizar, setModalFinalizar] = useState(null); // { faltan } o null: confirmación propia (no window.confirm) al finalizar con preguntas pendientes
   const [modalTerminado, setModalTerminado] = useState(false); // true cuando ya contestó todas y le ofrecemos finalizar
+  const [avisoSalidaPantalla, setAvisoSalidaPantalla] = useState(false); // banner al regresar de cambiar de pestaña/app
 
   const router = useRouter();
 
@@ -145,6 +146,7 @@ export default function Examen() {
       seccionActualRef.current = clave;
       setPregunta(data);
       setSeleccion(data.opcionSeleccionadaId || null);
+      setAvisoSalidaPantalla(false);
     } catch (e) {
       setError('No se pudo cargar la pregunta — revisa tu conexión a internet. Tu progreso está guardado, puedes reintentar.');
     }
@@ -272,6 +274,27 @@ export default function Examen() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [pregunta?.examenReactivoId, esNuevaSeccion]);
 
+  // Detecta cuando el alumno sale de la pantalla del examen (cambia de
+  // pestaña, minimiza, cambia de app en el celular) mientras el examen sigue
+  // activo. No bloquea nada — solo lo registra (queda visible para el admin
+  // en el detalle del alumno) y le muestra un aviso al regresar.
+  useEffect(() => {
+    if (!examenId || !pregunta) return;
+    function alCambiarVisibilidad() {
+      if (document.hidden) {
+        fetch('/api/examen/registrar-salida', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ examenId }),
+        }).catch(() => {}); // si falla por conexión, no es crítico, no interrumpe el examen
+      } else {
+        setAvisoSalidaPantalla(true);
+      }
+    }
+    document.addEventListener('visibilitychange', alCambiarVisibilidad);
+    return () => document.removeEventListener('visibilitychange', alCambiarVisibilidad);
+  }, [examenId, !!pregunta]);
+
   function formatearTiempo(segundos) {
     const m = Math.floor(segundos / 60);
     const s = segundos % 60;
@@ -398,6 +421,24 @@ export default function Examen() {
               }}
             >
               {pregunta.lectura ? '📘 Nueva lectura' : '📄 Nueva sección'}
+            </div>
+          )}
+
+          {avisoSalidaPantalla && (
+            <div
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between',
+                fontSize: 13, color: '#8a6416', background: '#fdf3e3', border: '1px solid #f0dfae',
+                padding: '9px 14px', borderRadius: 8, marginBottom: 14,
+              }}
+            >
+              <span>⚠️ Se detectó que saliste de la pantalla del examen. Esto queda registrado.</span>
+              <button
+                onClick={() => setAvisoSalidaPantalla(false)}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#8a6416', fontSize: 16, lineHeight: 1, flexShrink: 0 }}
+              >
+                ✕
+              </button>
             </div>
           )}
 

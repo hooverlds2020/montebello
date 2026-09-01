@@ -92,7 +92,12 @@ CREATE TABLE examenes (
   iniciado_en TIMESTAMP DEFAULT NOW(),
   finalizado_en TIMESTAMP,
   tiempo_limite_minutos INTEGER DEFAULT 120,
-  estado VARCHAR(20) DEFAULT 'en_progreso'
+  estado VARCHAR(20) DEFAULT 'en_progreso',
+  -- Cuántas veces el alumno salió de la pantalla del examen (cambió de
+  -- pestaña, minimizó, cambió de app en el celular) mientras estaba en
+  -- progreso. No bloquea nada — es solo evidencia para que el admin decida
+  -- si algo se ve sospechoso, visible en el detalle del alumno.
+  salidas_pantalla INTEGER DEFAULT 0
 );
 
 CREATE TABLE examen_reactivos (

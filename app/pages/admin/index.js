@@ -1977,12 +1977,20 @@ export default function AdminPage() {
                   : '';
                 return (
                 <div key={h.examenId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 20, marginBottom: 16, background: idx % 2 === 0 ? '#fff' : '#f7f7f7' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                     <span style={{ fontWeight: 600, fontSize: 14 }}>
                       {new Date(h.finalizadoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </span>
                     <span style={{ fontSize: 12, color: '#999' }}>Folio #{h.examenId}</span>
                   </div>
+                  {h.salidasPantalla > 0 && (
+                    <div
+                      title="Veces que el alumno cambió de pestaña, minimizó o cambió de app mientras el examen estaba en progreso"
+                      style={{ fontSize: 12, color: h.salidasPantalla >= 5 ? '#c0392b' : '#a8791b', marginBottom: 10 }}
+                    >
+                      ⚠️ Salió de la pantalla del examen {h.salidasPantalla} {h.salidasPantalla === 1 ? 'vez' : 'veces'}
+                    </div>
+                  )}
                   <DonaResultado
                     tamano={160}
                     resultado={{
