@@ -11,7 +11,12 @@ CREATE TABLE reactivos (
   categoria_id INTEGER NOT NULL REFERENCES categorias(id),
   pregunta TEXT NOT NULL,
   activo BOOLEAN DEFAULT TRUE,
-  creado_en TIMESTAMP DEFAULT NOW()
+  creado_en TIMESTAMP DEFAULT NOW(),
+  -- Posición dentro de su materia. Es NUMERIC (no entero) para poder insertar
+  -- una pregunta "entre" otras dos sin tener que renumerar el resto: por
+  -- ejemplo, entre la pregunta con orden=15 y la de orden=16 se puede
+  -- insertar una nueva con orden=15.5, sin tocar las demás.
+  orden NUMERIC
 );
 
 CREATE TABLE opciones (

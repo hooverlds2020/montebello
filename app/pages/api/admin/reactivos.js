@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       params.push(categoria_id);
     }
     const { rows } = await pool.query(
-      `SELECT r.id, r.pregunta, r.imagen_url, r.categoria_id, r.lectura_id,
+      `SELECT r.id, r.pregunta, r.imagen_url, r.categoria_id, r.lectura_id, r.orden,
               c.nombre AS categoria, l.titulo AS lectura_titulo, l.activa AS lectura_activa,
               COALESCE(json_agg(json_build_object(
                 'id', o.id, 'texto', o.texto, 'es_correcta', o.es_correcta, 'imagen_url', o.imagen_url
@@ -26,14 +26,14 @@ export default async function handler(req, res) {
        LEFT JOIN opciones o ON o.reactivo_id = r.id
        ${where}
        GROUP BY r.id, c.nombre, l.titulo, l.activa
-       ORDER BY r.id`,
+       ORDER BY r.orden ASC NULLS LAST, r.id ASC`,
       params
     );
     return res.status(200).json(rows);
   }
 
   if (req.method === 'POST') {
-    const { categoria_id, pregunta, imagen_url, lectura_id, opciones } = req.body;
+    const { categoria_id, pregunta, imagen_url, lectura_id, opciones, orden } = req.body;
 
     if (!categoria_id || !pregunta || !pregunta.trim()) {
       return res.status(400).json({ error: 'categoria_id y pregunta son obligatorios' });
@@ -48,9 +48,21 @@ export default async function handler(req, res) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+
+      // Si no se pidió una posición específica (inserción entre dos preguntas
+      // existentes), se agrega al final de la materia como siempre.
+      let ordenUsar = orden;
+      if (ordenUsar === undefined || ordenUsar === null) {
+        const { rows: maxRows } = await client.query(
+          'SELECT COALESCE(MAX(orden), 0) AS max_orden FROM reactivos WHERE categoria_id = $1',
+          [categoria_id]
+        );
+        ordenUsar = parseFloat(maxRows[0].max_orden) + 1;
+      }
+
       const { rows } = await client.query(
-        'INSERT INTO reactivos (categoria_id, pregunta, imagen_url, lectura_id) VALUES ($1, $2, $3, $4) RETURNING id',
-        [categoria_id, pregunta.trim(), imagen_url || null, lectura_id || null]
+        'INSERT INTO reactivos (categoria_id, pregunta, imagen_url, lectura_id, orden) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+        [categoria_id, pregunta.trim(), imagen_url || null, lectura_id || null, ordenUsar]
       );
       const reactivoId = rows[0].id;
 

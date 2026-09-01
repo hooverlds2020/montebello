@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -204,6 +204,46 @@ export default function AdminPage() {
   const [numPreguntas, setNumPreguntas] = useState(5);
   const [preguntasRapidas, setPreguntasRapidas] = useState([]);
   const [mensajeRapido, setMensajeRapido] = useState('');
+
+  // Insertar pregunta(s) en una posición específica (ej. se brincaron la 16 y
+  // ya capturaron la 17): guarda entre qué dos "orden" existentes debe caer
+  // lo que se agregue en Carga rápida, en vez de irse siempre al final.
+  const [insertarInfo, setInsertarInfo] = useState(null); // { ordenAntes, ordenDespues, numeroRef }
+  const cargaRapidaRef = useRef(null);
+
+  function iniciarInsercionDespuesDe(r, idxEnLista) {
+    const siguiente = reactivos[idxEnLista + 1];
+    // Si el siguiente reactivo pertenece a otra lectura (o no hay siguiente),
+    // no hay límite superior: se inserta después de r con margen libre.
+    const mismoContexto = siguiente && (siguiente.lectura_id || null) === (r.lectura_id || null);
+    setInsertarInfo({
+      ordenAntes: parseFloat(r.orden),
+      ordenDespues: mismoContexto ? parseFloat(siguiente.orden) : null,
+      numeroRef: r.numero,
+    });
+    if (r.lectura_id) {
+      setModoLectura('continuar');
+      setLecturaRapidaId(r.lectura_id);
+    } else {
+      setModoLectura('ninguna');
+      setLecturaRapidaId('');
+    }
+    setPreguntasRapidas([]);
+    cargaRapidaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function cancelarInsercion() {
+    setInsertarInfo(null);
+  }
+
+  // Reparte `cantidad` valores de "orden" dentro del hueco (ordenAntes, ordenDespues),
+  // en orden, sin necesidad de tocar el orden de ninguna otra pregunta ya guardada.
+  function calcularOrdenesInsercion(cantidad, ordenAntes, ordenDespues) {
+    const base = ordenAntes ?? 0;
+    const techo = ordenDespues ?? base + cantidad + 1;
+    const paso = (techo - base) / (cantidad + 1);
+    return Array.from({ length: cantidad }, (_, i) => base + paso * (i + 1));
+  }
 
   // Toast: mensaje flotante que reemplaza a los alert() nativos del navegador
   const [toast, setToast] = useState(null); // { texto, tipo: 'exito' | 'error' }
@@ -771,7 +811,12 @@ export default function AdminPage() {
         await cargarLecturas();
       }
 
-      for (const p of preguntasRapidas) {
+      const ordenesAsignados = insertarInfo
+        ? calcularOrdenesInsercion(preguntasRapidas.length, insertarInfo.ordenAntes, insertarInfo.ordenDespues)
+        : null;
+
+      for (let i = 0; i < preguntasRapidas.length; i++) {
+        const p = preguntasRapidas[i];
         const res = await fetch('/api/admin/reactivos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -781,6 +826,7 @@ export default function AdminPage() {
             imagen_url: p.imagen_url || null,
             lectura_id: lecturaIdUsar || null,
             opciones: p.opciones,
+            orden: ordenesAsignados ? ordenesAsignados[i] : undefined,
           }),
         });
         if (!res.ok) {
@@ -796,8 +842,14 @@ export default function AdminPage() {
       setLecturaInlineSubtitulo('');
       setLecturaInlineTexto('');
       setLecturaInlineImagenUrl('');
+      setInsertarInfo(null);
       cargarReactivos(categoriaActivaId);
-      mostrarToast('Todas las preguntas se guardaron correctamente ✓', 'exito');
+      mostrarToast(
+        insertarInfo
+          ? `Pregunta(s) insertada(s) después de la ${insertarInfo.numeroRef} ✓`
+          : 'Todas las preguntas se guardaron correctamente ✓',
+        'exito'
+      );
     } catch (e) {
       setMensajeRapido('Error al guardar: ' + e.message + ' (revisa qué ya se guardó abajo en la lista de reactivos)');
     } finally {
@@ -1178,12 +1230,23 @@ export default function AdminPage() {
 
         {categoriaActivaId && (
           <div style={{ opacity: categoriaActiva?.activa === false ? 0.5 : 1 }}>
-            <section style={{ marginBottom: 32, padding: 16, border: '2px solid #4a90d9', borderRadius: 8 }}>
+            <section ref={cargaRapidaRef} style={{ marginBottom: 32, padding: 16, border: '2px solid #4a90d9', borderRadius: 8 }}>
               <h2>Carga rápida de reactivos</h2>
               <p style={{ color: '#666', fontSize: 14 }}>
                 Se agregarán a la materia <strong>{categoriaActiva?.nombre}</strong>. Opcionalmente
                 asocia una lectura, indica cuántas preguntas y cuántas opciones cada una.
               </p>
+
+              {insertarInfo && (
+                <div style={{ marginBottom: 12, padding: 10, background: '#eaf3ff', border: '1px solid #4a90d9', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 13, color: '#2a5f9e' }}>
+                    📍 Lo que agregues aquí se insertará justo <strong>después de la pregunta {insertarInfo.numeroRef}</strong>, ocupando su lugar en la numeración.
+                  </span>
+                  <button type="button" onClick={cancelarInsercion} style={btnStyle('secundario', { fontSize: 12, padding: '4px 10px', flexShrink: 0, marginLeft: 10 })}>
+                    Cancelar, agregar al final
+                  </button>
+                </div>
+              )}
 
               <div style={{ marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: '4px 16px' }}>
                 <label>
@@ -1453,6 +1516,13 @@ export default function AdminPage() {
                               </ul>
                             </div>
                             <div style={{ display: 'flex', gap: 4, flexShrink: 0, marginLeft: 8 }}>
+                              <button
+                                onClick={() => iniciarInsercionDespuesDe(r, reactivos.findIndex((x) => x.id === r.id))}
+                                title="Insertar una pregunta nueva justo después de esta"
+                                style={{ border: 'none', background: '#eef1f5', cursor: 'pointer', fontSize: 15, borderRadius: 6, width: 30, height: 30 }}
+                              >
+                                ⤵️
+                              </button>
                               <button
                                 onClick={() => iniciarEdicion(r)}
                                 title="Editar"
