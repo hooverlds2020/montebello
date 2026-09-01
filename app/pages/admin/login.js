@@ -49,7 +49,13 @@ export default function AdminLogin() {
         </p>
       </div>
 
-      <div className="panel-formulario" style={{ flex: '1 1 60%', minWidth: 320, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, background: '#f7f9fb' }}>
+      <div className="panel-formulario" style={{ flex: '1 1 60%', minWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, background: '#f7f9fb' }}>
+        {/* Logo institucional: solo visible en móvil, donde el panel azul de
+            la izquierda se oculta. */}
+        <div className="logo-movil-login">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/logo-montebello.webp" alt="Instituto Educativo Montebello" style={{ width: 130, height: 'auto' }} />
+        </div>
         <div className="tarjeta-formulario" style={{ width: '100%', maxWidth: 380, background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(13,59,102,0.08)', border: '1px solid #eef1f5', padding: 36 }}>
           <h2 style={{ fontSize: 22, margin: '0 0 4px 0' }}>Iniciar sesión</h2>
           <p style={{ color: '#888', fontSize: 14, marginBottom: 28 }}>Ingresa tus credenciales para acceder.</p>
@@ -106,6 +112,16 @@ export default function AdminLogin() {
         }
         @media (max-width: 700px) {
           .panel-bienvenida-admin { display: none !important; }
+        }
+        .logo-movil-login {
+          display: none;
+        }
+        @media (max-width: 700px) {
+          .logo-movil-login {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 28px;
+          }
         }
         @media (max-width: 480px) {
           .panel-formulario { padding: 16px !important; }
