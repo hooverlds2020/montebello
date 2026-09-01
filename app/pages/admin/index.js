@@ -1154,8 +1154,14 @@ export default function AdminPage() {
             border: 3px solid #0d3b66 !important;
             border-radius: 4px !important;
             box-shadow: none !important;
-            padding: 22px !important;
+            padding: 16px !important;
+            page-break-inside: avoid;
+            font-size: 12px !important;
           }
+          .ficha-registro table { font-size: 12px !important; }
+          .ficha-registro td, .ficha-registro th { padding: 4px 6px !important; }
+          .ficha-registro > div { margin-bottom: 10px !important; }
+          .ficha-registro p { margin: 4px 0 !important; }
           .ficha-registro input {
             border: none !important;
             border-bottom: 1px solid #999 !important;
@@ -1849,25 +1855,33 @@ export default function AdminPage() {
           {/* Vista de detalle de un alumno específico */}
           {detalleAlumno && (
             <div>
-              {/* Membrete de impresión: solo visible al imprimir */}
-              <div className="solo-impresion" style={{ display: 'none', marginBottom: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0d3b66', paddingBottom: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/img/logo-montebello.webp" alt="" style={{ width: 42, height: 'auto' }} />
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: '#0d3b66' }}>Instituto Educativo Montebello</div>
-                      <div style={{ fontSize: 10, color: '#888', fontStyle: 'italic' }}>Transformando la educación hacia la sociedad del conocimiento</div>
+              {/* Membrete de impresión: solo visible al imprimir, y solo en
+                  la pestaña Desempeño (la Ficha ya trae su propio encabezado
+                  con logo, así que aquí sería repetido). */}
+              {!mostrandoFicha && (
+                <div className="solo-impresion" style={{ display: 'none', marginBottom: 20 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0d3b66', paddingBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/img/logo-montebello.webp" alt="" style={{ width: 42, height: 'auto' }} />
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: '#0d3b66' }}>Instituto Educativo Montebello</div>
+                        <div style={{ fontSize: 10, color: '#888', fontStyle: 'italic' }}>Transformando la educación hacia la sociedad del conocimiento</div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: 11, color: '#555' }}>
+                      <div>{detalleAlumno.alumno.nombre}</div>
+                      <div>{new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right', fontSize: 11, color: '#555' }}>
-                    <div>{detalleAlumno.alumno.nombre}</div>
-                    <div>{new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
-                  </div>
                 </div>
-              </div>
+              )}
 
-              <div style={{ background: '#f7f8fa', borderRadius: 10, padding: 16, marginBottom: 20, fontSize: 14 }}>
+              {/* Tarjeta de contacto: en pantalla siempre visible (útil
+                  como referencia en ambas pestañas), pero al imprimir la
+                  Ficha se oculta porque los mismos datos (o su equivalente)
+                  ya están dentro de la ficha. */}
+              <div className={mostrandoFicha ? 'ocultar-al-imprimir' : ''} style={{ background: '#f7f8fa', borderRadius: 10, padding: 16, marginBottom: 20, fontSize: 14 }}>
                 {editandoPerfilAlumno ? (
                   <div>
                     <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 3 }}>Nombre</label>
