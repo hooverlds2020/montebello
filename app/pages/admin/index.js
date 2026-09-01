@@ -1149,40 +1149,40 @@ export default function AdminPage() {
           /* La Ficha de Registro imprime en tamaño carta, con el mismo look
              del PDF oficial: marco azul marino, sin sombra de tarjeta, y el
              pie de contacto del instituto que solo se ve al imprimir.
-             Compactado agresivo para que quepa en 1 sola página: sin esto
-             se pasaba a 2-3 páginas y el pie de contacto se cortaba a media
-             línea, quedando huérfano en una página aparte. */
+             Ya cabe en 1 sola página con margen de sobra (confirmado), así
+             que se agranda un poco respecto al primer intento (que había
+             quedado demasiado apretado) sin volver a desbordar. */
           .ficha-registro {
             max-width: none !important;
             border: 3px solid #0d3b66 !important;
             border-radius: 4px !important;
             box-shadow: none !important;
-            padding: 12px !important;
-            font-size: 10.5px !important;
-            line-height: 1.3 !important;
+            padding: 22px !important;
+            font-size: 13px !important;
+            line-height: 1.4 !important;
           }
-          .ficha-registro table { font-size: 10.5px !important; }
-          .ficha-registro td, .ficha-registro th { padding: 3px 5px !important; }
-          .ficha-registro > div { margin-bottom: 6px !important; }
-          .ficha-registro p { margin: 3px 0 !important; }
-          .ficha-registro label { font-size: 9.5px !important; }
+          .ficha-registro table { font-size: 13px !important; }
+          .ficha-registro td, .ficha-registro th { padding: 6px 8px !important; }
+          .ficha-registro > div { margin-bottom: 10px !important; }
+          .ficha-registro p { margin: 4px 0 !important; }
+          .ficha-registro label { font-size: 11px !important; }
           .ficha-registro input {
             border: none !important;
             border-bottom: 1px solid #999 !important;
             border-radius: 0 !important;
-            padding: 1px 0 !important;
-            font-size: 10.5px !important;
+            padding: 2px 0 !important;
+            font-size: 13px !important;
           }
-          /* Pie de contacto: en una sola línea, sin partirse a media línea
-             ni saltar a otra página. */
+          /* Pie de contacto: se deja envolver en 2 líneas si hace falta
+             (ya hay espacio de sobra en la página), en vez de forzar 1 sola
+             línea con overflow:hidden — eso era lo que recortaba el texto
+             de Facebook/sitio web en los extremos. */
           .ficha-footer-contacto {
-            flex-wrap: nowrap !important;
-            gap: 8px !important;
-            font-size: 8px !important;
-            padding: 6px 12px !important;
+            flex-wrap: wrap !important;
+            gap: 6px 16px !important;
+            font-size: 10px !important;
+            padding: 10px 16px !important;
             page-break-inside: avoid;
-            white-space: nowrap;
-            overflow: hidden;
           }
         }
       `}</style>
