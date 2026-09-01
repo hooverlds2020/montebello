@@ -270,14 +270,25 @@ export default function AdminPage() {
   const [lecturaInlineTexto, setLecturaInlineTexto] = useState('');
   const [lecturaInlineImagenUrl, setLecturaInlineImagenUrl] = useState('');
 
+  // Recordar en qué materia / pestaña / edición en curso se quedó el admin,
+  // para restaurarlo si la página se refresca (F5, o pierde la sesión de red un momento).
+  const LS_KEY_ESTADO = 'montebello_admin_estado';
+  const [hidratado, setHidratado] = useState(false);
 
   async function cargarCategorias() {
     const res = await fetch('/api/admin/categorias');
     const data = await res.json();
     setCategorias(data);
-    if (!categoriaActivaId && data.length > 0) {
-      setCategoriaActivaId(data[0].id);
-    }
+    // Si ya hay una categoría seleccionada (por navegación normal o restaurada
+    // tras un refresh), no la pisamos. Si no hay ninguna, arrancamos en la
+    // primera categoría RAÍZ (materia principal, ej. "Español"), no en la
+    // primera fila de la tabla que podría ser una subcategoría cualquiera
+    // (ej. "Redacción indirecta") según el orden en que se haya creado.
+    setCategoriaActivaId((prev) => {
+      if (prev) return prev;
+      const raiz = data.filter((c) => !c.categoria_padre_id);
+      return (raiz[0] || data[0])?.id ?? null;
+    });
   }
 
   async function cargarLecturas() {
@@ -293,10 +304,89 @@ export default function AdminPage() {
     setReactivos(await res.json());
   }
 
+  // Al montar: restauramos primero lo que había guardado del refresh anterior
+  // (materia activa, pestaña, y si estabas editando algo, el borrador tal cual
+  // lo dejaste sin guardar), y luego cargamos categorías/lecturas normalmente.
   useEffect(() => {
+    try {
+      const guardadoRaw = window.localStorage.getItem(LS_KEY_ESTADO);
+      if (guardadoRaw) {
+        const g = JSON.parse(guardadoRaw);
+        if (g.categoriaActivaId) setCategoriaActivaId(g.categoriaActivaId);
+        if (g.vistaGeneral) setVistaGeneral(g.vistaGeneral);
+        if (g.editandoId) {
+          setEditandoId(g.editandoId);
+          setEditPregunta(g.editPregunta || '');
+          setEditLecturaId(g.editLecturaId || '');
+          setEditOpciones(g.editOpciones || []);
+        }
+        if (g.editandoLecturaId) {
+          setEditandoLecturaId(g.editandoLecturaId);
+          setEditLecturaTitulo(g.editLecturaTitulo || '');
+          setEditLecturaSubtitulo(g.editLecturaSubtitulo || '');
+          setEditLecturaTexto(g.editLecturaTexto || '');
+          setEditLecturaImagenUrl(g.editLecturaImagenUrl || '');
+        }
+      }
+    } catch (e) {
+      // localStorage corrupto o inaccesible: seguimos normal, sin restaurar nada
+    }
+    setHidratado(true);
     cargarCategorias();
     cargarLecturas();
   }, []);
+
+  // Si estábamos editando una pregunta y esa pregunta vive dentro de un grupo
+  // (lectura) plegado, lo desplegamos para que el formulario de edición
+  // restaurado sea visible en lugar de quedar oculto en el acordeón.
+  useEffect(() => {
+    if (!editandoId || reactivos.length === 0) return;
+    const r = reactivos.find((x) => x.id === editandoId);
+    if (r) {
+      const clave = r.lectura_id || 'sin-lectura';
+      setGruposAbiertos((prev) => (prev[clave] ? prev : { ...prev, [clave]: true }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reactivos]);
+
+  // Guardamos en localStorage el "dónde estabas parado" cada vez que cambia,
+  // para poder restaurarlo si la página se recarga.
+  useEffect(() => {
+    if (!hidratado) return; // evita pisar lo guardado antes de terminar de restaurarlo
+    try {
+      window.localStorage.setItem(
+        LS_KEY_ESTADO,
+        JSON.stringify({
+          categoriaActivaId,
+          vistaGeneral,
+          editandoId,
+          editPregunta,
+          editLecturaId,
+          editOpciones,
+          editandoLecturaId,
+          editLecturaTitulo,
+          editLecturaSubtitulo,
+          editLecturaTexto,
+          editLecturaImagenUrl,
+        })
+      );
+    } catch (e) {
+      // si el navegador bloquea localStorage (modo privado, etc.), simplemente no persistimos
+    }
+  }, [
+    hidratado,
+    categoriaActivaId,
+    vistaGeneral,
+    editandoId,
+    editPregunta,
+    editLecturaId,
+    editOpciones,
+    editandoLecturaId,
+    editLecturaTitulo,
+    editLecturaSubtitulo,
+    editLecturaTexto,
+    editLecturaImagenUrl,
+  ]);
 
   useEffect(() => {
     if (categoriaActivaId) {
