@@ -1148,25 +1148,41 @@ export default function AdminPage() {
           }
           /* La Ficha de Registro imprime en tamaño carta, con el mismo look
              del PDF oficial: marco azul marino, sin sombra de tarjeta, y el
-             pie de contacto del instituto que solo se ve al imprimir. */
+             pie de contacto del instituto que solo se ve al imprimir.
+             Compactado agresivo para que quepa en 1 sola página: sin esto
+             se pasaba a 2-3 páginas y el pie de contacto se cortaba a media
+             línea, quedando huérfano en una página aparte. */
           .ficha-registro {
             max-width: none !important;
             border: 3px solid #0d3b66 !important;
             border-radius: 4px !important;
             box-shadow: none !important;
-            padding: 16px !important;
-            page-break-inside: avoid;
-            font-size: 12px !important;
+            padding: 12px !important;
+            font-size: 10.5px !important;
+            line-height: 1.3 !important;
           }
-          .ficha-registro table { font-size: 12px !important; }
-          .ficha-registro td, .ficha-registro th { padding: 4px 6px !important; }
-          .ficha-registro > div { margin-bottom: 10px !important; }
-          .ficha-registro p { margin: 4px 0 !important; }
+          .ficha-registro table { font-size: 10.5px !important; }
+          .ficha-registro td, .ficha-registro th { padding: 3px 5px !important; }
+          .ficha-registro > div { margin-bottom: 6px !important; }
+          .ficha-registro p { margin: 3px 0 !important; }
+          .ficha-registro label { font-size: 9.5px !important; }
           .ficha-registro input {
             border: none !important;
             border-bottom: 1px solid #999 !important;
             border-radius: 0 !important;
-            padding: 2px 0 !important;
+            padding: 1px 0 !important;
+            font-size: 10.5px !important;
+          }
+          /* Pie de contacto: en una sola línea, sin partirse a media línea
+             ni saltar a otra página. */
+          .ficha-footer-contacto {
+            flex-wrap: nowrap !important;
+            gap: 8px !important;
+            font-size: 8px !important;
+            padding: 6px 12px !important;
+            page-break-inside: avoid;
+            white-space: nowrap;
+            overflow: hidden;
           }
         }
       `}</style>
@@ -1711,7 +1727,7 @@ export default function AdminPage() {
       {vistaGeneral === 'alumnos' && (
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <h1 style={{ margin: 0 }}>
+            <h1 className={mostrandoFicha ? 'ocultar-al-imprimir' : ''} style={{ margin: 0 }}>
               {detalleAlumno ? detalleAlumno.alumno.nombre : 'Resultados del diagnóstico'}
             </h1>
             {detalleAlumno ? (
@@ -2167,7 +2183,7 @@ export default function AdminPage() {
                       background: '#0d3b66', color: '#f0d99a', padding: '10px 22px', fontSize: 10,
                     }}
                   >
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
+                    <div className="ficha-footer-contacto" style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
                       <span>📱 963 159 75 28</span>
                       <span>📞 963 59 37 094</span>
                       <span>📍 6a. Av. Ote. Sur 31 B, Barrio Pilita Seca</span>
