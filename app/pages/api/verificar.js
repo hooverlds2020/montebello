@@ -1,7 +1,8 @@
 const { pool } = require('../../lib/db');
 
 // Endpoint público (sin login) para verificar la autenticidad de un resultado
-// impreso — solo expone datos mínimos, no respuestas ni datos sensibles.
+// impreso — solo expone datos mínimos (nombre, folio, fecha, calificación por
+// materia y final), nunca respuestas, preguntas ni datos sensibles del alumno.
 export default async function handler(req, res) {
   const { examenId } = req.query;
 
@@ -23,6 +24,28 @@ export default async function handler(req, res) {
     return res.status(404).json({ valido: false, error: 'Folio no encontrado o examen no finalizado' });
   }
 
+  const { rows: filasMateria } = await pool.query(
+    `SELECT c.nombre AS categoria, padre.nombre AS categoria_padre,
+            count(er.id) AS total,
+            count(er.id) FILTER (WHERE o.es_correcta) AS correctas
+     FROM examen_reactivos er
+     JOIN reactivos r ON r.id = er.reactivo_id
+     JOIN categorias c ON c.id = r.categoria_id
+     LEFT JOIN categorias padre ON padre.id = c.categoria_padre_id
+     LEFT JOIN opciones o ON o.id = er.opcion_respondida_id
+     WHERE er.examen_id = $1
+     GROUP BY c.nombre, padre.nombre
+     ORDER BY padre.nombre, c.nombre`,
+    [examenId]
+  );
+
+  const porCategoria = filasMateria.map((f) => ({
+    categoria: f.categoria_padre ? `${f.categoria_padre} › ${f.categoria}` : f.categoria,
+    total: parseInt(f.total, 10),
+    correctas: parseInt(f.correctas, 10),
+    porcentaje: Math.round((parseInt(f.correctas, 10) / parseInt(f.total, 10)) * 100),
+  }));
+
   const porcentaje = Math.round((parseInt(examen.correctas, 10) / parseInt(examen.total, 10)) * 100);
 
   return res.status(200).json({
@@ -30,6 +53,9 @@ export default async function handler(req, res) {
     folio: examen.id,
     nombre: examen.nombre,
     fecha: examen.finalizado_en,
+    total: parseInt(examen.total, 10),
+    correctas: parseInt(examen.correctas, 10),
     porcentaje,
+    porCategoria,
   });
 }

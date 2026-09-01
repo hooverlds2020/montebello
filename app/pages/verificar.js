@@ -30,10 +30,36 @@ export default function Verificar() {
           <p style={{ fontWeight: 600, marginBottom: 4 }}>Folio válido</p>
           <p style={{ fontSize: 14, color: '#333', marginBottom: 4 }}>Folio: #{resultado.folio}</p>
           <p style={{ fontSize: 14, color: '#333', marginBottom: 4 }}>Alumno: {resultado.nombre}</p>
-          <p style={{ fontSize: 14, color: '#333', marginBottom: 4 }}>Resultado: {resultado.porcentaje}%</p>
-          <p style={{ fontSize: 13, color: '#666' }}>
+          <p style={{ fontSize: 13, color: '#666', marginBottom: 16 }}>
             Fecha: {new Date(resultado.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
           </p>
+
+          {resultado.porCategoria && resultado.porCategoria.length > 0 && (
+            <div style={{ textAlign: 'left', background: '#fff', border: '1px solid #dcecdf', borderRadius: 8, padding: 14, marginBottom: 16 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                Resultado por materia
+              </p>
+              {resultado.porCategoria.map((c) => (
+                <div key={c.categoria} style={{ marginBottom: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
+                    <span>{c.categoria}</span>
+                    <span style={{ fontWeight: 600 }}>{c.correctas}/{c.total} · {c.porcentaje}%</span>
+                  </div>
+                  <div style={{ background: '#eee', borderRadius: 6, height: 6 }}>
+                    <div style={{ width: `${c.porcentaje}%`, height: '100%', background: '#2e7d32', borderRadius: 6 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ borderTop: '1px solid #c8e6d0', paddingTop: 14 }}>
+            <p style={{ fontSize: 12, color: '#666', marginBottom: 2 }}>Calificación final</p>
+            <p style={{ fontSize: 28, fontWeight: 700, color: '#2e7d32', margin: 0 }}>
+              {resultado.porcentaje}%
+            </p>
+            <p style={{ fontSize: 12, color: '#666', margin: 0 }}>{resultado.correctas} de {resultado.total} correctas</p>
+          </div>
         </div>
       )}
 
