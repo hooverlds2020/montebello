@@ -1,5 +1,21 @@
 -- Esquema inicial - Piloto Diagnóstico Montebello (estilo CENEVAL)
 
+-- Fila única con los parámetros generales del examen. Se creó originalmente
+-- a mano en producción (sin pasar por este archivo), por eso queda aquí
+-- documentada con IF NOT EXISTS: no afecta la base de datos ya existente,
+-- pero deja el esquema completo para instalaciones nuevas desde cero.
+CREATE TABLE IF NOT EXISTS configuracion (
+  id SERIAL PRIMARY KEY,
+  umbral_aprobacion INTEGER NOT NULL DEFAULT 60,
+  tiempo_limite_minutos INTEGER NOT NULL DEFAULT 120,
+  intentos_permitidos INTEGER NOT NULL DEFAULT 0,
+  -- Instrucciones/reglas del examen que se le muestran al alumno (HTML, se
+  -- captura con el mismo editor de texto enriquecido que las lecturas).
+  -- Separado a propósito del texto de cada lectura, para no mezclar
+  -- "instrucciones generales del examen" con "texto de comprensión lectora".
+  instrucciones TEXT
+);
+
 CREATE TABLE categorias (
   id SERIAL PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL UNIQUE,

@@ -8,13 +8,15 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     const { rows } = await pool.query(
-      'SELECT id, umbral_aprobacion, tiempo_limite_minutos, intentos_permitidos FROM configuracion ORDER BY id LIMIT 1'
+      'SELECT id, umbral_aprobacion, tiempo_limite_minutos, intentos_permitidos, instrucciones FROM configuracion ORDER BY id LIMIT 1'
     );
-    return res.status(200).json(rows[0] || { umbral_aprobacion: 60, tiempo_limite_minutos: 120, intentos_permitidos: 0 });
+    return res.status(200).json(
+      rows[0] || { umbral_aprobacion: 60, tiempo_limite_minutos: 120, intentos_permitidos: 0, instrucciones: null }
+    );
   }
 
   if (req.method === 'PUT') {
-    const { umbralAprobacion, tiempoLimiteMinutos, intentosPermitidos } = req.body;
+    const { umbralAprobacion, tiempoLimiteMinutos, intentosPermitidos, instrucciones } = req.body;
     const { rows } = await pool.query('SELECT id FROM configuracion ORDER BY id LIMIT 1');
     const filaId = rows[0]?.id;
 
@@ -49,6 +51,11 @@ export default async function handler(req, res) {
       }
       const id = await asegurarFila();
       await pool.query('UPDATE configuracion SET intentos_permitidos = $1 WHERE id = $2', [i, id]);
+    }
+
+    if (instrucciones !== undefined) {
+      const id = await asegurarFila();
+      await pool.query('UPDATE configuracion SET instrucciones = $1 WHERE id = $2', [instrucciones || null, id]);
     }
 
     return res.status(200).json({ ok: true });

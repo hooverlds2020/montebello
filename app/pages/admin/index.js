@@ -102,6 +102,9 @@ export default function AdminPage() {
   const [intentosPermitidos, setIntentosPermitidos] = useState(0);
   const [editandoIntentos, setEditandoIntentos] = useState(false);
   const [intentosInput, setIntentosInput] = useState(0);
+  const [instrucciones, setInstrucciones] = useState('');
+  const [editandoInstrucciones, setEditandoInstrucciones] = useState(false);
+  const [instruccionesInput, setInstruccionesInput] = useState('');
 
   async function cargarUmbral() {
     const res = await fetch('/api/admin/configuracion');
@@ -112,6 +115,8 @@ export default function AdminPage() {
     setTiempoInput(data.tiempo_limite_minutos);
     setIntentosPermitidos(data.intentos_permitidos ?? 0);
     setIntentosInput(data.intentos_permitidos ?? 0);
+    setInstrucciones(data.instrucciones || '');
+    setInstruccionesInput(data.instrucciones || '');
   }
 
   async function guardarUmbral() {
@@ -160,6 +165,22 @@ export default function AdminPage() {
     setIntentosPermitidos(intentosInput);
     setEditandoIntentos(false);
     mostrarToast('Límite de intentos actualizado', 'exito');
+  }
+
+  async function guardarInstrucciones() {
+    const res = await fetch('/api/admin/configuracion', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instrucciones: instruccionesInput }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    setInstrucciones(instruccionesInput);
+    setEditandoInstrucciones(false);
+    mostrarToast('Instrucciones del examen actualizadas', 'exito');
   }
 
   async function cargarResumenAlumnos() {
@@ -1642,6 +1663,30 @@ export default function AdminPage() {
                   <strong>{intentosPermitidos === 0 ? 'Ilimitados' : intentosPermitidos}</strong>
                   <button onClick={() => setEditandoIntentos(true)} title="Editar" style={btnStyle('secundario', { padding: '4px 8px', fontSize: 12 })}>✏️</button>
                 </>
+              )}
+            </div>
+          )}
+
+          {!detalleAlumno && (
+            <div style={{ marginBottom: 24, maxWidth: 640 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, fontSize: 13, color: '#666' }}>
+                <span>Instrucciones del examen (se le muestran al alumno antes de empezar, separadas de las lecturas):</span>
+                {!editandoInstrucciones && (
+                  <button onClick={() => setEditandoInstrucciones(true)} title="Editar" style={btnStyle('secundario', { padding: '4px 8px', fontSize: 12 })}>✏️</button>
+                )}
+              </div>
+              {editandoInstrucciones ? (
+                <div>
+                  <div style={{ background: '#fff', marginBottom: 8 }}>
+                    <ReactQuill theme="snow" value={instruccionesInput} onChange={setInstruccionesInput} placeholder="Ej. Reglas del examen, tiempo disponible, qué hacer si se corta la luz, etc." />
+                  </div>
+                  <button onClick={guardarInstrucciones} style={btnStyle('primario', { marginRight: 8 })}>Guardar</button>
+                  <button onClick={() => { setInstruccionesInput(instrucciones); setEditandoInstrucciones(false); }} style={btnStyle('secundario')}>Cancelar</button>
+                </div>
+              ) : instrucciones ? (
+                <div style={{ border: '1px solid #eee', borderRadius: 6, padding: 12, background: '#fafafa', fontSize: 13 }} dangerouslySetInnerHTML={{ __html: instrucciones }} />
+              ) : (
+                <p style={{ color: '#aaa', fontSize: 13, fontStyle: 'italic', margin: 0 }}>Sin instrucciones configuradas todavía.</p>
               )}
             </div>
           )}

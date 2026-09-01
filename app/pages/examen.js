@@ -13,6 +13,7 @@ export default function Examen() {
   const [alumno, setAlumno] = useState(null);
   const [umbralAprobacion, setUmbralAprobacion] = useState(60); // valor por defecto mientras carga
   const [intentosPermitidos, setIntentosPermitidos] = useState(0); // 0 = ilimitados
+  const [instruccionesExamen, setInstruccionesExamen] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [examenId, setExamenId] = useState(null);
   const [pregunta, setPregunta] = useState(null);
@@ -51,6 +52,7 @@ export default function Examen() {
       .then((data) => {
         setUmbralAprobacion(data.umbralAprobacion);
         setIntentosPermitidos(data.intentosPermitidos ?? 0);
+        setInstruccionesExamen(data.instrucciones || null);
       })
       .catch(() => {}); // si falla, se queda con los valores por defecto
   }, []);
@@ -625,6 +627,18 @@ export default function Examen() {
             <div style={{ fontSize: 28, fontWeight: 'bold', color: masReciente.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>{masReciente.porcentaje}%</div>
             <div style={{ fontSize: 12, color: '#666' }}>Último intento</div>
           </div>
+        </div>
+      )}
+
+      {/* Instrucciones del examen: separadas a propósito de las lecturas —
+          son las reglas generales, no texto de comprensión lectora. Solo se
+          muestran si el instituto las configuró. */}
+      {instruccionesExamen && (
+        <div style={{ marginBottom: 32, padding: 20, background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 10 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+            📋 Instrucciones del examen
+          </div>
+          <div style={{ fontSize: 14, lineHeight: 1.6, color: '#333' }} dangerouslySetInnerHTML={{ __html: instruccionesExamen }} />
         </div>
       )}
 
