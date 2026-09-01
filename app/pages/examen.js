@@ -28,6 +28,7 @@ export default function Examen() {
   const [historial, setHistorial] = useState(null);
   const [resultadoHistorico, setResultadoHistorico] = useState(null);
   const [cargandoHistorico, setCargandoHistorico] = useState(false);
+  const [enProgreso, setEnProgreso] = useState(null); // { examenId, total, respondidas } o null si no hay examen a medias
 
   const router = useRouter();
 
@@ -40,6 +41,7 @@ export default function Examen() {
       .then((data) => {
         setAlumno(data);
         cargarHistorial();
+        cargarEnProgreso();
         setCargando(false);
       })
       .catch(() => router.push('/login'));
@@ -56,6 +58,11 @@ export default function Examen() {
   async function cargarHistorial() {
     const res = await fetch('/api/examen/historial');
     if (res.ok) setHistorial(await res.json());
+  }
+
+  async function cargarEnProgreso() {
+    const res = await fetch('/api/examen/en-progreso');
+    if (res.ok) setEnProgreso(await res.json());
   }
 
   async function verResultadoHistorico(id) {
@@ -214,6 +221,7 @@ export default function Examen() {
     setResultado(data);
     setPregunta(null);
     setMapa(null);
+    setEnProgreso(null);
     cargarHistorial();
   }
 
@@ -596,9 +604,33 @@ export default function Examen() {
         </div>
       )}
 
-      {/* Botón para nuevo examen (o mensaje de límite alcanzado) */}
+      {/* Botón para nuevo examen / continuar uno a medias / mensaje de límite alcanzado */}
       {(() => {
         const yaAlcanzoLimite = intentosPermitidos > 0 && historial && historial.length >= intentosPermitidos;
+
+        // Si hay un examen sin terminar, siempre se prioriza continuarlo —
+        // esto no cuenta como un intento nuevo, así que va antes que el
+        // mensaje de "ya alcanzaste el límite de intentos".
+        if (enProgreso && enProgreso.examenId) {
+          return (
+            <div style={{ textAlign: 'center', marginBottom: 40, padding: 28, background: '#eaf2fb', borderRadius: 12 }}>
+              <p style={{ color: '#3a5b7a', marginBottom: 4, fontSize: 15 }}>
+                Tienes un examen sin terminar.
+              </p>
+              {enProgreso.total > 0 && (
+                <p style={{ color: '#6a8bab', marginBottom: 16, fontSize: 13 }}>
+                  Llevas {enProgreso.respondidas} de {enProgreso.total} preguntas contestadas.
+                </p>
+              )}
+              <button
+                onClick={iniciarExamen}
+                style={{ padding: '12px 28px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 600 }}
+              >
+                Continuar examen
+              </button>
+            </div>
+          );
+        }
 
         if (yaAlcanzoLimite) {
           return (
