@@ -459,6 +459,18 @@ export default function Examen() {
     const posicionActual = flatList.findIndex((i) => i.examenReactivoId === pregunta.examenReactivoId) + 1;
 
     return (
+      <>
+        {/* CSS de KaTeX: para que se vean bien las fórmulas matemáticas que
+            el admin haya insertado en el enunciado con el botón de fórmula
+            de Quill. Aquí solo hace falta el CSS (el HTML ya viene
+            renderizado desde que se guardó la pregunta), no la librería
+            completa. */}
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+          integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV"
+          crossOrigin="anonymous"
+        />
       <div style={{ maxWidth: pregunta.lectura ? 980 : 860, margin: '40px auto', fontFamily: 'sans-serif', padding: 24, display: 'flex', gap: 24, alignItems: 'stretch', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 480px', minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#666', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
@@ -758,6 +770,7 @@ export default function Examen() {
           }
         `}</style>
       </div>
+      </>
     );
   }
 
