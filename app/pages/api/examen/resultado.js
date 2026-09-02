@@ -24,6 +24,12 @@ export default async function handler(req, res) {
       `UPDATE examenes SET estado = 'finalizado', finalizado_en = NOW() WHERE id = $1 AND estado != 'finalizado'`,
       [examenId]
     );
+    // Libera la marca de sesión única: ya terminó, puede volver a entrar
+    // (por ejemplo desde otro dispositivo) sin que quede bloqueado.
+    await pool.query(
+      `UPDATE alumnos SET sesion_token = NULL, sesion_expira = NULL WHERE id = $1`,
+      [sesion.alumnoId]
+    );
   }
 
   const { rows: porCategoria } = await pool.query(

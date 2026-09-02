@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken');
 const SECRET = process.env.ALUMNO_JWT_SECRET || 'cambia-este-secreto-antes-de-produccion';
 const COOKIE_NAME = 'montebello_alumno_session';
 
-function crearTokenAlumno(alumnoId) {
-  return jwt.sign({ role: 'alumno', alumnoId }, SECRET, { expiresIn: '6h' });
+function crearTokenAlumno(alumnoId, sesionId) {
+  return jwt.sign({ role: 'alumno', alumnoId, sesionId }, SECRET, { expiresIn: '6h' });
 }
 
 function verificarTokenAlumno(token) {

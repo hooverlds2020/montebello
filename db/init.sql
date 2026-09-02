@@ -75,7 +75,12 @@ CREATE TABLE alumnos (
   -- Se guarda como JSON en vez de una columna por campo porque este
   -- formulario es del instituto y puede cambiar de forma; así se ajusta sin
   -- tener que alterar el esquema cada vez.
-  ficha_registro JSONB
+  ficha_registro JSONB,
+  -- Sesión única: mientras estos dos campos tengan un valor vigente
+  -- (sesion_expira en el futuro), no se permite un segundo login con el
+  -- mismo correo. Se liberan al cerrar sesión o al terminar el examen.
+  sesion_token TEXT,
+  sesion_expira TIMESTAMPTZ
 );
 
 CREATE TABLE password_resets (
