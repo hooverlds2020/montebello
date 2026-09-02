@@ -29,7 +29,9 @@ export default async function handler(req, res) {
   const { rows: porCategoria } = await pool.query(
     `SELECT c.nombre AS categoria,
             count(*) AS total,
-            count(*) FILTER (WHERE o.es_correcta) AS correctas
+            count(*) FILTER (WHERE o.es_correcta) AS correctas,
+            count(*) FILTER (WHERE er.opcion_respondida_id IS NOT NULL AND NOT o.es_correcta) AS incorrectas,
+            count(*) FILTER (WHERE er.opcion_respondida_id IS NULL) AS sin_contestar
      FROM examen_reactivos er
      JOIN reactivos r ON r.id = er.reactivo_id
      JOIN categorias c ON c.id = r.categoria_id
@@ -44,16 +46,26 @@ export default async function handler(req, res) {
     categoria: r.categoria,
     total: parseInt(r.total, 10),
     correctas: parseInt(r.correctas, 10),
+    incorrectas: parseInt(r.incorrectas, 10),
+    sinContestar: parseInt(r.sin_contestar, 10),
     porcentaje: Math.round((parseInt(r.correctas, 10) / parseInt(r.total, 10)) * 100),
   }));
 
   const totalGeneral = resultado.reduce((acc, r) => acc + r.total, 0);
   const correctasGeneral = resultado.reduce((acc, r) => acc + r.correctas, 0);
+  const incorrectasGeneral = resultado.reduce((acc, r) => acc + r.incorrectas, 0);
+  const sinContestarGeneral = resultado.reduce((acc, r) => acc + r.sinContestar, 0);
   const porcentajeGeneral = totalGeneral > 0 ? Math.round((correctasGeneral / totalGeneral) * 100) : 0;
 
   return res.status(200).json({
     examenId: examen.id,
     porCategoria: resultado,
-    general: { total: totalGeneral, correctas: correctasGeneral, porcentaje: porcentajeGeneral },
+    general: {
+      total: totalGeneral,
+      correctas: correctasGeneral,
+      incorrectas: incorrectasGeneral,
+      sinContestar: sinContestarGeneral,
+      porcentaje: porcentajeGeneral,
+    },
   });
 }

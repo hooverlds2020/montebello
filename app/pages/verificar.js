@@ -43,7 +43,11 @@ export default function Verificar() {
                 <div key={c.categoria} style={{ marginBottom: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
                     <span>{c.categoria}</span>
-                    <span style={{ fontWeight: 600 }}>{c.correctas}/{c.total} · {c.porcentaje}%</span>
+                    <span style={{ fontWeight: 600 }}>{c.porcentaje}%</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>
+                    ✅ {c.correctas} correctas · ❌ {c.incorrectas ?? 0} incorrectas
+                    {c.sinContestar > 0 && <> · ⬜ {c.sinContestar} sin contestar</>}
                   </div>
                   <div style={{ background: '#eee', borderRadius: 6, height: 6 }}>
                     <div style={{ width: `${c.porcentaje}%`, height: '100%', background: '#2e7d32', borderRadius: 6 }} />

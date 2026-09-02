@@ -43,7 +43,11 @@ export default function DonaResultado({ resultado, tamano = 220 }) {
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#333' }}>{s.categoria}</div>
-              <div style={{ fontSize: 13, color: '#666' }}>{s.correctas}/{s.total} correctas · <strong style={{ color: s.color }}>{s.porcentaje}%</strong></div>
+              <div style={{ fontSize: 13, color: '#666' }}>
+                ✅ {s.correctas} correctas · ❌ {s.incorrectas ?? 0} incorrectas
+                {s.sinContestar > 0 && <> · ⬜ {s.sinContestar} sin contestar</>}
+                {' '}· <strong style={{ color: s.color }}>{s.porcentaje}%</strong>
+              </div>
             </div>
           </div>
         ))}

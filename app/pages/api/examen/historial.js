@@ -25,7 +25,9 @@ export default async function handler(req, res) {
   const { rows: filasCategoria } = await pool.query(
     `SELECT e.id AS examen_id, c.nombre AS categoria, padre.nombre AS categoria_padre,
             count(er.id) AS total,
-            count(er.id) FILTER (WHERE o.es_correcta) AS correctas
+            count(er.id) FILTER (WHERE o.es_correcta) AS correctas,
+            count(er.id) FILTER (WHERE er.opcion_respondida_id IS NOT NULL AND NOT o.es_correcta) AS incorrectas,
+            count(er.id) FILTER (WHERE er.opcion_respondida_id IS NULL) AS sin_contestar
      FROM examenes e
      JOIN examen_reactivos er ON er.examen_id = e.id
      JOIN reactivos r ON r.id = er.reactivo_id
@@ -45,6 +47,8 @@ export default async function handler(req, res) {
       categoria: f.categoria_padre ? `${f.categoria_padre} › ${f.categoria}` : f.categoria,
       total: parseInt(f.total, 10),
       correctas: parseInt(f.correctas, 10),
+      incorrectas: parseInt(f.incorrectas, 10),
+      sinContestar: parseInt(f.sin_contestar, 10),
       porcentaje: Math.round((parseInt(f.correctas, 10) / parseInt(f.total, 10)) * 100),
     });
   }
