@@ -13,6 +13,16 @@ export const config = {
 const EXTENSIONES_PERMITIDAS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']);
 const TAMANO_MAXIMO = 8 * 1024 * 1024; // 8 MB
 
+// OJO: las imágenes NO se guardan dentro de /public. Next.js en producción
+// no vuelve a revisar esa carpeta después de arrancar, así que un archivo
+// subido mientras el servidor ya está corriendo quedaría invisible (404)
+// hasta reiniciar el contenedor — inaceptable para uso diario del instituto.
+// Se guardan en una carpeta aparte (uploads/, montada como volumen igual
+// que antes) y se sirven con un endpoint propio (/api/uploads/[archivo])
+// que sí lee el archivo del disco en cada petición, sin depender de ningún
+// caché de arranque.
+const carpetaDestino = path.join(process.cwd(), 'uploads');
+
 export default async function handler(req, res) {
   if (!estaAutenticado(req)) {
     return res.status(401).json({ error: 'No autorizado' });
@@ -22,7 +32,6 @@ export default async function handler(req, res) {
     return res.status(405).end();
   }
 
-  const carpetaDestino = path.join(process.cwd(), 'public', 'uploads');
   fs.mkdirSync(carpetaDestino, { recursive: true });
 
   const form = formidable({
@@ -55,6 +64,6 @@ export default async function handler(req, res) {
     const rutaFinal = path.join(carpetaDestino, nombreFinal);
     fs.renameSync(archivo.filepath, rutaFinal);
 
-    return res.status(200).json({ url: `/uploads/${nombreFinal}` });
+    return res.status(200).json({ url: `/api/uploads/${nombreFinal}` });
   });
 }

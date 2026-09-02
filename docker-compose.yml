@@ -32,7 +32,7 @@ services:
       # PGPASSWORD, ADMIN_PASSWORD, ADMIN_JWT_SECRET, ALUMNO_JWT_SECRET,
       # SITE_URL y las variables SMTP_* vienen todas de .env (ver .env.example)
     volumes:
-      - ./uploads:/app/public/uploads
+      - ./uploads:/app/uploads
     expose:
       - "3000"
     networks:
