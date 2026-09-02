@@ -1586,7 +1586,7 @@ export default function AdminPage() {
                   {preguntasRapidas.map((p, idxP) => (
                     <div key={idxP} style={{ border: '1px solid #ddd', padding: 10, marginBottom: 8, borderRadius: 6 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <strong>Pregunta {reactivos.length + idxP + 1}</strong>
+                        <strong>Pregunta {insertarInfo ? insertarInfo.numeroRef + 1 + idxP : reactivos.length + idxP + 1}</strong>
                         <button
                           type="button"
                           onClick={() => quitarPreguntaRapida(idxP)}
