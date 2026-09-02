@@ -4,31 +4,52 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import DonaResultado from '../../components/DonaResultado';
 import { renderizarExponentes } from '../../lib/formato';
+import parse from 'html-react-parser';
+import { InlineMath } from 'react-katex';
 const { estaAutenticado } = require('../../lib/auth');
+
+// Igual que en examen.js: vuelve a renderizar en vivo cualquier fórmula
+// (los <span class="ql-formula"> que deja Quill al usar el botón ∑) con
+// react-katex, para que se vean bien también en el panel admin (revisión
+// de preguntas, instrucciones), no solo del lado del alumno.
+function renderizarHTMLconMatematicas(htmlString) {
+  if (!htmlString) return null;
+  const opciones = {
+    replace: (domNode) => {
+      if (domNode.attribs && domNode.attribs.class && domNode.attribs.class.includes('ql-formula')) {
+        const expresionMatematica = domNode.attribs['data-value'];
+        return <InlineMath math={expresionMatematica} />;
+      }
+    },
+  };
+  return parse(htmlString, opciones);
+}
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
+if (typeof window !== 'undefined') {
+  window.katex = katex;
+}
 
 // Toolbar reducida para el enunciado de las preguntas: negritas, cursiva,
-// subrayado, resaltado tipo marcador (fondo amarillo), y exponente/subíndice
-// (necesario para matemáticas: (4a+6b)³, x², H₂O, etc.). Quill no trae
-// "highlight" por defecto, así que se habilita vía el formato "background".
-//
-// NOTA: hubo un intento de agregar botones de "fracción" y "raya arriba"
-// (notación de segmentos AB/BC) usando dangerouslyPasteHTML de Quill, pero
-// no se pudo probar en un navegador real y resultó dañar el contenido de
-// la pregunta al usarse (se perdió texto, el ícono del botón salió roto).
-// Se revirtió por seguridad. Para segmentos con raya arriba, ver la
-// alternativa recomendada en el chat (copiar/pegar el carácter Unicode).
+// subrayado, resaltado tipo marcador (fondo amarillo), exponente/subíndice
+// (necesario para matemáticas: (4a+6b)³, x², H₂O, etc.), y fórmula (∑, el
+// botón oficial de Quill para ecuaciones LaTeX — usa la librería KaTeX,
+// importada arriba y expuesta como window.katex, que es como Quill la
+// busca internamente). "highlight" no viene de fábrica en Quill, así que
+// se habilita vía el formato "background".
 const quillPreguntaModules = {
   toolbar: [
     ['bold', 'italic', 'underline'],
     [{ background: ['#fff2a8', false] }],
     [{ script: 'super' }, { script: 'sub' }],
+    ['formula'],
     ['clean'],
   ],
 };
-const quillPreguntaFormats = ['bold', 'italic', 'underline', 'background', 'script'];
+const quillPreguntaFormats = ['bold', 'italic', 'underline', 'background', 'script', 'formula'];
 
 export async function getServerSideProps({ req }) {
   if (!estaAutenticado(req)) {
@@ -1827,7 +1848,7 @@ export default function AdminPage() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div style={{ flex: 1 }}>
                               <div style={{ color: '#4a90d9', fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>Pregunta {r.numero}</div>
-                              <div dangerouslySetInnerHTML={{ __html: r.pregunta }} />
+                              <div>{renderizarHTMLconMatematicas(r.pregunta)}</div>
                               {r.imagen_url && (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={r.imagen_url} alt="" style={{ maxWidth: 260, maxHeight: 180, display: 'block', marginTop: 4, marginBottom: 6, borderRadius: 4, border: '1px solid #eee' }} />
@@ -1836,7 +1857,7 @@ export default function AdminPage() {
                                 {r.opciones.map((o, idx) => (
                                   <li key={o.id} style={{ color: o.es_correcta ? 'green' : 'inherit' }}>
                                     <strong>{String.fromCharCode(97 + idx)})</strong>{' '}
-                                    <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
+                                    <span>{renderizarHTMLconMatematicas(renderizarExponentes(o.texto))}</span>
                                     {' '}{o.imagen_url && `[img: ${o.imagen_url}]`} {o.es_correcta && '✓'}
                                   </li>
                                 ))}
@@ -2015,7 +2036,7 @@ export default function AdminPage() {
                   <button onClick={() => { setInstruccionesInput(instrucciones); setEditandoInstrucciones(false); }} style={btnStyle('secundario')}>Cancelar</button>
                 </div>
               ) : instrucciones ? (
-                <div style={{ border: '1px solid #eee', borderRadius: 6, padding: 12, background: '#fafafa', fontSize: 13 }} dangerouslySetInnerHTML={{ __html: instrucciones }} />
+                <div style={{ border: '1px solid #eee', borderRadius: 6, padding: 12, background: '#fafafa', fontSize: 13 }}>{renderizarHTMLconMatematicas(instrucciones)}</div>
               ) : (
                 <p style={{ color: '#aaa', fontSize: 13, fontStyle: 'italic', margin: 0 }}>Sin instrucciones configuradas todavía.</p>
               )}

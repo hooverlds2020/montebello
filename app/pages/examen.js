@@ -2,7 +2,28 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import DonaResultado from '../components/DonaResultado';
 import { renderizarExponentes } from '../lib/formato';
+import parse from 'html-react-parser';
+import { InlineMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
+// Convierte el HTML guardado por el editor (Quill) a elementos de React,
+// re-renderizando en vivo cualquier fórmula matemática (los <span
+// class="ql-formula"> que deja Quill) con react-katex — esto es necesario
+// porque el HTML guardado no trae la fórmula ya "pintada": solo trae el
+// LaTeX original en el atributo data-value, y hay que volver a procesarlo
+// con KaTeX cada vez que se muestra.
+function renderizarHTMLconMatematicas(htmlString) {
+  if (!htmlString) return null;
+  const opciones = {
+    replace: (domNode) => {
+      if (domNode.attribs && domNode.attribs.class && domNode.attribs.class.includes('ql-formula')) {
+        const expresionMatematica = domNode.attribs['data-value'];
+        return <InlineMath math={expresionMatematica} />;
+      }
+    },
+  };
+  return parse(htmlString, opciones);
+}
 
 function formatearFecha(iso) {
   if (!iso) return '';
@@ -514,7 +535,7 @@ export default function Examen() {
           )}
 
           {pregunta.lectura && pregunta.lectura.instruccion && (
-            <div style={{ background: '#eaf2fb', border: '1px solid #cfe0f5', borderRadius: 8, padding: '12px 16px', marginBottom: 14, fontSize: 14, color: '#2a5f9e', lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pregunta.lectura.instruccion }} />
+            <div style={{ background: '#eaf2fb', border: '1px solid #cfe0f5', borderRadius: 8, padding: '12px 16px', marginBottom: 14, fontSize: 14, color: '#2a5f9e', lineHeight: 1.5 }}>{renderizarHTMLconMatematicas(pregunta.lectura.instruccion)}</div>
           )}
 
           {pregunta.lectura && (
@@ -531,12 +552,12 @@ export default function Examen() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={pregunta.lectura.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16, display: 'block' }} />
               )}
-              <div style={{ fontSize: 15, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: pregunta.lectura.texto }} />
+              <div style={{ fontSize: 15, lineHeight: 1.6 }}>{renderizarHTMLconMatematicas(pregunta.lectura.texto)}</div>
             </div>
           )}
 
           <div style={{ border: '1px solid #e0e0e0', borderRadius: 10, padding: '20px 22px', background: '#fff', marginBottom: 12 }}>
-            <div style={{ fontSize: 17, marginBottom: 16, lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pregunta.pregunta }} />
+            <div style={{ fontSize: 17, marginBottom: 16, lineHeight: 1.5 }}>{renderizarHTMLconMatematicas(pregunta.pregunta)}</div>
             {pregunta.imagenUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={pregunta.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16 }} />
@@ -554,7 +575,7 @@ export default function Examen() {
                 <input type="radio" name="opcion" checked={seleccion === o.id} onChange={() => setSeleccion(o.id)} style={{ marginTop: 3, flexShrink: 0 }} />
                 <span style={{ fontWeight: 'bold', flexShrink: 0 }}>{String.fromCharCode(97 + idx)})</span>
                 <span>
-                  <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
+                  <span>{renderizarHTMLconMatematicas(renderizarExponentes(o.texto))}</span>
                   {o.imagen_url && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={o.imagen_url} alt="" style={{ display: 'block', maxWidth: '100%', marginTop: 6 }} />
@@ -876,7 +897,7 @@ export default function Examen() {
           <div style={{ fontSize: 13, fontWeight: 700, color: '#555', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.4 }}>
             📋 Instrucciones del examen
           </div>
-          <div style={{ fontSize: 14, lineHeight: 1.6, color: '#333' }} dangerouslySetInnerHTML={{ __html: instruccionesExamen }} />
+          <div style={{ fontSize: 14, lineHeight: 1.6, color: '#333' }}>{renderizarHTMLconMatematicas(instruccionesExamen)}</div>
         </div>
       )}
 
