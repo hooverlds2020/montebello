@@ -161,14 +161,24 @@ export default async function handler(req, res) {
     );
     const examenId = rows[0].id;
 
+    // Antes esto insertaba una fila a la vez (await dentro del for), es
+    // decir un viaje de ida y vuelta a la base de datos POR CADA pregunta
+    // (~90 en un examen completo) uno tras otro. Eso era la causa principal
+    // de la demora al darle "Iniciar examen". Ahora se arma un solo INSERT
+    // con todas las filas juntas: un solo viaje a la base de datos.
     let orden = 1;
+    const marcadores = [];
+    const params = [];
     for (const reactivoId of ordenFinal) {
-      await client.query(
-        `INSERT INTO examen_reactivos (examen_id, reactivo_id, orden) VALUES ($1, $2, $3)`,
-        [examenId, reactivoId, orden]
-      );
+      const i = params.length;
+      marcadores.push(`($${i + 1}, $${i + 2}, $${i + 3})`);
+      params.push(examenId, reactivoId, orden);
       orden++;
     }
+    await client.query(
+      `INSERT INTO examen_reactivos (examen_id, reactivo_id, orden) VALUES ${marcadores.join(', ')}`,
+      params
+    );
 
     await client.query('COMMIT');
     return res.status(201).json({ examenId, totalPreguntas: ordenFinal.length, avisos });

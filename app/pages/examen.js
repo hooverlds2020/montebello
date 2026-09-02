@@ -121,9 +121,13 @@ export default function Examen() {
     }
     setExamenId(data.examenId);
     seccionActualRef.current = null; // nuevo examen: reinicia la detección de cambio de sección
-    const mapaData = await cargarMapa(data.examenId);
-    const primera = primeraSinResponder(mapaData);
-    cargarPregunta(data.examenId, primera);
+    // El mapa y la primera pregunta se piden EN PARALELO (antes se esperaba
+    // el mapa completo para recién ahí pedir la pregunta, agregando una
+    // vuelta más de espera). El endpoint de "pregunta" ya sabe elegir la
+    // primera sin responder por su cuenta cuando no se le indica cuál,
+    // así que no necesita depender del mapa para eso.
+    cargarMapa(data.examenId);
+    cargarPregunta(data.examenId);
   }
 
   function claveDeSeccion(data) {
