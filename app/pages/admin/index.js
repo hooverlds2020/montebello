@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import Script from 'next/script';
 import DonaResultado from '../../components/DonaResultado';
 import { renderizarExponentes } from '../../lib/formato';
 const { estaAutenticado } = require('../../lib/auth');
@@ -11,29 +10,25 @@ const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
 
 // Toolbar reducida para el enunciado de las preguntas: negritas, cursiva,
-// subrayado, resaltado tipo marcador (fondo amarillo), exponente/subíndice
-// (necesario para matemáticas: (4a+6b)³, x², H₂O, etc.), y fórmula (∑, el
-// botón oficial de Quill para ecuaciones — usa la librería KaTeX, cargada
-// aparte con <Script> más abajo). Quill no trae "highlight" por defecto,
-// así que se habilita vía el formato "background".
+// subrayado, resaltado tipo marcador (fondo amarillo), y exponente/subíndice
+// (necesario para matemáticas: (4a+6b)³, x², H₂O, etc.). Quill no trae
+// "highlight" por defecto, así que se habilita vía el formato "background".
 //
-// NOTA: antes hubo un intento de agregar botones propios de "fracción" y
-// "raya arriba" con código hecho a mano (dangerouslyPasteHTML), pero no se
-// pudo probar en un navegador real y resultó dañar el contenido de una
-// pregunta al usarse. Se revirtió esa versión. El botón de fórmula (∑) que
-// se agrega ahora SÍ viene incluido de fábrica en Quill (no es código
-// inventado), así que es mucho más confiable — pero de todas formas
-// pruébalo primero en una pregunta de prueba antes de usarlo en una real.
+// NOTA: hubo un intento de agregar botones de "fracción" y "raya arriba"
+// (notación de segmentos AB/BC) usando dangerouslyPasteHTML de Quill, pero
+// no se pudo probar en un navegador real y resultó dañar el contenido de
+// la pregunta al usarse (se perdió texto, el ícono del botón salió roto).
+// Se revirtió por seguridad. Para segmentos con raya arriba, ver la
+// alternativa recomendada en el chat (copiar/pegar el carácter Unicode).
 const quillPreguntaModules = {
   toolbar: [
     ['bold', 'italic', 'underline'],
     [{ background: ['#fff2a8', false] }],
     [{ script: 'super' }, { script: 'sub' }],
-    ['formula'],
     ['clean'],
   ],
 };
-const quillPreguntaFormats = ['bold', 'italic', 'underline', 'background', 'script', 'formula'];
+const quillPreguntaFormats = ['bold', 'italic', 'underline', 'background', 'script'];
 
 export async function getServerSideProps({ req }) {
   if (!estaAutenticado(req)) {
@@ -1185,23 +1180,6 @@ export default function AdminPage() {
 
   return (
     <div className="admin-root" style={{ minHeight: '100vh', fontFamily: 'sans-serif' }}>
-      {/* KaTeX: librería que usa el botón de fórmula (∑) de Quill, ya
-          incluido de fábrica en el editor — solo falta cargar esta
-          librería para que funcione. CSS necesario siempre (para que se
-          vea bien lo ya guardado); JS necesario aquí en el admin porque es
-          donde se insertan fórmulas nuevas. */}
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-        integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV"
-        crossOrigin="anonymous"
-      />
-      <Script
-        src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
-        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
-        crossOrigin="anonymous"
-        strategy="beforeInteractive"
-      />
       <style jsx global>{`
         * { box-sizing: border-box; }
         body { margin: 0; }
