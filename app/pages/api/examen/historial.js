@@ -34,7 +34,7 @@ export default async function handler(req, res) {
      LEFT JOIN opciones o ON o.id = er.opcion_respondida_id
      WHERE e.alumno_id = $1 AND e.estado = 'finalizado'
      GROUP BY e.id, c.nombre, padre.nombre
-     ORDER BY e.id, c.nombre`,
+     ORDER BY e.id, MIN(er.orden)`,
     [sesion.alumnoId]
   );
 

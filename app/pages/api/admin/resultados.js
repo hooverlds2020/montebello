@@ -59,7 +59,7 @@ export default async function handler(req, res) {
        LEFT JOIN opciones o ON o.id = er.opcion_respondida_id
        WHERE er.examen_id = ANY($1)
        GROUP BY c.nombre, padre.nombre
-       ORDER BY padre.nombre NULLS LAST, c.nombre`,
+       ORDER BY MIN(er.orden)`,
       [examenIds]
     );
     promedioPorMateria = filasMateria.map((f) => ({

@@ -10,58 +10,23 @@ const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
 
 // Toolbar reducida para el enunciado de las preguntas: negritas, cursiva,
-// subrayado, resaltado tipo marcador (fondo amarillo), exponente/subíndice
-// (necesario para matemáticas: (4a+6b)³, x², H₂O, etc.), y dos botones
-// propios para notación de geometría: "a/b" inserta una fracción apilada
-// con letras o números (AB sobre BC, no solo dígitos como en las opciones),
-// y "A̅" pone una raya arriba de un segmento (ej. la notación de segmento
-// AB con barra). Quill no trae "highlight" por defecto, así que se habilita
-// vía el formato "background".
-function escaparHtmlQuill(texto) {
-  return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+// subrayado, resaltado tipo marcador (fondo amarillo), y exponente/subíndice
+// (necesario para matemáticas: (4a+6b)³, x², H₂O, etc.). Quill no trae
+// "highlight" por defecto, así que se habilita vía el formato "background".
+//
+// NOTA: hubo un intento de agregar botones de "fracción" y "raya arriba"
+// (notación de segmentos AB/BC) usando dangerouslyPasteHTML de Quill, pero
+// no se pudo probar en un navegador real y resultó dañar el contenido de
+// la pregunta al usarse (se perdió texto, el ícono del botón salió roto).
+// Se revirtió por seguridad. Para segmentos con raya arriba, ver la
+// alternativa recomendada en el chat (copiar/pegar el carácter Unicode).
 const quillPreguntaModules = {
-  toolbar: {
-    container: [
-      ['bold', 'italic', 'underline'],
-      [{ background: ['#fff2a8', false] }],
-      [{ script: 'super' }, { script: 'sub' }],
-      ['fraccion', 'raya'],
-      ['clean'],
-    ],
-    handlers: {
-      // Inserta una fracción apilada (numerador arriba, línea, denominador
-      // abajo) en el punto donde esté el cursor. A diferencia de las
-      // opciones de respuesta (donde "1/4" se detecta solo), aquí se pide
-      // por separado porque el enunciado puede llevar letras (AB/BC), no
-      // solo números.
-      fraccion: function () {
-        const numerador = window.prompt('¿Qué va ARRIBA de la fracción? (ej. AB)');
-        if (numerador === null || !numerador.trim()) return;
-        const denominador = window.prompt('¿Qué va ABAJO de la fracción? (ej. BC)');
-        if (denominador === null || !denominador.trim()) return;
-        const html =
-          '<span style="display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;' +
-          'line-height:1.15;margin:0 2px;font-size:0.95em;">' +
-          `<span style="border-bottom:1px solid currentColor;padding:0 4px;">${escaparHtmlQuill(numerador.trim())}</span>` +
-          `<span style="padding:0 4px;">${escaparHtmlQuill(denominador.trim())}</span>` +
-          '</span>';
-        const range = this.quill.getSelection(true);
-        this.quill.clipboard.dangerouslyPasteHTML(range.index, html);
-        this.quill.setSelection(range.index + 1);
-      },
-      // Pone una raya arriba de un texto (notación de segmento, ej. la
-      // barra sobre "AB" para indicar el segmento AB).
-      raya: function () {
-        const texto = window.prompt('¿Qué texto lleva la raya arriba? (ej. AB)');
-        if (texto === null || !texto.trim()) return;
-        const html = `<span style="text-decoration: overline; text-decoration-thickness: 1.5px;">${escaparHtmlQuill(texto.trim())}</span>`;
-        const range = this.quill.getSelection(true);
-        this.quill.clipboard.dangerouslyPasteHTML(range.index, html);
-        this.quill.setSelection(range.index + 1);
-      },
-    },
-  },
+  toolbar: [
+    ['bold', 'italic', 'underline'],
+    [{ background: ['#fff2a8', false] }],
+    [{ script: 'super' }, { script: 'sub' }],
+    ['clean'],
+  ],
 };
 const quillPreguntaFormats = ['bold', 'italic', 'underline', 'background', 'script'];
 
@@ -1218,28 +1183,6 @@ export default function AdminPage() {
       <style jsx global>{`
         * { box-sizing: border-box; }
         body { margin: 0; }
-        /* Botones propios del editor de preguntas: fracción y raya arriba
-           (notación de geometría, ej. AB/BC con segmento AB̅). Quill no
-           trae íconos para nombres de botón que uno inventa, así que se
-           dibujan a mano con texto. */
-        .ql-toolbar .ql-fraccion {
-          width: auto !important;
-          padding: 2px 6px !important;
-          font-size: 12px;
-          font-weight: bold;
-        }
-        .ql-toolbar .ql-fraccion:before {
-          content: 'a/b';
-        }
-        .ql-toolbar .ql-raya {
-          width: auto !important;
-          padding: 2px 6px !important;
-          font-size: 13px;
-          font-weight: bold;
-        }
-        .ql-toolbar .ql-raya:before {
-          content: 'A\\0305B\\0305';
-        }
         @media (max-width: 768px) {
           .admin-body { flex-direction: column !important; }
           .admin-sidebar {
