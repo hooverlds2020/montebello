@@ -864,7 +864,13 @@ export default function AdminPage() {
 
   async function borrarReactivo(id) {
     pedirConfirmacion('¿Borrar este reactivo?', async () => {
-      await fetch(`/api/admin/reactivos/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/reactivos/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json();
+        mostrarToast(data.error || 'No se pudo borrar el reactivo', 'error');
+        return;
+      }
+      mostrarToast('Reactivo borrado ✓', 'exito');
       cargarReactivos(categoriaActivaId);
     });
   }
