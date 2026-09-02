@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import DonaResultado from '../components/DonaResultado';
+import { renderizarExponentes } from '../lib/formato';
 
 
 function formatearFecha(iso) {
@@ -482,7 +483,7 @@ export default function Examen() {
               <input type="radio" name="opcion" checked={seleccion === o.id} onChange={() => setSeleccion(o.id)} style={{ marginTop: 3, flexShrink: 0 }} />
               <span style={{ fontWeight: 'bold', flexShrink: 0 }}>{String.fromCharCode(97 + idx)})</span>
               <span>
-                {o.texto}
+                <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
                 {o.imagen_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={o.imagen_url} alt="" style={{ display: 'block', maxWidth: '100%', marginTop: 6 }} />

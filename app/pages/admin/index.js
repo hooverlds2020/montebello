@@ -3,22 +3,25 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import DonaResultado from '../../components/DonaResultado';
+import { renderizarExponentes } from '../../lib/formato';
 const { estaAutenticado } = require('../../lib/auth');
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
 
 // Toolbar reducida para el enunciado de las preguntas: negritas, cursiva,
-// subrayado y resaltado tipo marcador (fondo amarillo). Quill no trae
+// subrayado, resaltado tipo marcador (fondo amarillo), y exponente/subíndice
+// (necesario para matemáticas: (4a+6b)³, x², H₂O, etc.). Quill no trae
 // "highlight" por defecto, así que se habilita vía el formato "background".
 const quillPreguntaModules = {
   toolbar: [
     ['bold', 'italic', 'underline'],
     [{ background: ['#fff2a8', false] }],
+    [{ script: 'super' }, { script: 'sub' }],
     ['clean'],
   ],
 };
-const quillPreguntaFormats = ['bold', 'italic', 'underline', 'background'];
+const quillPreguntaFormats = ['bold', 'italic', 'underline', 'background', 'script'];
 
 export async function getServerSideProps({ req }) {
   if (!estaAutenticado(req)) {
@@ -1520,25 +1523,32 @@ export default function AdminPage() {
                         style={{ display: 'block', marginBottom: 6, padding: 6, width: '100%', boxSizing: 'border-box', fontSize: 13 }}
                       />
                       {p.opciones.map((o, idxO) => (
-                        <div key={idxO} style={{ display: 'flex', gap: 8, marginBottom: 4, alignItems: 'center' }}>
-                          <input
-                            type="radio"
-                            name={`correcta-rapida-${idxP}`}
-                            checked={o.es_correcta}
-                            onChange={() => actualizarOpcionRapida(idxP, idxO, 'es_correcta', true)}
-                          />
-                          <input
-                            value={o.texto}
-                            onChange={(e) => actualizarOpcionRapida(idxP, idxO, 'texto', e.target.value)}
-                            style={{ flex: 1, padding: 6 }}
-                            placeholder={`Opción ${idxO + 1}`}
-                          />
-                          <input
-                            value={o.imagen_url || ''}
-                            onChange={(e) => actualizarOpcionRapida(idxP, idxO, 'imagen_url', e.target.value)}
-                            style={{ flex: 1, padding: 6, fontSize: 12 }}
-                            placeholder="URL imagen (opcional)"
-                          />
+                        <div key={idxO} style={{ marginBottom: 4 }}>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <input
+                              type="radio"
+                              name={`correcta-rapida-${idxP}`}
+                              checked={o.es_correcta}
+                              onChange={() => actualizarOpcionRapida(idxP, idxO, 'es_correcta', true)}
+                            />
+                            <input
+                              value={o.texto}
+                              onChange={(e) => actualizarOpcionRapida(idxP, idxO, 'texto', e.target.value)}
+                              style={{ flex: 1, padding: 6 }}
+                              placeholder={`Opción ${idxO + 1} (usa ^3 para exponente: (4a+6b)^3)`}
+                            />
+                            <input
+                              value={o.imagen_url || ''}
+                              onChange={(e) => actualizarOpcionRapida(idxP, idxO, 'imagen_url', e.target.value)}
+                              style={{ flex: 1, padding: 6, fontSize: 12 }}
+                              placeholder="URL imagen (opcional)"
+                            />
+                          </div>
+                          {/^.*[\^_]/.test(o.texto) && (
+                            <div style={{ marginLeft: 26, fontSize: 12, color: '#888' }}>
+                              Vista previa: <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -1654,18 +1664,26 @@ export default function AdminPage() {
                             />
                           </div>
                           {editOpciones.map((o, i) => (
-                            <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 4, alignItems: 'center' }}>
-                              <input
-                                type="radio"
-                                name={`correcta-edit-${r.id}`}
-                                checked={o.es_correcta}
-                                onChange={() => actualizarOpcionEdit(i, 'es_correcta', true)}
-                              />
-                              <input
-                                value={o.texto}
-                                onChange={(e) => actualizarOpcionEdit(i, 'texto', e.target.value)}
-                                style={{ flex: 1, padding: 8 }}
-                              />
+                            <div key={i} style={{ marginBottom: 4 }}>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <input
+                                  type="radio"
+                                  name={`correcta-edit-${r.id}`}
+                                  checked={o.es_correcta}
+                                  onChange={() => actualizarOpcionEdit(i, 'es_correcta', true)}
+                                />
+                                <input
+                                  value={o.texto}
+                                  onChange={(e) => actualizarOpcionEdit(i, 'texto', e.target.value)}
+                                  style={{ flex: 1, padding: 8 }}
+                                  placeholder="Usa ^3 para exponente: (4a+6b)^3"
+                                />
+                              </div>
+                              {/^.*[\^_]/.test(o.texto) && (
+                                <div style={{ marginLeft: 26, fontSize: 12, color: '#888' }}>
+                                  Vista previa: <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
+                                </div>
+                              )}
                             </div>
                           ))}
                           <button onClick={() => guardarEdicion(r.id)} style={btnStyle('primario', { marginRight: 8 })}>Guardar cambios</button>
@@ -1681,7 +1699,9 @@ export default function AdminPage() {
                               <ul>
                                 {r.opciones.map((o, idx) => (
                                   <li key={o.id} style={{ color: o.es_correcta ? 'green' : 'inherit' }}>
-                                    <strong>{String.fromCharCode(97 + idx)})</strong> {o.texto} {o.imagen_url && `[img: ${o.imagen_url}]`} {o.es_correcta && '✓'}
+                                    <strong>{String.fromCharCode(97 + idx)})</strong>{' '}
+                                    <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
+                                    {' '}{o.imagen_url && `[img: ${o.imagen_url}]`} {o.es_correcta && '✓'}
                                   </li>
                                 ))}
                               </ul>
