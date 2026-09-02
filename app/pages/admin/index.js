@@ -899,7 +899,7 @@ export default function AdminPage() {
         pregunta: editPregunta,
         imagen_url: editImagenUrl || null,
         lectura_id: editLecturaId || null,
-        opciones: editOpciones.filter((o) => o.texto.trim()),
+        opciones: editOpciones.filter((o) => o.texto.trim() || o.imagen_url?.trim()),
       }),
     });
     if (!res.ok) {
@@ -962,8 +962,11 @@ export default function AdminPage() {
 
   async function guardarTodasRapidas() {
     setMensajeRapido('');
+    // Una opción es válida si tiene texto O imagen (no necesariamente los
+    // dos) — hay preguntas donde las opciones son puramente visuales (ej.
+    // diagramas de árbol), sin ningún texto que capturar.
     const incompletas = preguntasRapidas.filter(
-      (p) => !p.pregunta.trim() || !p.opciones.some((o) => o.es_correcta) || p.opciones.some((o) => !o.texto.trim())
+      (p) => !p.pregunta.trim() || !p.opciones.some((o) => o.es_correcta) || p.opciones.some((o) => !o.texto.trim() && !o.imagen_url?.trim())
     );
     if (incompletas.length > 0) {
       setMensajeRapido(`Faltan ${incompletas.length} pregunta(s) por completar o marcar su respuesta correcta`);
