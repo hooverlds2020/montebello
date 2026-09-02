@@ -27,7 +27,8 @@ export default function Examen() {
   const [esNuevaSeccion, setEsNuevaSeccion] = useState(false);
   const seccionActualRef = useRef(null);
   const mapaScrollRef = useRef(null); // contenedor con scroll interno del mapa de preguntas
-  const circuloActualRef = useRef(null); // circulito de la pregunta en la que estás parado ahorita
+  const circuloActualRef = useRef(null); // circulito actual dentro del panel de escritorio
+  const circuloActualRefMovil = useRef(null); // circulito actual dentro del modal de móvil
 
   const [historial, setHistorial] = useState(null);
   const [resultadoHistorico, setResultadoHistorico] = useState(null);
@@ -35,6 +36,7 @@ export default function Examen() {
   const [enProgreso, setEnProgreso] = useState(null); // { examenId, total, respondidas } o null si no hay examen a medias
   const [modalFinalizar, setModalFinalizar] = useState(null); // { faltan } o null: confirmación propia (no window.confirm) al finalizar con preguntas pendientes
   const [modalTerminado, setModalTerminado] = useState(false); // true cuando ya contestó todas y le ofrecemos finalizar
+  const [mapaAbiertoMovil, setMapaAbiertoMovil] = useState(false); // ventana emergente del mapa en celular
   const [avisoSalidaPantalla, setAvisoSalidaPantalla] = useState(false); // banner al regresar de cambiar de pestaña/app
 
   const router = useRouter();
@@ -281,10 +283,16 @@ export default function Examen() {
   // pregunta a la vista DENTRO del mapa de preguntas (que ahora tiene su
   // propio scroll interno cuando hay muchas preguntas), sin mover la
   // página completa. Así no hay que buscarlo manualmente cuando el mapa
-  // es más alto que la pantalla.
+  // es más alto que la pantalla. Se hace para el panel de escritorio y para
+  // el modal de móvil por separado (solo uno de los dos estará montado a la
+  // vez en la práctica, pero por seguridad se revisan ambos).
   useEffect(() => {
-    if (!circuloActualRef.current || !mapaScrollRef.current) return;
-    circuloActualRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (circuloActualRef.current && mapaScrollRef.current) {
+      circuloActualRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    if (circuloActualRefMovil.current) {
+      circuloActualRefMovil.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }, [pregunta?.examenReactivoId]);
 
   // Detecta cuando el alumno sale de la pantalla del examen (cambia de
@@ -390,6 +398,56 @@ export default function Examen() {
         `}</style>
       </div>
     );
+  }
+
+  // Arma la lista de materias/lecturas/circulitos del mapa de preguntas.
+  // Recibe qué "ref" usar para el circulito activo (uno para el panel de
+  // escritorio, otro para el modal de móvil, nunca los dos montados a la
+  // vez de verdad) y un callback opcional que se dispara al tocar un
+  // circulito (se usa para cerrar el modal en móvil tras saltar de pregunta).
+  function contenidoMapa(refCirculoActual, alTocarCirculo) {
+    if (!mapa) return null;
+    return mapa.categorias.map((cat) => (
+      <div key={cat.nombre} style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 11, color: '#888', marginBottom: 6, fontWeight: 700 }}>{cat.nombre}</div>
+        {cat.bloques.map((bloque, idxBloque) => {
+          const primero = bloque.items[0]?.numero;
+          const ultimo = bloque.items[bloque.items.length - 1]?.numero;
+          const rango = primero === ultimo ? `${primero}` : `${primero}-${ultimo}`;
+          return (
+            <div key={idxBloque} style={{ marginBottom: 8 }}>
+              {bloque.titulo && (
+                <div style={{ fontSize: 10, color: '#4a90d9', marginBottom: 4, fontStyle: 'italic' }}>
+                  📘 {bloque.titulo} ({rango})
+                </div>
+              )}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {bloque.items.map((it) => {
+                  const esActual = it.examenReactivoId === pregunta.examenReactivoId;
+                  return (
+                    <button
+                      key={it.examenReactivoId}
+                      ref={esActual ? refCirculoActual : null}
+                      onClick={() => { irAPregunta(it.examenReactivoId); alTocarCirculo?.(); }}
+                      title={`Pregunta ${it.numero}${it.respondida ? ' — ya contestada' : ' — sin contestar'}${bloque.titulo ? ` (${bloque.titulo})` : ''}`}
+                      style={{
+                        width: 30, height: 30, borderRadius: '50%', fontSize: 12, fontWeight: 'bold',
+                        border: esActual ? '2px solid #4a90d9' : '1px solid #ccc',
+                        background: it.respondida ? '#2e7d32' : '#fff',
+                        color: it.respondida ? '#fff' : '#666',
+                        cursor: 'pointer', padding: 0, flexShrink: 0,
+                      }}
+                    >
+                      {it.numero}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ));
   }
 
   // ---- Pantalla de presentación de pregunta ----
@@ -520,9 +578,11 @@ export default function Examen() {
           </div>
         </div>
 
-        {/* Mapa de preguntas: circulitos por materia para ver de un vistazo
-            cuáles ya están contestadas y saltar directo a cualquiera. */}
-        <div style={{ width: 220, flexShrink: 0 }}>
+        {/* Mapa de preguntas — versión escritorio: panel lateral fijo, se
+            oculta en pantallas angostas (ver .panel-mapa-escritorio en el
+            <style> de más abajo) porque ahí es mejor un botón flotante que
+            no le quite espacio a la pregunta. */}
+        <div className="panel-mapa-escritorio" style={{ width: 220, flexShrink: 0 }}>
           <div
             ref={mapaScrollRef}
             style={{
@@ -533,47 +593,7 @@ export default function Examen() {
             <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.4 }}>
               Mapa de preguntas
             </div>
-            {mapa && mapa.categorias.map((cat) => (
-              <div key={cat.nombre} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 11, color: '#888', marginBottom: 6, fontWeight: 700 }}>{cat.nombre}</div>
-                {cat.bloques.map((bloque, idxBloque) => {
-                  const primero = bloque.items[0]?.numero;
-                  const ultimo = bloque.items[bloque.items.length - 1]?.numero;
-                  const rango = primero === ultimo ? `${primero}` : `${primero}-${ultimo}`;
-                  return (
-                    <div key={idxBloque} style={{ marginBottom: 8 }}>
-                      {bloque.titulo && (
-                        <div style={{ fontSize: 10, color: '#4a90d9', marginBottom: 4, fontStyle: 'italic' }}>
-                          📘 {bloque.titulo} ({rango})
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {bloque.items.map((it) => {
-                          const esActual = it.examenReactivoId === pregunta.examenReactivoId;
-                          return (
-                            <button
-                              key={it.examenReactivoId}
-                              ref={esActual ? circuloActualRef : null}
-                              onClick={() => irAPregunta(it.examenReactivoId)}
-                              title={`Pregunta ${it.numero}${it.respondida ? ' — ya contestada' : ' — sin contestar'}${bloque.titulo ? ` (${bloque.titulo})` : ''}`}
-                              style={{
-                                width: 28, height: 28, borderRadius: '50%', fontSize: 11, fontWeight: 'bold',
-                                border: esActual ? '2px solid #4a90d9' : '1px solid #ccc',
-                                background: it.respondida ? '#2e7d32' : '#fff',
-                                color: it.respondida ? '#fff' : '#666',
-                                cursor: 'pointer', padding: 0,
-                              }}
-                            >
-                              {it.numero}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
+            {contenidoMapa(circuloActualRef)}
             <button
               onClick={confirmarFinalizar}
               style={{ marginTop: 6, width: '100%', padding: '9px', background: '#fdeceb', color: '#c0392b', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
@@ -582,6 +602,60 @@ export default function Examen() {
             </button>
           </div>
         </div>
+
+        {/* Mapa de preguntas — versión móvil: botón flotante con el conteo
+            de avance, que abre el mapa completo como ventana emergente
+            desde abajo, en vez de ocupar espacio fijo en pantallas
+            angostas donde cada pixel de alto importa. */}
+        <button
+          className="boton-mapa-movil"
+          onClick={() => setMapaAbiertoMovil(true)}
+          style={{
+            display: 'none', position: 'fixed', bottom: 20, right: 20, zIndex: 900,
+            background: '#0d3b66', color: '#fff', border: 'none', borderRadius: 30,
+            padding: '12px 18px', fontSize: 14, fontWeight: 600, boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+            cursor: 'pointer', alignItems: 'center', gap: 8,
+          }}
+        >
+          🗺️ {aplanarMapa(mapa).filter((i) => i.respondida).length}/{aplanarMapa(mapa).length}
+        </button>
+
+        {mapaAbiertoMovil && (
+          <div
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000,
+              display: 'flex', alignItems: 'flex-end',
+            }}
+            onClick={() => setMapaAbiertoMovil(false)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#fff', width: '100%', maxHeight: '80vh', borderRadius: '16px 16px 0 0',
+                padding: 18, overflowY: 'auto', boxShadow: '0 -4px 20px rgba(0,0,0,0.2)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                  Mapa de preguntas
+                </span>
+                <button
+                  onClick={() => setMapaAbiertoMovil(false)}
+                  style={{ border: 'none', background: '#f0f0f0', borderRadius: 20, width: 30, height: 30, fontSize: 16, cursor: 'pointer' }}
+                >
+                  ✕
+                </button>
+              </div>
+              {contenidoMapa(circuloActualRefMovil, () => setMapaAbiertoMovil(false))}
+              <button
+                onClick={() => { setMapaAbiertoMovil(false); confirmarFinalizar(); }}
+                style={{ marginTop: 10, width: '100%', padding: '11px', background: '#fdeceb', color: '#c0392b', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}
+              >
+                🏁 Finalizar examen
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Modal propio de confirmación (en vez de window.confirm nativo del
             navegador) al finalizar con preguntas sin responder. */}
@@ -668,6 +742,18 @@ export default function Examen() {
               min-width: 160px;
               padding-left: 32px !important;
               padding-right: 32px !important;
+            }
+          }
+          /* Mapa de preguntas: panel fijo en pantallas anchas, botón
+             flotante + ventana emergente en pantallas angostas (celular Y
+             tablet en vertical — normalmente ~768-820px de ancho, donde el
+             panel lateral de 220px ya no cabe cómodo junto al contenido). */
+          @media (max-width: 820px) {
+            .panel-mapa-escritorio {
+              display: none !important;
+            }
+            .boton-mapa-movil {
+              display: flex !important;
             }
           }
         `}</style>
