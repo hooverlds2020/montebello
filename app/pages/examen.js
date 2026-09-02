@@ -580,7 +580,7 @@ export default function Examen() {
                 <input type="radio" name="opcion" checked={seleccion === o.id} onChange={() => setSeleccion(o.id)} style={{ marginTop: 3, flexShrink: 0 }} />
                 <span style={{ fontWeight: 'bold', flexShrink: 0 }}>{String.fromCharCode(97 + idx)})</span>
                 <span>
-                  <span>{renderizarHTMLconMatematicas(renderizarExponentes(o.texto))}</span>
+                  <span>{renderizarHTMLconMatematicas(/^<p[\s>]|ql-formula/.test(o.texto) ? o.texto : renderizarExponentes(o.texto))}</span>
                   {o.imagen_url && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={o.imagen_url} alt="" style={{ display: 'block', maxWidth: '100%', marginTop: 6 }} />

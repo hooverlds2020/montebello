@@ -29,6 +29,17 @@ function asegurarKatexCargado() {
   return promesaKatexCargado;
 }
 
+// Las opciones de respuesta ahora se capturan con Quill (para poder usar
+// exponentes, fórmulas, etc.), así que "vacío" ya no es una cadena vacía
+// como con un <input> de texto plano — Quill guarda algo como "<p><br></p>"
+// aunque no se haya escrito nada. Esta función quita las etiquetas HTML
+// para saber si de verdad quedó texto o no.
+function quillEstaVacio(html) {
+  if (!html) return true;
+  if (html.includes('ql-formula')) return false; // una opción puede ser solo una fórmula, sin texto normal
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() === '';
+}
+
 // Igual que en examen.js: vuelve a renderizar en vivo cualquier fórmula
 // (los <span class="ql-formula"> que deja Quill al usar el botón ∑) con
 // react-katex, para que se vean bien también en el panel admin (revisión
@@ -954,7 +965,7 @@ export default function AdminPage() {
         pregunta: editPregunta,
         imagen_url: editImagenUrl || null,
         lectura_id: editLecturaId || null,
-        opciones: editOpciones.filter((o) => o.texto.trim() || o.imagen_url?.trim()),
+        opciones: editOpciones.filter((o) => !quillEstaVacio(o.texto) || o.imagen_url?.trim()),
       }),
     });
     if (!res.ok) {
@@ -1021,7 +1032,7 @@ export default function AdminPage() {
     // dos) — hay preguntas donde las opciones son puramente visuales (ej.
     // diagramas de árbol), sin ningún texto que capturar.
     const incompletas = preguntasRapidas.filter(
-      (p) => !p.pregunta.trim() || !p.opciones.some((o) => o.es_correcta) || p.opciones.some((o) => !o.texto.trim() && !o.imagen_url?.trim())
+      (p) => quillEstaVacio(p.pregunta) || !p.opciones.some((o) => o.es_correcta) || p.opciones.some((o) => quillEstaVacio(o.texto) && !o.imagen_url?.trim())
     );
     if (incompletas.length > 0) {
       setMensajeRapido(`Faltan ${incompletas.length} pregunta(s) por completar o marcar su respuesta correcta`);
@@ -1668,12 +1679,16 @@ export default function AdminPage() {
                               checked={o.es_correcta}
                               onChange={() => actualizarOpcionRapida(idxP, idxO, 'es_correcta', true)}
                             />
-                            <input
-                              value={o.texto}
-                              onChange={(e) => actualizarOpcionRapida(idxP, idxO, 'texto', e.target.value)}
-                              style={{ flex: 1, padding: 6 }}
-                              placeholder={`Opción ${idxO + 1} (ej. (4a+6b)^3)`}
-                            />
+                            <div style={{ flex: 1, background: '#fff' }}>
+                              <ReactQuill
+                                theme="snow"
+                                value={o.texto}
+                                onChange={(html) => actualizarOpcionRapida(idxP, idxO, 'texto', html)}
+                                modules={quillPreguntaModules}
+                                formats={quillPreguntaFormats}
+                                placeholder={`Opción ${idxO + 1}`}
+                              />
+                            </div>
                             <input
                               value={o.imagen_url || ''}
                               onChange={(e) => actualizarOpcionRapida(idxP, idxO, 'imagen_url', e.target.value)}
@@ -1682,11 +1697,6 @@ export default function AdminPage() {
                             />
                             <BotonSubirImagen onSubida={(url) => actualizarOpcionRapida(idxP, idxO, 'imagen_url', url)} />
                           </div>
-                          {/^.*[\^_]/.test(o.texto) && (
-                            <div style={{ marginLeft: 26, fontSize: 12, color: '#888' }}>
-                              Vista previa: <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -1823,12 +1833,16 @@ export default function AdminPage() {
                                   checked={o.es_correcta}
                                   onChange={() => actualizarOpcionEdit(i, 'es_correcta', true)}
                                 />
-                                <input
-                                  value={o.texto}
-                                  onChange={(e) => actualizarOpcionEdit(i, 'texto', e.target.value)}
-                                  style={{ flex: 1, padding: 8 }}
-                                  placeholder="Ej. (4a+6b)^3 — puede quedar vacío si la opción es solo imagen"
-                                />
+                                <div style={{ flex: 1, background: '#fff' }}>
+                                  <ReactQuill
+                                    theme="snow"
+                                    value={o.texto}
+                                    onChange={(html) => actualizarOpcionEdit(i, 'texto', html)}
+                                    modules={quillPreguntaModules}
+                                    formats={quillPreguntaFormats}
+                                    placeholder={`Opción ${i + 1} — puede quedar vacía si la opción es solo imagen`}
+                                  />
+                                </div>
                                 <input
                                   value={o.imagen_url || ''}
                                   onChange={(e) => actualizarOpcionEdit(i, 'imagen_url', e.target.value)}
@@ -1848,11 +1862,6 @@ export default function AdminPage() {
                               {o.imagen_url && (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={o.imagen_url} alt="" style={{ maxWidth: 160, maxHeight: 100, display: 'block', marginTop: 4, marginLeft: 26, borderRadius: 4, border: '1px solid #eee' }} />
-                              )}
-                              {/^.*[\^_]/.test(o.texto) && (
-                                <div style={{ marginLeft: 26, fontSize: 12, color: '#888' }}>
-                                  Vista previa: <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
-                                </div>
                               )}
                             </div>
                           ))}
@@ -1877,7 +1886,7 @@ export default function AdminPage() {
                                 {r.opciones.map((o, idx) => (
                                   <li key={o.id} style={{ color: o.es_correcta ? 'green' : 'inherit' }}>
                                     <strong>{String.fromCharCode(97 + idx)})</strong>{' '}
-                                    <span>{renderizarHTMLconMatematicas(renderizarExponentes(o.texto))}</span>
+                                    <span>{renderizarHTMLconMatematicas(o.texto)}</span>
                                     {' '}{o.imagen_url && `[img: ${o.imagen_url}]`} {o.es_correcta && '✓'}
                                   </li>
                                 ))}
