@@ -94,18 +94,26 @@ export default async function handler(req, res) {
   }
 
   // Materias habilitadas con cantidad configurada para el examen. El orden
-  // se decide PRIMERO por el orden de la materia raíz (Español, Matemáticas,
-  // etc. — el que se controla arrastrando en el panel) y solo como
-  // desempate por el orden propio de la subcategoría. Sin esto, dos
-  // subcategorías de materias distintas con el mismo "orden" interno (ej.
-  // ambas la primera de su materia) terminaban ordenadas por id, ignorando
-  // por completo cuál materia raíz debía ir primero.
+  // se decide PRIMERO por la materia raíz (Español, Matemáticas, etc. — la
+  // que se controla arrastrando en el panel), y solo como desempate por el
+  // orden propio de la subcategoría.
+  //
+  // OJO: si la materia raíz nunca tuvo un número de "orden" explícito
+  // guardado (queda NULL), no hay que caer en el orden propio de la
+  // subcategoría como plan B — eso es lo que causaba el bug: cada
+  // subcategoría puede tener su PROPIO número de orden (asignado en un
+  // momento distinto, dentro del contexto de su propia materia), y esos
+  // números chocan entre materias distintas sin ninguna relación real
+  // (ej. "Pensamiento matemático" con orden=15 se colaba entre
+  // "Comprensión lectora"=10 y "Redacción indirecta"=20, aunque son de
+  // materias distintas). El plan B correcto es el ID de la materia raíz
+  // (estable, nunca choca entre materias), no el orden de la subcategoría.
   const { rows: categorias } = await pool.query(
     `SELECT c.id, c.cantidad_examen
      FROM categorias c
      LEFT JOIN categorias padre ON padre.id = c.categoria_padre_id
      WHERE c.activa = TRUE AND c.cantidad_examen > 0
-     ORDER BY COALESCE(padre.orden, c.orden, padre.id, c.id), c.orden, c.id`
+     ORDER BY COALESCE(padre.orden, padre.id, c.orden, c.id), c.orden, c.id`
   );
 
   if (categorias.length === 0) {
