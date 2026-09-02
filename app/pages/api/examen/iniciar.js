@@ -93,9 +93,19 @@ export default async function handler(req, res) {
     }
   }
 
-  // Materias habilitadas con cantidad configurada para el examen
+  // Materias habilitadas con cantidad configurada para el examen. El orden
+  // se decide PRIMERO por el orden de la materia raíz (Español, Matemáticas,
+  // etc. — el que se controla arrastrando en el panel) y solo como
+  // desempate por el orden propio de la subcategoría. Sin esto, dos
+  // subcategorías de materias distintas con el mismo "orden" interno (ej.
+  // ambas la primera de su materia) terminaban ordenadas por id, ignorando
+  // por completo cuál materia raíz debía ir primero.
   const { rows: categorias } = await pool.query(
-    `SELECT id, cantidad_examen FROM categorias WHERE activa = TRUE AND cantidad_examen > 0 ORDER BY orden, id`
+    `SELECT c.id, c.cantidad_examen
+     FROM categorias c
+     LEFT JOIN categorias padre ON padre.id = c.categoria_padre_id
+     WHERE c.activa = TRUE AND c.cantidad_examen > 0
+     ORDER BY COALESCE(padre.orden, c.orden, padre.id, c.id), c.orden, c.id`
   );
 
   if (categorias.length === 0) {
