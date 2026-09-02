@@ -1,5 +1,5 @@
 const { estaAutenticado } = require('../../../lib/auth');
-const formidable = require('formidable');
+const { formidable } = require('formidable'); // formidable v3: la importación es distinta a v2, se usa como destructuring
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
   form.parse(req, (err, fields, files) => {
     if (err) {
-      const mensaje = err.code === 1009 // formidable: maxFileSize excedido
+      const mensaje = err.code === 1016 // formidable: archivo excede maxFileSize
         ? 'La imagen pesa demasiado (máximo 8 MB)'
         : 'No se pudo subir la imagen. Intenta de nuevo.';
       return res.status(400).json({ error: mensaje });
