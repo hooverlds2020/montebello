@@ -26,6 +26,8 @@ export default function Examen() {
   const [segundosRestantes, setSegundosRestantes] = useState(null);
   const [esNuevaSeccion, setEsNuevaSeccion] = useState(false);
   const seccionActualRef = useRef(null);
+  const mapaScrollRef = useRef(null); // contenedor con scroll interno del mapa de preguntas
+  const circuloActualRef = useRef(null); // circulito de la pregunta en la que estás parado ahorita
 
   const [historial, setHistorial] = useState(null);
   const [resultadoHistorico, setResultadoHistorico] = useState(null);
@@ -275,6 +277,16 @@ export default function Examen() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [pregunta?.examenReactivoId, esNuevaSeccion]);
 
+  // Cada vez que cambia la pregunta activa, trae el circulito de esa
+  // pregunta a la vista DENTRO del mapa de preguntas (que ahora tiene su
+  // propio scroll interno cuando hay muchas preguntas), sin mover la
+  // página completa. Así no hay que buscarlo manualmente cuando el mapa
+  // es más alto que la pantalla.
+  useEffect(() => {
+    if (!circuloActualRef.current || !mapaScrollRef.current) return;
+    circuloActualRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [pregunta?.examenReactivoId]);
+
   // Detecta cuando el alumno sale de la pantalla del examen (cambia de
   // pestaña, minimiza, cambia de app en el celular) mientras el examen sigue
   // activo. No bloquea nada — solo lo registra (queda visible para el admin
@@ -389,7 +401,7 @@ export default function Examen() {
     const posicionActual = flatList.findIndex((i) => i.examenReactivoId === pregunta.examenReactivoId) + 1;
 
     return (
-      <div style={{ maxWidth: pregunta.lectura ? 980 : 860, margin: '40px auto', fontFamily: 'sans-serif', padding: 24, display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <div style={{ maxWidth: pregunta.lectura ? 980 : 860, margin: '40px auto', fontFamily: 'sans-serif', padding: 24, display: 'flex', gap: 24, alignItems: 'stretch', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 480px', minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#666', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
             <span>{pregunta.categoria}</span>
@@ -465,32 +477,34 @@ export default function Examen() {
             </div>
           )}
 
-          <div style={{ fontSize: 17, marginBottom: 16, lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pregunta.pregunta }} />
-          {pregunta.imagenUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={pregunta.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16 }} />
-          )}
+          <div style={{ border: '1px solid #e0e0e0', borderRadius: 10, padding: '20px 22px', background: '#fff', marginBottom: 12 }}>
+            <div style={{ fontSize: 17, marginBottom: 16, lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: pregunta.pregunta }} />
+            {pregunta.imagenUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={pregunta.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16 }} />
+            )}
 
-          {pregunta.opciones.map((o, idx) => (
-            <label
-              key={o.id}
-              style={{
-                display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12, marginBottom: 8,
-                border: `1px solid ${seleccion === o.id ? '#4a90d9' : '#ddd'}`,
-                borderRadius: 6, background: seleccion === o.id ? '#eef4fb' : '#fff', cursor: 'pointer',
-              }}
-            >
-              <input type="radio" name="opcion" checked={seleccion === o.id} onChange={() => setSeleccion(o.id)} style={{ marginTop: 3, flexShrink: 0 }} />
-              <span style={{ fontWeight: 'bold', flexShrink: 0 }}>{String.fromCharCode(97 + idx)})</span>
-              <span>
-                <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
-                {o.imagen_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={o.imagen_url} alt="" style={{ display: 'block', maxWidth: '100%', marginTop: 6 }} />
-                )}
-              </span>
-            </label>
-          ))}
+            {pregunta.opciones.map((o, idx) => (
+              <label
+                key={o.id}
+                style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12, marginBottom: 8,
+                  border: `1px solid ${seleccion === o.id ? '#4a90d9' : '#ddd'}`,
+                  borderRadius: 6, background: seleccion === o.id ? '#eef4fb' : '#fff', cursor: 'pointer',
+                }}
+              >
+                <input type="radio" name="opcion" checked={seleccion === o.id} onChange={() => setSeleccion(o.id)} style={{ marginTop: 3, flexShrink: 0 }} />
+                <span style={{ fontWeight: 'bold', flexShrink: 0 }}>{String.fromCharCode(97 + idx)})</span>
+                <span>
+                  <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
+                  {o.imagen_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={o.imagen_url} alt="" style={{ display: 'block', maxWidth: '100%', marginTop: 6 }} />
+                  )}
+                </span>
+              </label>
+            ))}
+          </div>
 
           {error && <p style={{ color: '#c0392b' }}>{error}</p>}
 
@@ -509,7 +523,13 @@ export default function Examen() {
         {/* Mapa de preguntas: circulitos por materia para ver de un vistazo
             cuáles ya están contestadas y saltar directo a cualquiera. */}
         <div style={{ width: 220, flexShrink: 0 }}>
-          <div style={{ position: 'sticky', top: 20, background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 14 }}>
+          <div
+            ref={mapaScrollRef}
+            style={{
+              position: 'sticky', top: 20, background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 14,
+              maxHeight: 'calc(100vh - 40px)', overflowY: 'auto',
+            }}
+          >
             <div style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.4 }}>
               Mapa de preguntas
             </div>
@@ -533,6 +553,7 @@ export default function Examen() {
                           return (
                             <button
                               key={it.examenReactivoId}
+                              ref={esActual ? circuloActualRef : null}
                               onClick={() => irAPregunta(it.examenReactivoId)}
                               title={`Pregunta ${it.numero}${it.respondida ? ' — ya contestada' : ' — sin contestar'}${bloque.titulo ? ` (${bloque.titulo})` : ''}`}
                               style={{
