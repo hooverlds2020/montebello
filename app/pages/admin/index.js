@@ -367,6 +367,59 @@ export default function AdminPage() {
     setTimeout(() => setToast(null), 3500);
   }
 
+  // Sube un archivo de imagen a /api/admin/subir-imagen y devuelve la URL
+  // final (/uploads/archivo.jpg) para meterla directo en un campo de imagen.
+  const [subiendoImagen, setSubiendoImagen] = useState(false);
+  async function subirImagen(archivo, onListo) {
+    setSubiendoImagen(true);
+    try {
+      const formData = new FormData();
+      formData.append('imagen', archivo);
+      const res = await fetch('/api/admin/subir-imagen', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        mostrarToast(data.error, 'error');
+        return;
+      }
+      onListo(data.url);
+      mostrarToast('Imagen subida ✓', 'exito');
+    } catch (e) {
+      mostrarToast('No se pudo subir la imagen — revisa tu conexión', 'error');
+    } finally {
+      setSubiendoImagen(false);
+    }
+  }
+
+  // Botón "📷 Subir" reutilizable: input de archivo oculto + botón visible.
+  // onSubida recibe la URL final para meterla en el campo correspondiente.
+  function BotonSubirImagen({ onSubida }) {
+    const inputRef = useRef(null);
+    return (
+      <>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const archivo = e.target.files?.[0];
+            if (archivo) subirImagen(archivo, onSubida);
+            e.target.value = ''; // permite volver a elegir el mismo archivo después
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={subiendoImagen}
+          title="Subir imagen desde tu computadora"
+          style={{ border: '1px solid #ddd', background: '#f7f8fa', cursor: subiendoImagen ? 'wait' : 'pointer', borderRadius: 6, padding: '0 10px', fontSize: 13, flexShrink: 0 }}
+        >
+          {subiendoImagen ? '⏳' : '📷'}
+        </button>
+      </>
+    );
+  }
+
   // Modal de confirmación: reemplaza al confirm() nativo del navegador
   const [confirmacion, setConfirmacion] = useState(null); // { mensaje, onConfirmar }
   function pedirConfirmacion(mensaje, onConfirmar) {
@@ -403,6 +456,7 @@ export default function AdminPage() {
 
   const [editandoId, setEditandoId] = useState(null);
   const [editPregunta, setEditPregunta] = useState('');
+  const [editImagenUrl, setEditImagenUrl] = useState('');
   const [editLecturaId, setEditLecturaId] = useState('');
   const [editOpciones, setEditOpciones] = useState([]);
 
@@ -474,6 +528,7 @@ export default function AdminPage() {
         if (g.editandoId) {
           setEditandoId(g.editandoId);
           setEditPregunta(g.editPregunta || '');
+          setEditImagenUrl(g.editImagenUrl || '');
           setEditLecturaId(g.editLecturaId || '');
           setEditOpciones(g.editOpciones || []);
         }
@@ -519,6 +574,7 @@ export default function AdminPage() {
           vistaGeneral,
           editandoId,
           editPregunta,
+          editImagenUrl,
           editLecturaId,
           editOpciones,
           editandoLecturaId,
@@ -538,6 +594,7 @@ export default function AdminPage() {
     vistaGeneral,
     editandoId,
     editPregunta,
+    editImagenUrl,
     editLecturaId,
     editOpciones,
     editandoLecturaId,
@@ -808,8 +865,9 @@ export default function AdminPage() {
   function iniciarEdicion(r) {
     setEditandoId(r.id);
     setEditPregunta(r.pregunta);
+    setEditImagenUrl(r.imagen_url || '');
     setEditLecturaId(r.lectura_id || '');
-    setEditOpciones(r.opciones.map((o) => ({ texto: o.texto, es_correcta: o.es_correcta })));
+    setEditOpciones(r.opciones.map((o) => ({ texto: o.texto, es_correcta: o.es_correcta, imagen_url: o.imagen_url || '' })));
   }
 
   function cancelarEdicion() {
@@ -832,6 +890,7 @@ export default function AdminPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         pregunta: editPregunta,
+        imagen_url: editImagenUrl || null,
         lectura_id: editLecturaId || null,
         opciones: editOpciones.filter((o) => o.texto.trim()),
       }),
@@ -1516,12 +1575,19 @@ export default function AdminPage() {
                           formats={quillPreguntaFormats}
                         />
                       </div>
-                      <input
-                        value={p.imagen_url || ''}
-                        onChange={(e) => actualizarImagenPreguntaRapida(idxP, e.target.value)}
-                        placeholder="URL de imagen para la pregunta (opcional, ej. gráfica o diagrama)"
-                        style={{ display: 'block', marginBottom: 6, padding: 6, width: '100%', boxSizing: 'border-box', fontSize: 13 }}
-                      />
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                        <input
+                          value={p.imagen_url || ''}
+                          onChange={(e) => actualizarImagenPreguntaRapida(idxP, e.target.value)}
+                          placeholder="URL de imagen para la pregunta (opcional, ej. gráfica o diagrama)"
+                          style={{ flex: 1, padding: 6, boxSizing: 'border-box', fontSize: 13 }}
+                        />
+                        <BotonSubirImagen onSubida={(url) => actualizarImagenPreguntaRapida(idxP, url)} />
+                      </div>
+                      {p.imagen_url && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.imagen_url} alt="" style={{ maxWidth: 220, maxHeight: 140, display: 'block', marginBottom: 6, borderRadius: 4, border: '1px solid #eee' }} />
+                      )}
                       {p.opciones.map((o, idxO) => (
                         <div key={idxO} style={{ marginBottom: 4 }}>
                           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -1543,6 +1609,7 @@ export default function AdminPage() {
                               style={{ flex: 1, padding: 6, fontSize: 12 }}
                               placeholder="URL imagen (opcional)"
                             />
+                            <BotonSubirImagen onSubida={(url) => actualizarOpcionRapida(idxP, idxO, 'imagen_url', url)} />
                           </div>
                           {/^.*[\^_]/.test(o.texto) && (
                             <div style={{ marginLeft: 26, fontSize: 12, color: '#888' }}>
@@ -1663,6 +1730,19 @@ export default function AdminPage() {
                               formats={quillPreguntaFormats}
                             />
                           </div>
+                          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                            <input
+                              value={editImagenUrl}
+                              onChange={(e) => setEditImagenUrl(e.target.value)}
+                              placeholder="URL de imagen para la pregunta (opcional, ej. gráfica o diagrama)"
+                              style={{ flex: 1, padding: 8, boxSizing: 'border-box' }}
+                            />
+                            <BotonSubirImagen onSubida={setEditImagenUrl} />
+                          </div>
+                          {editImagenUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={editImagenUrl} alt="" style={{ maxWidth: 220, maxHeight: 140, display: 'block', marginBottom: 8, borderRadius: 4, border: '1px solid #eee' }} />
+                          )}
                           {editOpciones.map((o, i) => (
                             <div key={i} style={{ marginBottom: 4 }}>
                               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -1678,7 +1758,18 @@ export default function AdminPage() {
                                   style={{ flex: 1, padding: 8 }}
                                   placeholder="Usa ^3 para exponente: (4a+6b)^3"
                                 />
+                                <input
+                                  value={o.imagen_url || ''}
+                                  onChange={(e) => actualizarOpcionEdit(i, 'imagen_url', e.target.value)}
+                                  style={{ flex: 1, padding: 8, fontSize: 12 }}
+                                  placeholder="URL imagen (opcional)"
+                                />
+                                <BotonSubirImagen onSubida={(url) => actualizarOpcionEdit(i, 'imagen_url', url)} />
                               </div>
+                              {o.imagen_url && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={o.imagen_url} alt="" style={{ maxWidth: 160, maxHeight: 100, display: 'block', marginTop: 4, marginLeft: 26, borderRadius: 4, border: '1px solid #eee' }} />
+                              )}
                               {/^.*[\^_]/.test(o.texto) && (
                                 <div style={{ marginLeft: 26, fontSize: 12, color: '#888' }}>
                                   Vista previa: <span dangerouslySetInnerHTML={{ __html: renderizarExponentes(o.texto) }} />
