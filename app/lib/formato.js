@@ -21,8 +21,13 @@ export function renderizarExponentes(texto) {
   if (!texto) return '';
   const escapado = escaparHtml(texto);
   return escapado
-    .replace(/\^\(([^)]+)\)/g, '<sup>$1</sup>')
-    .replace(/\^([a-zA-Z0-9]+)/g, '<sup>$1</sup>')
-    .replace(/_\(([^)]+)\)/g, '<sub>$1</sub>')
-    .replace(/_([a-zA-Z0-9]+)/g, '<sub>$1</sub>');
+    // El espacio opcional (\s?) después de ^ o _ es importante: en varios
+    // teclados en español, ^ es una "tecla muerta" que necesita combinarse
+    // con la siguiente tecla — si se escribe pegado a un número puede
+    // descartarse silenciosamente. Escribir "^ 3" (con espacio) es la forma
+    // estándar de forzar el símbolo suelto, y aquí igual se reconoce.
+    .replace(/\^\s?\(([^)]+)\)/g, '<sup>$1</sup>')
+    .replace(/\^\s?([a-zA-Z0-9]+)/g, '<sup>$1</sup>')
+    .replace(/_\s?\(([^)]+)\)/g, '<sub>$1</sub>')
+    .replace(/_\s?([a-zA-Z0-9]+)/g, '<sub>$1</sub>');
 }

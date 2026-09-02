@@ -1551,6 +1551,12 @@ export default function AdminPage() {
                 <button type="button" onClick={() => generarCamposRapidos('vf')} style={btnStyle('secundario', { minWidth: 96 })}>Verdadero/Falso</button>
               </div>
 
+              <p style={{ fontSize: 12, color: '#888', marginTop: -8, marginBottom: 12 }}>
+                💡 Para exponentes en las opciones escribe <code>^3</code> (ej. <code>(4a+6b)^3</code>). Si tu teclado no
+                deja escribir el símbolo <code>^</code> solo (algunos teclados en español lo tratan como tecla muerta),
+                escríbelo con un espacio después: <code>^ 3</code> — funciona igual.
+              </p>
+
               {preguntasRapidas.length > 0 && (
                 <div>
                   {preguntasRapidas.map((p, idxP) => (
@@ -1601,7 +1607,7 @@ export default function AdminPage() {
                               value={o.texto}
                               onChange={(e) => actualizarOpcionRapida(idxP, idxO, 'texto', e.target.value)}
                               style={{ flex: 1, padding: 6 }}
-                              placeholder={`Opción ${idxO + 1} (usa ^3 para exponente: (4a+6b)^3)`}
+                              placeholder={`Opción ${idxO + 1} (ej. (4a+6b)^3)`}
                             />
                             <input
                               value={o.imagen_url || ''}
@@ -1756,7 +1762,7 @@ export default function AdminPage() {
                                   value={o.texto}
                                   onChange={(e) => actualizarOpcionEdit(i, 'texto', e.target.value)}
                                   style={{ flex: 1, padding: 8 }}
-                                  placeholder="Usa ^3 para exponente: (4a+6b)^3"
+                                  placeholder="Ej. (4a+6b)^3"
                                 />
                                 <input
                                   value={o.imagen_url || ''}
