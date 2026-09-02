@@ -5,8 +5,29 @@ import { useRouter } from 'next/router';
 import DonaResultado from '../../components/DonaResultado';
 import { renderizarExponentes } from '../../lib/formato';
 import parse from 'html-react-parser';
-import { InlineMath } from 'react-katex';
 const { estaAutenticado } = require('../../lib/auth');
+
+// KaTeX (~250KB) se carga DIFERIDO, no de entrada con la página — solo se
+// pide de verdad la primera vez que hace falta (al abrir el editor de una
+// pregunta, o al mostrar una que ya tiene fórmula). Antes se cargaba
+// siempre con un import normal arriba del archivo, lo que inflaba el
+// tamaño inicial del panel entero, incluso para quien no toca fórmulas.
+const InlineMath = dynamic(() => import('react-katex').then((mod) => mod.InlineMath), { ssr: false });
+
+let promesaKatexCargado = null;
+function asegurarKatexCargado() {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (window.katex) return Promise.resolve();
+  if (!promesaKatexCargado) {
+    promesaKatexCargado = Promise.all([
+      import('katex'),
+      import('katex/dist/katex.min.css'),
+    ]).then(([mod]) => {
+      window.katex = mod.default;
+    });
+  }
+  return promesaKatexCargado;
+}
 
 // Igual que en examen.js: vuelve a renderizar en vivo cualquier fórmula
 // (los <span class="ql-formula"> que deja Quill al usar el botón ∑) con
@@ -27,11 +48,6 @@ function renderizarHTMLconMatematicas(htmlString) {
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
-import katex from 'katex';
-import 'katex/dist/katex.min.css';
-if (typeof window !== 'undefined') {
-  window.katex = katex;
-}
 
 // Toolbar reducida para el enunciado de las preguntas: negritas, cursiva,
 // subrayado, resaltado tipo marcador (fondo amarillo), exponente/subíndice
@@ -575,6 +591,10 @@ export default function AdminPage() {
     setHidratado(true);
     cargarCategorias();
     cargarLecturas();
+    // KaTeX se empieza a pedir aquí (en segundo plano, sin bloquear nada de
+    // lo demás) para que esté listo cuando de verdad le den clic al botón
+    // de fórmula del editor, en vez de esperar a ese momento para pedirlo.
+    asegurarKatexCargado();
   }, []);
 
   // Si estábamos editando una pregunta y esa pregunta vive dentro de un grupo

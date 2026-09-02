@@ -1,10 +1,15 @@
 import { useEffect, useState, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import DonaResultado from '../components/DonaResultado';
 import { renderizarExponentes } from '../lib/formato';
 import parse from 'html-react-parser';
-import { InlineMath } from 'react-katex';
-import 'katex/dist/katex.min.css';
+
+// KaTeX (~250KB) se carga DIFERIDO — el alumno solo necesita esto si la
+// pregunta que le toca tiene una fórmula matemática, así que no tiene
+// sentido que TODOS los alumnos paguen ese peso desde que abren el examen,
+// incluidos los que nunca se topan con una fórmula en su intento.
+const InlineMath = dynamic(() => import('react-katex').then((mod) => mod.InlineMath), { ssr: false });
 
 // Convierte el HTML guardado por el editor (Quill) a elementos de React,
 // re-renderizando en vivo cualquier fórmula matemática (los <span
