@@ -1786,7 +1786,10 @@ export default function AdminPage() {
                             <div style={{ flex: 1 }}>
                               <div style={{ color: '#4a90d9', fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>Pregunta {r.numero}</div>
                               <div dangerouslySetInnerHTML={{ __html: r.pregunta }} />
-                              {r.imagen_url && <div><em>Imagen: {r.imagen_url}</em></div>}
+                              {r.imagen_url && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={r.imagen_url} alt="" style={{ maxWidth: 260, maxHeight: 180, display: 'block', marginTop: 4, marginBottom: 6, borderRadius: 4, border: '1px solid #eee' }} />
+                              )}
                               <ul>
                                 {r.opciones.map((o, idx) => (
                                   <li key={o.id} style={{ color: o.es_correcta ? 'green' : 'inherit' }}>
