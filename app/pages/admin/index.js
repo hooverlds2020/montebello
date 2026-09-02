@@ -891,6 +891,14 @@ export default function AdminPage() {
     setEditOpciones(copia);
   }
 
+  function agregarOpcionEdit() {
+    setEditOpciones([...editOpciones, { texto: '', es_correcta: false, imagen_url: '' }]);
+  }
+
+  function quitarOpcionEdit(i) {
+    setEditOpciones(editOpciones.filter((_, idx) => idx !== i));
+  }
+
   async function guardarEdicion(id) {
     const res = await fetch(`/api/admin/reactivos/${id}`, {
       method: 'PUT',
@@ -1772,7 +1780,7 @@ export default function AdminPage() {
                                   value={o.texto}
                                   onChange={(e) => actualizarOpcionEdit(i, 'texto', e.target.value)}
                                   style={{ flex: 1, padding: 8 }}
-                                  placeholder="Ej. (4a+6b)^3"
+                                  placeholder="Ej. (4a+6b)^3 — puede quedar vacío si la opción es solo imagen"
                                 />
                                 <input
                                   value={o.imagen_url || ''}
@@ -1781,6 +1789,14 @@ export default function AdminPage() {
                                   placeholder="URL imagen (opcional)"
                                 />
                                 <BotonSubirImagen onSubida={(url) => actualizarOpcionEdit(i, 'imagen_url', url)} />
+                                <button
+                                  type="button"
+                                  onClick={() => quitarOpcionEdit(i)}
+                                  title="Quitar esta opción"
+                                  style={{ border: 'none', background: '#fdeceb', color: '#c0392b', cursor: 'pointer', borderRadius: 4, width: 26, height: 26, flexShrink: 0 }}
+                                >
+                                  ✕
+                                </button>
                               </div>
                               {o.imagen_url && (
                                 // eslint-disable-next-line @next/next/no-img-element
@@ -1793,6 +1809,10 @@ export default function AdminPage() {
                               )}
                             </div>
                           ))}
+                          <button type="button" onClick={agregarOpcionEdit} style={btnStyle('secundario', { marginBottom: 10, fontSize: 13 })}>
+                            + Agregar opción
+                          </button>
+                          <br />
                           <button onClick={() => guardarEdicion(r.id)} style={btnStyle('primario', { marginRight: 8 })}>Guardar cambios</button>
                           <button onClick={cancelarEdicion} style={btnStyle('secundario')}>Cancelar</button>
                         </div>
