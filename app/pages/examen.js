@@ -801,7 +801,7 @@ export default function Examen() {
       : '';
 
     return (
-      <div style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
+      <div className="hoja-impresion" style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
         <button
           onClick={() => setResultadoHistorico(null)}
           className="ocultar-al-imprimir"
@@ -827,8 +827,8 @@ export default function Examen() {
           </div>
         </div>
 
-        <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 14, padding: '36px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
-          <h1 style={{ textAlign: 'center', marginTop: 0, marginBottom: 28, fontSize: 20 }}>Detalle del intento</h1>
+        <div className="tarjeta-resultado" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 14, padding: '36px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
+          <h1 className="titulo-detalle" style={{ textAlign: 'center', marginTop: 0, marginBottom: 28, fontSize: 20 }}>Detalle del intento</h1>
           <DonaResultado resultado={resultadoHistorico} />
 
           <div className="solo-impresion" style={{ display: 'none', marginTop: 24 }}>
@@ -849,10 +849,13 @@ export default function Examen() {
         </div>
 
         <style jsx global>{`
-          @page { margin: 15mm; }
+          @page { size: letter; margin: 12mm; }
           @media print {
             .ocultar-al-imprimir { display: none !important; }
             .solo-impresion { display: block !important; }
+            .hoja-impresion { margin: 0 !important; padding: 0 !important; }
+            .tarjeta-resultado { padding: 14px 16px !important; border: none !important; box-shadow: none !important; }
+            .titulo-detalle { margin-bottom: 12px !important; }
             * {
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;

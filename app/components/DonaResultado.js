@@ -26,7 +26,7 @@ export default function DonaResultado({ resultado, tamano = 220 }) {
   const cy = tamano / 2;
   // Espacio extra alrededor de la dona para que quepan las líneas y las
   // etiquetas de porcentaje sin que se corten.
-  const margenEtiquetas = tamano * 0.42;
+  const margenEtiquetas = tamano * 0.33;
   const svgTam = tamano + margenEtiquetas * 2;
   const svgCx = svgTam / 2;
   const svgCy = svgTam / 2;
