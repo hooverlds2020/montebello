@@ -330,6 +330,21 @@ export default function AdminPage() {
     );
   }
 
+  function liberarSesionAlumno(id, nombre) {
+    pedirConfirmacion(
+      `¿Cerrar la sesión activa de "${nombre}"? Úsalo si se quedó atorado sin poder entrar porque otro dispositivo/pestaña no cerró bien la suya.`,
+      async () => {
+        const res = await fetch(`/api/admin/alumnos/${id}/liberar-sesion`, { method: 'POST' });
+        if (!res.ok) {
+          const data = await res.json();
+          mostrarToast(data.error, 'error');
+          return;
+        }
+        mostrarToast('Sesión liberada ✓', 'exito');
+      }
+    );
+  }
+
   function borrarAlumnoCompleto(id, nombre) {
     pedirConfirmacion(
       `¿Borrar por completo la cuenta de "${nombre}" junto con todo su historial? Esta acción no se puede deshacer.`,
@@ -1955,8 +1970,14 @@ export default function AdminPage() {
                   {menuOpcionesAbierto && (
                     <div style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid #e0e6ec', borderRadius: 8, boxShadow: '0 6px 20px rgba(0,0,0,0.12)', minWidth: 220, zIndex: 20, overflow: 'hidden' }}>
                       <button
+                        onClick={() => { setMenuOpcionesAbierto(false); liberarSesionAlumno(detalleAlumno.alumno.id, detalleAlumno.alumno.nombre); }}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', color: '#333', fontSize: 13 }}
+                      >
+                        🔓 Liberar sesión atorada
+                      </button>
+                      <button
                         onClick={() => { setMenuOpcionesAbierto(false); borrarHistorialAlumno(detalleAlumno.alumno.id, detalleAlumno.alumno.nombre); }}
-                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', background: 'none', cursor: 'pointer', color: '#c0392b', fontSize: 13 }}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', color: '#c0392b', fontSize: 13 }}
                       >
                         🧹 Borrar historial
                       </button>
