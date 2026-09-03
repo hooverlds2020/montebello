@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import DonaResultado from '../../components/DonaResultado';
+import PantallaCarga from '../../components/PantallaCarga';
 import { renderizarExponentes } from '../../lib/formato';
 import parse from 'html-react-parser';
 const { estaAutenticado } = require('../../lib/auth');
@@ -555,11 +556,13 @@ export default function AdminPage() {
   // para restaurarlo si la página se refresca (F5, o pierde la sesión de red un momento).
   const LS_KEY_ESTADO = 'montebello_admin_estado';
   const [hidratado, setHidratado] = useState(false);
+  const [categoriasCargadas, setCategoriasCargadas] = useState(false);
 
   async function cargarCategorias() {
     const res = await fetch('/api/admin/categorias');
     const data = await res.json();
     setCategorias(data);
+    setCategoriasCargadas(true);
     // Si ya hay una categoría seleccionada (por navegación normal o restaurada
     // tras un refresh), no la pisamos. Si no hay ninguna, arrancamos en la
     // primera categoría RAÍZ (materia principal, ej. "Español"), no en la
@@ -1261,6 +1264,8 @@ export default function AdminPage() {
     );
   }
 
+
+  if (!hidratado || !categoriasCargadas) return <PantallaCarga mensaje="Cargando el panel..." />;
 
   return (
     <div className="admin-root" style={{ minHeight: '100vh', fontFamily: 'sans-serif' }}>

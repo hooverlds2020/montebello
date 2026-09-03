@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import DonaResultado from '../components/DonaResultado';
+import PantallaCarga from '../components/PantallaCarga';
 import { renderizarExponentes } from '../lib/formato';
 import parse from 'html-react-parser';
 
@@ -357,7 +358,7 @@ export default function Examen() {
     router.push('/login');
   }
 
-  if (cargando) return null;
+  if (cargando) return <PantallaCarga mensaje="Cargando tu información..." />;
 
   // ---- Pantalla de resultado (examen recién terminado) ----
   if (resultado) {
