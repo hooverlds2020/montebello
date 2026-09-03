@@ -1289,7 +1289,7 @@ export default function AdminPage() {
             opacity: 1;
           }
         }
-        @page { size: letter; margin: 15mm; }
+        @page { size: letter; margin: 10mm; }
         @media print {
           .ocultar-al-imprimir { display: none !important; }
           .barra-superior-admin { display: none !important; }
@@ -1310,21 +1310,25 @@ export default function AdminPage() {
             border: 3px solid #0d3b66 !important;
             border-radius: 4px !important;
             box-shadow: none !important;
-            padding: 22px !important;
-            font-size: 13px !important;
-            line-height: 1.4 !important;
+            padding: 14px !important;
+            font-size: 12px !important;
+            line-height: 1.25 !important;
           }
-          .ficha-registro table { font-size: 13px !important; }
-          .ficha-registro td, .ficha-registro th { padding: 6px 8px !important; }
-          .ficha-registro > div { margin-bottom: 10px !important; }
-          .ficha-registro p { margin: 4px 0 !important; }
-          .ficha-registro label { font-size: 11px !important; }
+          .ficha-registro > div:first-child {
+            padding-bottom: 8px !important;
+            margin-bottom: 10px !important;
+          }
+          .ficha-registro table { font-size: 12px !important; }
+          .ficha-registro td, .ficha-registro th { padding: 3px 6px !important; }
+          .ficha-registro > div { margin-bottom: 6px !important; }
+          .ficha-registro p { margin: 2px 0 !important; }
+          .ficha-registro label { font-size: 10px !important; }
           .ficha-registro input {
             border: none !important;
             border-bottom: 1px solid #999 !important;
             border-radius: 0 !important;
-            padding: 2px 0 !important;
-            font-size: 13px !important;
+            padding: 1px 0 !important;
+            font-size: 12px !important;
           }
           /* Pie de contacto: se deja envolver en 2 líneas si hace falta
              (ya hay espacio de sobra en la página), en vez de forzar 1 sola
@@ -1332,9 +1336,10 @@ export default function AdminPage() {
              de Facebook/sitio web en los extremos. */
           .ficha-footer-contacto {
             flex-wrap: wrap !important;
-            gap: 6px 16px !important;
-            font-size: 10px !important;
-            padding: 10px 16px !important;
+            gap: 4px 16px !important;
+            font-size: 9px !important;
+            padding: 6px 14px !important;
+            margin-top: 8px !important;
             page-break-inside: avoid;
           }
         }
