@@ -91,6 +91,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [categorias, setCategorias] = useState([]);
   const [reactivos, setReactivos] = useState([]);
+  const [cargandoReactivos, setCargandoReactivos] = useState(false);
   const [lecturas, setLecturas] = useState([]);
   const [nuevaCategoria, setNuevaCategoria] = useState('');
 
@@ -571,6 +572,12 @@ export default function AdminPage() {
     setCategoriaActivaId((prev) => {
       if (prev) return prev;
       const raiz = data.filter((c) => !c.categoria_padre_id);
+      // Preferimos arrancar siempre en "Comprensión lectora" (así se pidió
+      // explícitamente), en vez de depender del orden/id en la base de
+      // datos — eso es lo que antes hacía que a veces arrancara en
+      // "Pensamiento matemático" en vez de eso.
+      const comprensionLectora = data.find((c) => c.codigo === 'EXIICL1');
+      if (comprensionLectora) return comprensionLectora.id;
       return (raiz[0] || data[0])?.id ?? null;
     });
   }
@@ -581,11 +588,13 @@ export default function AdminPage() {
   }
 
   async function cargarReactivos(categoriaId) {
+    setCargandoReactivos(true);
     const url = categoriaId
       ? `/api/admin/reactivos?categoria_id=${categoriaId}`
       : '/api/admin/reactivos';
     const res = await fetch(url);
     setReactivos(await res.json());
+    setCargandoReactivos(false);
   }
 
   // Al montar: restauramos primero lo que había guardado del refresh anterior
@@ -1739,7 +1748,7 @@ export default function AdminPage() {
             </section>
 
             <section>
-              <h2>Reactivos de {categoriaActiva?.nombre} ({reactivos.length})</h2>
+              <h2>Reactivos de {categoriaActiva?.nombre} ({cargandoReactivos ? '…' : reactivos.length})</h2>
               <p style={{ color: '#666', fontSize: 13 }}>
                 Agrupadas por lectura, en el orden en que se cargaron, para no mezclar preguntas de una
                 lectura con las de otra.
@@ -1947,7 +1956,8 @@ export default function AdminPage() {
                   ))}
                 </div>
               );})}
-              {reactivos.length === 0 && <p style={{ color: '#888' }}>Aún no hay reactivos en esta materia.</p>}
+              {cargandoReactivos && <p style={{ color: '#888' }}>Cargando reactivos...</p>}
+              {!cargandoReactivos && reactivos.length === 0 && <p style={{ color: '#888' }}>Aún no hay reactivos en esta materia.</p>}
             </section>
           </div>
         )}
