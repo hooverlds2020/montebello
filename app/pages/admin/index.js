@@ -2419,8 +2419,8 @@ export default function AdminPage() {
                   <div
                     className="solo-impresion"
                     style={{
-                      display: 'none', marginTop: 10, marginLeft: -22, marginRight: -22, marginBottom: -22,
-                      background: '#0d3b66', color: '#f0d99a', padding: '10px 22px', fontSize: 10,
+                      display: 'none', marginTop: 10, marginLeft: -14, marginRight: -14, marginBottom: -14,
+                      background: '#0d3b66', color: '#f0d99a', padding: '10px 14px', fontSize: 10,
                     }}
                   >
                     <div className="ficha-footer-contacto" style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
