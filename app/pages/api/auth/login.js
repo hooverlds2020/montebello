@@ -30,14 +30,17 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Correo o contraseña incorrectos' });
   }
 
-  // Sesión única: si ya hay una sesión activa y no ha expirado, se niega el
-  // acceso en vez de dejar entrar una segunda vez con el mismo usuario.
-  const sesionVigente = alumno.sesion_token && alumno.sesion_expira && new Date(alumno.sesion_expira) > new Date();
-  if (sesionVigente) {
-    return res.status(409).json({
-      error: 'Ya hay una sesión activa con este usuario. Si eres tú, cierra la otra pestaña/navegador y espera unos minutos, o contacta al instituto si no puedes acceder.',
-    });
-  }
+  // Sesión única DESACTIVADA a petición del instituto (causaba demasiada
+  // fricción cuando alguien no cerraba bien una pestaña). Se deja el resto
+  // de la infraestructura (columnas en la BD, botón "liberar sesión" en el
+  // admin) por si se quiere reactivar más adelante — el candado real era
+  // este bloque, ahora deshabilitado.
+  // const sesionVigente = alumno.sesion_token && alumno.sesion_expira && new Date(alumno.sesion_expira) > new Date();
+  // if (sesionVigente) {
+  //   return res.status(409).json({
+  //     error: 'Ya hay una sesión activa con este usuario. Si eres tú, cierra la otra pestaña/navegador y espera unos minutos, o contacta al instituto si no puedes acceder.',
+  //   });
+  // }
 
   const sesionId = crypto.randomUUID();
   const expira = new Date(Date.now() + 6 * 60 * 60 * 1000);
