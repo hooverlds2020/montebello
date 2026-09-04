@@ -34,7 +34,7 @@ function construirGradienteDona(porCategoria, total, paleta) {
   return `conic-gradient(${tramos.join(', ')})`;
 }
 
-export default function BoletaOficial({ alumno, folio, fecha, porCategoria, total, correctas, porcentaje, umbral = 60, alerta }) {
+export default function BoletaOficial({ alumno, folio, fecha, porCategoria, total, correctas, porcentaje, umbral = 60, alerta, compacto = false }) {
   // Cálculo a prueba de datos incompletos: si `total`/`correctas` llegan
   // undefined (ej. un examen con un registro raro o incompleto), en vez de
   // arrastrar el undefined hasta el JSX y terminar en "NaN" o casillas
@@ -74,8 +74,9 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
   const sinDatos = totalSeguro === 0;
 
   return (
-    <div id="boleta-print" style={{ maxWidth: 780, margin: '0 auto', background: '#fff', padding: 28 }}>
+    <div id={compacto ? undefined : 'boleta-print'} style={{ maxWidth: 780, margin: '0 auto', background: '#fff', padding: compacto ? 0 : 28 }}>
       {/* Encabezado: logo + instituto a la izquierda, alumno + folio a la derecha */}
+      {!compacto && (
       <div className="boleta-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, borderBottom: '3px solid #0d3b66', paddingBottom: 16, marginBottom: 20 }}>
         <div className="boleta-header-izq" style={{ display: 'flex', gap: 12, flex: 1, minWidth: 0 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -91,6 +92,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
           <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#888' }}>Folio #{folio} · {fechaTexto}</p>
         </div>
       </div>
+      )}
 
       {alerta && (
         <div style={{ marginBottom: 16 }}>
@@ -216,6 +218,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
       )}
 
       {/* Pie: datos reales de contacto del instituto + QR de verificación */}
+      {!compacto && (
       <div style={{ borderTop: '1px solid #ddd', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16 }}>
         <div style={{ fontSize: 9, lineHeight: 1.5, color: '#777', maxWidth: '62%' }}>
           <p style={{ margin: 0, fontWeight: 'bold', color: '#444' }}>Instituto Educativo Montebello A.C.</p>
@@ -233,9 +236,11 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
           <p style={{ margin: '4px 0 0 0', fontSize: 8, color: '#999' }}>Folio #{folio}<br />Escanea para verificar</p>
         </div>
       </div>
+      )}
 
       <style jsx global>{`
         @page { size: letter; margin: 12mm; }
+        ${compacto ? '' : `
         @media print {
           /* Se oculta TODO el documento y solo se deja visible la boleta —
              sin importar qué otra cosa hubiera en la página (botones, nav,
@@ -247,6 +252,9 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
             position: absolute; left: 0; top: 0; width: 100%;
             margin: 0 !important; padding: 0 !important; box-shadow: none !important;
           }
+        }
+        `}
+        @media print {
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;

@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import PantallaCarga from '../../components/PantallaCarga';
+import BoletaOficial from '../../components/BoletaOficial';
 import { renderizarExponentes } from '../../lib/formato';
 import parse from 'html-react-parser';
 const { estaAutenticado } = require('../../lib/auth');
@@ -38,24 +39,6 @@ function quillEstaVacio(html) {
   if (!html) return true;
   if (html.includes('ql-formula')) return false; // una opción puede ser solo una fórmula, sin texto normal
   return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() === '';
-}
-
-// Construye el conic-gradient de la dona de resultados a partir del
-// desglose real por materia — cada materia ocupa la porción de la dona que
-// corresponde a SUS aciertos sobre el total del examen (no un solo color
-// plano), y usa exactamente los mismos colores que las filas de materia de
-// abajo, para que la gráfica sí sea el reflejo de los datos y no algo
-// desconectado que confunda a quien la ve (ej. un papá revisando el PDF).
-function construirGradienteDona(porCategoria, total, paleta) {
-  if (!total) return `conic-gradient(#e5e7eb 0% 100%)`;
-  let acumulado = 0;
-  const tramos = porCategoria.map((c, i) => {
-    const desde = acumulado;
-    acumulado += (c.correctas / total) * 100;
-    return `${paleta[i % paleta.length]} ${desde}% ${acumulado}%`;
-  });
-  tramos.push(`#e5e7eb ${acumulado}% 100%`);
-  return `conic-gradient(${tramos.join(', ')})`;
 }
 
 // Igual que en examen.js: vuelve a renderizar en vivo cualquier fórmula
@@ -2885,7 +2868,6 @@ export default function AdminPage() {
                       : '';
                     const aprobado = h.porcentaje >= umbralAprobacion;
                     const colorPrincipal = aprobado ? '#22c55e' : '#ef4444';
-                    const paletaMaterias = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
                     return (
                       <div
                         key={h.examenId}
@@ -2928,63 +2910,17 @@ export default function AdminPage() {
                           </span>
                         </div>
 
-                        <div className="intento-dona-materias" style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
-                          {/* Dona segmentada: cada materia ocupa la porción de la
-                              dona correspondiente a sus aciertos sobre el total del
-                              examen, con el MISMO color que su fila de abajo — así
-                              la gráfica sí refleja los datos, no es un solo color
-                              que no se conecta con nada. */}
-                          <div>
-                            <div style={{ position: 'relative', width: 180, height: 180, margin: '0 auto' }}>
-                              <div
-                                style={{
-                                  position: 'absolute', inset: 0, borderRadius: '50%',
-                                  background: construirGradienteDona(h.porCategoria, h.total, paletaMaterias),
-                                }}
-                              />
-                              <div
-                                style={{
-                                  position: 'absolute', inset: 16, borderRadius: '50%', background: '#fff',
-                                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                }}
-                              >
-                                <span style={{ fontSize: 34, fontWeight: 900, lineHeight: 1 }}>{h.porcentaje}%</span>
-                                <span style={{ fontSize: 12, color: '#999', marginTop: 4 }}>{h.correctas} de {h.total}</span>
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
-                              {h.porCategoria.map((c, i) => (
-                                <span key={c.categoria} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#666' }}>
-                                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: paletaMaterias[i % paletaMaterias.length], flexShrink: 0 }} />
-                                  {c.categoria.split('›').pop().trim()} {c.porcentaje}%
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            {h.porCategoria.map((c, i) => (
-                              <div
-                                key={c.categoria}
-                                style={{
-                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6,
-                                  padding: '12px 14px', borderRadius: 12, background: '#fafbfc', border: '1px solid #f0f0f0', marginBottom: 8,
-                                }}
-                              >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: paletaMaterias[i % paletaMaterias.length], flexShrink: 0 }} />
-                                  <span style={{ fontSize: 13, fontWeight: 500 }}>{c.categoria}</span>
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, flexShrink: 0 }}>
-                                  <span style={{ color: '#22c55e', fontWeight: 'bold' }}>✓ {c.correctas}</span>
-                                  <span style={{ color: '#ef4444', fontWeight: 'bold' }}>✕ {c.incorrectas}</span>
-                                  <span style={{ color: '#aaa' }}>{c.sinContestar} sin contestar</span>
-                                  <span style={{ width: 40, textAlign: 'right', fontWeight: 900 }}>{c.porcentaje}%</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                        <BoletaOficial
+                          compacto
+                          alumno={detalleAlumno.alumno}
+                          folio={h.examenId}
+                          fecha={h.finalizadoEn}
+                          porCategoria={h.porCategoria}
+                          total={h.total}
+                          correctas={h.correctas}
+                          porcentaje={h.porcentaje}
+                          umbral={umbralAprobacion}
+                        />
 
                         <div className="solo-impresion" style={{ display: 'none', marginTop: 20 }}>
                           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }}>
