@@ -112,7 +112,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <p className="boleta-alumno-linea" style={{ margin: 0, fontSize: 13, fontWeight: 'bold', color: '#222' }}>{alumno?.nombre}</p>
-          <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#888' }}>{alumno?.email}</p>
+          {alumno?.email && <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#888' }}>{alumno.email}</p>}
           <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#888' }}>Folio #{folio} · {fechaTexto}</p>
         </div>
       </div>

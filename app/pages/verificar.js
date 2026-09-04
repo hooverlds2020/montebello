@@ -1,79 +1,69 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import BoletaOficial from '../components/BoletaOficial';
 
 export default function Verificar() {
   const router = useRouter();
   const { folio } = router.query;
   const [resultado, setResultado] = useState(null);
+  const [umbral, setUmbral] = useState(60);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     if (!folio) return;
-    fetch(`/api/verificar?examenId=${folio}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setResultado(data);
-        setCargando(false);
-      });
+    Promise.all([
+      fetch(`/api/verificar?examenId=${folio}`).then((res) => res.json()),
+      fetch('/api/config/publico').then((res) => (res.ok ? res.json() : null)).catch(() => null),
+    ]).then(([datosVerificacion, config]) => {
+      setResultado(datosVerificacion);
+      if (config?.umbralAprobacion) setUmbral(config.umbralAprobacion);
+      setCargando(false);
+    });
   }, [folio]);
 
   return (
-    <div style={{ maxWidth: 420, margin: '60px auto', fontFamily: 'sans-serif', padding: 24, textAlign: 'center' }}>
-      <h1 style={{ fontSize: 20 }}>Verificación de folio</h1>
-      <p style={{ color: '#888', fontSize: 13, marginBottom: 24 }}>Instituto Educativo Montebello</p>
+    <div style={{ background: '#f0f2f5', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+      <div style={{ maxWidth: 780, margin: '0 auto', padding: 24 }}>
+        {cargando && <p style={{ textAlign: 'center', color: '#888', marginTop: 60 }}>Verificando...</p>}
 
-      {cargando && <p>Verificando...</p>}
-
-      {!cargando && resultado?.valido && (
-        <div style={{ background: '#eafaf1', border: '1px solid #c8e6d0', borderRadius: 12, padding: 24 }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
-          <p style={{ fontWeight: 600, marginBottom: 4 }}>Folio válido</p>
-          <p style={{ fontSize: 14, color: '#333', marginBottom: 4 }}>Folio: #{resultado.folio}</p>
-          <p style={{ fontSize: 14, color: '#333', marginBottom: 4 }}>Alumno: {resultado.nombre}</p>
-          <p style={{ fontSize: 13, color: '#666', marginBottom: 16 }}>
-            Fecha: {new Date(resultado.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
-          </p>
-
-          {resultado.porCategoria && resultado.porCategoria.length > 0 && (
-            <div style={{ textAlign: 'left', background: '#fff', border: '1px solid #dcecdf', borderRadius: 8, padding: 14, marginBottom: 16 }}>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#555', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                Resultado por materia
-              </p>
-              {resultado.porCategoria.map((c) => (
-                <div key={c.categoria} style={{ marginBottom: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
-                    <span>{c.categoria}</span>
-                    <span style={{ fontWeight: 600 }}>{c.porcentaje}%</span>
-                  </div>
-                  <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>
-                    ✅ {c.correctas} correctas · ❌ {c.incorrectas ?? 0} incorrectas
-                    {c.sinContestar > 0 && <> · ⬜ {c.sinContestar} sin contestar</>}
-                  </div>
-                  <div style={{ background: '#eee', borderRadius: 6, height: 6 }}>
-                    <div style={{ width: `${c.porcentaje}%`, height: '100%', background: '#2e7d32', borderRadius: 6 }} />
-                  </div>
-                </div>
-              ))}
+        {!cargando && resultado?.valido && (
+          <>
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <span
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 'bold',
+                  padding: '6px 14px', borderRadius: 999, background: '#f0faf3', color: '#22c55e',
+                  border: '1px solid #c8ecd3',
+                }}
+              >
+                ✅ Folio verificado — documento auténtico
+              </span>
             </div>
-          )}
+            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12 }}>
+              <BoletaOficial
+                alumno={{ nombre: resultado.nombre }}
+                folio={resultado.folio}
+                fecha={resultado.fecha}
+                porCategoria={resultado.porCategoria}
+                total={resultado.total}
+                correctas={resultado.correctas}
+                porcentaje={resultado.porcentaje}
+                umbral={umbral}
+              />
+            </div>
+          </>
+        )}
 
-          <div style={{ borderTop: '1px solid #c8e6d0', paddingTop: 14 }}>
-            <p style={{ fontSize: 12, color: '#666', marginBottom: 2 }}>Calificación final</p>
-            <p style={{ fontSize: 28, fontWeight: 700, color: '#2e7d32', margin: 0 }}>
-              {resultado.porcentaje}%
-            </p>
-            <p style={{ fontSize: 12, color: '#666', margin: 0 }}>{resultado.correctas} de {resultado.total} correctas</p>
+        {!cargando && resultado && !resultado.valido && (
+          <div style={{ maxWidth: 420, margin: '60px auto', textAlign: 'center' }}>
+            <div style={{ background: '#fdeceb', border: '1px solid #f0c4bd', borderRadius: 12, padding: 24 }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>❌</div>
+              <p style={{ fontWeight: 600, margin: 0 }}>Folio no válido</p>
+              <p style={{ fontSize: 13, color: '#666', marginTop: 6 }}>{resultado.error}</p>
+            </div>
           </div>
-        </div>
-      )}
-
-      {!cargando && resultado && !resultado.valido && (
-        <div style={{ background: '#fdeceb', border: '1px solid #f0c4bd', borderRadius: 12, padding: 24 }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>❌</div>
-          <p style={{ fontWeight: 600 }}>Folio no válido</p>
-          <p style={{ fontSize: 13, color: '#666' }}>{resultado.error}</p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
