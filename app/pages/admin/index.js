@@ -1179,6 +1179,8 @@ export default function AdminPage() {
     }
   }
 
+  const [menuMateriaAbiertoId, setMenuMateriaAbiertoId] = useState(null);
+
   function renderMateriaItem(c) {
     return (
       <>
@@ -1226,47 +1228,97 @@ export default function AdminPage() {
             >
               {c.nombre} {c.codigo && <span style={{ fontSize: 11, opacity: 0.7 }}>({c.codigo})</span>} {c.activa === false && '(deshabilitada)'}
             </button>
-            <div className="iconos-materia" style={{ display: 'flex', flexShrink: 0, marginLeft: 'auto' }}>
+            <div className="menu-materia-wrap" style={{ position: 'relative', flexShrink: 0 }}>
               <button
-                onClick={() => iniciarEdicionMateria(c)}
-                title="Renombrar"
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, padding: '4px 6px' }}
+                onClick={(e) => { e.stopPropagation(); setMenuMateriaAbiertoId(menuMateriaAbiertoId === c.id ? null : c.id); }}
+                title="Más opciones"
+                aria-haspopup="true"
+                aria-expanded={menuMateriaAbiertoId === c.id}
+                className="boton-kebab"
+                style={{
+                  border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18,
+                  width: 32, height: 32, borderRadius: 6, lineHeight: 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
               >
-                ✏️
+                ⋮
               </button>
-              <button
-                onClick={() => toggleMateriaActiva(c)}
-                title={c.activa === false ? 'Habilitar' : 'Deshabilitar'}
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, padding: '4px 6px' }}
-              >
-                {c.activa === false ? '🔒' : '🔓'}
-              </button>
-              <button
-                onClick={() => borrarMateria(c)}
-                title="Borrar (solo si no tiene preguntas)"
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, padding: '4px 6px' }}
-              >
-                🗑️
-              </button>
+              {menuMateriaAbiertoId === c.id && (
+                <>
+                  {/* Capa invisible para cerrar el menú al tocar/hacer clic afuera */}
+                  <div
+                    onClick={() => setMenuMateriaAbiertoId(null)}
+                    style={{ position: 'fixed', inset: 0, zIndex: 20 }}
+                  />
+                  <div
+                    className="menu-materia-desplegable"
+                    style={{
+                      position: 'absolute', top: '100%', right: 0, marginTop: 2, zIndex: 21,
+                      background: '#fff', border: '1px solid #ddd', borderRadius: 8,
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.12)', minWidth: 170, overflow: 'hidden',
+                    }}
+                  >
+                    <button
+                      onClick={() => { setMenuMateriaAbiertoId(null); iniciarEdicionMateria(c); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, color: '#333' }}
+                    >
+                      ✏️ Renombrar
+                    </button>
+                    <button
+                      onClick={() => { setMenuMateriaAbiertoId(null); toggleMateriaActiva(c); }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', fontSize: 14, color: '#333' }}
+                    >
+                      {c.activa === false ? '🔓 Habilitar' : '🔒 Deshabilitar'}
+                    </button>
+                    <button
+                      onClick={() => { setMenuMateriaAbiertoId(null); borrarMateria(c); }}
+                      title="Borrar (solo si no tiene preguntas)"
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', fontSize: 14, color: '#c0392b' }}
+                    >
+                      🗑️ Eliminar
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
         {editandoMateriaId !== c.id && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 10, marginTop: 6 }}>
+          <div className="fila-en-examen" style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 10, marginTop: 6 }}>
             <span
               style={{ fontSize: 11, color: '#888', cursor: 'help' }}
               title="Cuántas preguntas de esta materia se incluyen al azar en el examen de diagnóstico"
             >
               En examen: ⓘ
             </span>
-            <input
-              type="number"
-              min="0"
-              defaultValue={c.cantidad_examen || 0}
-              onBlur={(e) => actualizarCantidadExamen(c, e.target.value)}
-              title="Cuántas preguntas de esta materia se incluyen al azar en el examen"
-              style={{ width: 44, fontSize: 11, padding: 3 }}
-            />
+            <div className="stepper-en-examen" style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <button
+                type="button"
+                className="stepper-boton"
+                onClick={() => actualizarCantidadExamen(c, Math.max(0, (c.cantidad_examen || 0) - 1))}
+                aria-label="Restar una pregunta"
+                style={{ border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer', width: 20, height: 20, fontSize: 12, borderRadius: 4, lineHeight: 1 }}
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="0"
+                defaultValue={c.cantidad_examen || 0}
+                onBlur={(e) => actualizarCantidadExamen(c, e.target.value)}
+                title="Cuántas preguntas de esta materia se incluyen al azar en el examen"
+                style={{ width: 36, fontSize: 11, padding: 3, textAlign: 'center' }}
+              />
+              <button
+                type="button"
+                className="stepper-boton"
+                onClick={() => actualizarCantidadExamen(c, (c.cantidad_examen || 0) + 1)}
+                aria-label="Sumar una pregunta"
+                style={{ border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer', width: 20, height: 20, fontSize: 12, borderRadius: 4, lineHeight: 1 }}
+              >
+                +
+              </button>
+            </div>
           </div>
         )}
       </>
@@ -1290,17 +1342,48 @@ export default function AdminPage() {
           }
           .admin-main { max-width: 100% !important; padding: 16px !important; }
         }
+        .fila-materia .menu-materia-wrap,
         .fila-materia .iconos-materia {
           opacity: 0;
           transition: opacity 0.15s ease;
         }
+        .fila-materia:hover .menu-materia-wrap,
         .fila-materia:hover .iconos-materia {
           opacity: 1;
         }
-        /* En pantallas táctiles (sin hover real) los iconos se quedan siempre visibles */
+        /* En pantallas táctiles (sin hover real) el botón de opciones se
+           queda siempre visible, y con un objetivo táctil de 44x44 mínimo
+           en vez de los 32px de escritorio. También agrandamos el stepper
+           de "En examen" y le damos más aire a la fila (efecto "tarjeta"). */
         @media (hover: none) {
+          .fila-materia .menu-materia-wrap,
           .fila-materia .iconos-materia {
             opacity: 1;
+          }
+          .boton-kebab {
+            width: 44px !important;
+            height: 44px !important;
+            font-size: 22px !important;
+          }
+          .menu-materia-desplegable button {
+            padding: 14px 16px !important;
+            font-size: 15px !important;
+          }
+          .fila-en-examen {
+            margin-top: 10px !important;
+            padding: 8px 10px !important;
+            background: #f8f9fb;
+            border-radius: 6px;
+          }
+          .stepper-boton {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 16px !important;
+          }
+          .stepper-en-examen input {
+            width: 46px !important;
+            font-size: 14px !important;
+            padding: 6px !important;
           }
         }
         @page { size: letter; margin: 10mm; }
@@ -1527,7 +1610,7 @@ export default function AdminPage() {
             onChange={(e) => setNuevaCategoriaPadreId(e.target.value)}
             style={{ width: '100%', padding: 6, marginBottom: 6, boxSizing: 'border-box', fontSize: 13 }}
           >
-            <option value="">— Materia de primer nivel (sin padre) —</option>
+            <option value="">— Nivel 1 (sin padre) —</option>
             {categorias.filter((c) => !c.categoria_padre_id).map((c) => (
               <option key={c.id} value={c.id}>Subcategoría de: {c.nombre}</option>
             ))}
