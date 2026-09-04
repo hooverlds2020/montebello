@@ -1508,7 +1508,8 @@ export default function AdminPage() {
             border-right: none !important;
             border-bottom: 1px solid #ddd;
           }
-          .admin-main { max-width: 100% !important; padding: 16px !important; }
+          .admin-main { max-width: 100% !important; padding: 0 !important; }
+          .contenido-principal-fondo { padding: 16px !important; }
           .barra-superior-desktop { display: none !important; }
           .barra-superior-movil { display: flex !important; }
         }
@@ -1603,7 +1604,8 @@ export default function AdminPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <span style={{ fontWeight: 900, fontSize: 18, color: '#222' }}>Montebello</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/logo-montebello.webp" alt="Montebello" style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
           <nav style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={() => setVistaGeneral('asignaturas')}
@@ -1652,11 +1654,13 @@ export default function AdminPage() {
       <header
         className="barra-superior-admin barra-superior-movil ocultar-al-imprimir"
         style={{
-          minHeight: 56, display: 'none', alignItems: 'center', justifyContent: 'space-between',
-          padding: '10px 12px', borderBottom: '1px solid #ddd', background: '#fff',
+          height: 56, display: 'none', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 12px', borderBottom: '1px solid #ddd', background: '#fff',
           position: 'sticky', top: 0, zIndex: 30, gap: 8,
         }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/logo-montebello.webp" alt="Montebello" style={{ height: 28, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
         <div className="tabs-scroll-movil" style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
           <button
             onClick={() => setVistaGeneral('asignaturas')}
@@ -1859,23 +1863,29 @@ export default function AdminPage() {
       </aside>
 
       {/* CONTENIDO PRINCIPAL */}
-      <main className="admin-main" style={{ flex: 1, padding: 24, maxWidth: 900, minWidth: 0 }}>
+      <main className="admin-main" style={{ flex: 1, padding: 0, maxWidth: 1100, minWidth: 0 }}>
+        <div className="contenido-principal-fondo" style={{ background: '#f8fafc', padding: 24, minHeight: '100%' }}>
         <div
           className="header-materia-sticky"
-          style={{ position: 'sticky', top: 0, background: '#fff', zIndex: 15, paddingBottom: 12, marginBottom: 12, borderBottom: '1px solid #eee' }}
+          style={{ position: 'sticky', top: 0, background: '#f8fafc', zIndex: 15, paddingBottom: 12, marginBottom: 20 }}
         >
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 'bold', lineHeight: 1.3 }}>
-            {categoriaActiva
-              ? (categoriaPadreActiva ? `${categoriaPadreActiva.nombre} › ${categoriaActiva.nombre}` : categoriaActiva.nombre)
-              : 'Selecciona una materia'}
-            {categoriaActiva?.codigo && (
-              <span style={{ fontSize: 15, color: '#888', fontWeight: 'normal', marginLeft: 10 }}>({categoriaActiva.codigo})</span>
-            )}
+          {categoriaActiva && (
+            <p style={{ fontSize: 13, color: '#888', margin: '0 0 4px 0' }}>
+              {categoriaPadreActiva ? `${categoriaPadreActiva.nombre} › ` : ''}
+              <strong style={{ color: '#222' }}>{categoriaActiva.nombre}</strong>{' '}
+              {categoriaActiva.codigo && (
+                <span style={{ background: '#e5e7eb', padding: '2px 8px', borderRadius: 4, fontSize: 12 }}>({categoriaActiva.codigo})</span>
+              )}
+              {' • '}{categoriaActiva.cantidad_examen || 0} reactivos en examen
+            </p>
+          )}
+          <h1 style={{ margin: '4px 0 0 0', fontSize: 24, fontWeight: 'bold', lineHeight: 1.3 }}>
+            {categoriaActiva ? 'Carga rápida de reactivos' : 'Selecciona una materia'}
           </h1>
           {categoriaActiva && (
-            <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>
-              {categoriaActiva.cantidad_examen || 0} reactivos en examen
-            </div>
+            <p style={{ fontSize: 13, color: '#888', margin: '4px 0 0 0' }}>
+              Se agregarán a <strong style={{ color: '#333' }}>{categoriaActiva.nombre}</strong>. Opcionalmente asocia una lectura.
+            </p>
           )}
         </div>
 
@@ -1892,13 +1902,10 @@ export default function AdminPage() {
 
         {categoriaActivaId && (
           <div style={{ opacity: categoriaActiva?.activa === false ? 0.5 : 1 }}>
-            <section ref={cargaRapidaRef} style={{ marginBottom: 32, padding: 16, border: '2px solid #4a90d9', borderRadius: 8 }}>
-              <h2>Carga rápida de reactivos</h2>
-              <p style={{ color: '#666', fontSize: 14 }}>
-                Se agregarán a la materia <strong>{categoriaActiva?.nombre}</strong>. Opcionalmente
-                asocia una lectura, indica cuántas preguntas y cuántas opciones cada una.
-              </p>
-
+            <section
+              ref={cargaRapidaRef}
+              style={{ marginBottom: 32, padding: 24, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', maxWidth: 860 }}
+            >
               {insertarInfo && (
                 <div style={{ marginBottom: 12, padding: 10, background: '#eaf3ff', border: '1px solid #4a90d9', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 13, color: '#2a5f9e' }}>
@@ -1912,7 +1919,7 @@ export default function AdminPage() {
 
               <div
                 className="carga-rapida-tabs"
-                style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 20, borderBottom: '1px solid #e5e5e5' }}
+                style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 2, background: '#f0f2f5', padding: 4, borderRadius: 12, marginBottom: 24 }}
               >
                 {[
                   { valor: 'ninguna', texto: 'Sin lectura' },
@@ -1924,11 +1931,11 @@ export default function AdminPage() {
                     type="button"
                     onClick={() => setModoLectura(op.valor)}
                     style={{
-                      minHeight: 44, padding: '0 14px', border: 'none', background: 'transparent', cursor: 'pointer',
-                      fontSize: 14, fontWeight: modoLectura === op.valor ? 'bold' : 'normal',
-                      color: modoLectura === op.valor ? '#4a90d9' : '#666',
-                      borderBottom: `2px solid ${modoLectura === op.valor ? '#4a90d9' : 'transparent'}`,
-                      marginBottom: -1,
+                      height: 36, padding: '0 16px', border: 'none', cursor: 'pointer', borderRadius: 9,
+                      fontSize: 14, fontWeight: modoLectura === op.valor ? 'bold' : 500,
+                      color: modoLectura === op.valor ? '#111' : '#666',
+                      background: modoLectura === op.valor ? '#fff' : 'transparent',
+                      boxShadow: modoLectura === op.valor ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
                     }}
                   >
                     {op.texto}
@@ -1987,9 +1994,11 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <div className="carga-rapida-controles" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '16px 20px', alignItems: 'flex-start', marginBottom: 4, marginTop: 4 }}>
+              <div className="carga-rapida-controles" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 32px', marginBottom: 4, marginTop: 4 }}>
                 <div>
-                  <span style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>Número de preguntas:</span>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 'bold', color: '#9aa1ac', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>
+                    Número de preguntas
+                  </label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <button
                       type="button"
@@ -2011,7 +2020,7 @@ export default function AdminPage() {
                         const n = parseInt(e.target.value, 10);
                         setNumPreguntas(Number.isNaN(n) ? 1 : Math.min(50, Math.max(1, n)));
                       }}
-                      style={{ width: 60, height: 44, padding: 6, textAlign: 'center', fontSize: 16, border: '1px solid #ddd', borderRadius: 8 }}
+                      style={{ width: 60, height: 44, padding: 6, textAlign: 'center', fontSize: 16, fontWeight: 'bold', border: '2px solid #ddd', borderRadius: 8 }}
                     />
                     <button
                       type="button"
@@ -2019,7 +2028,7 @@ export default function AdminPage() {
                       aria-label="Sumar una pregunta"
                       style={{
                         width: 44, height: 44, flexShrink: 0, fontSize: 20, borderRadius: 8,
-                        border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer',
+                        border: 'none', background: '#4a90d9', color: '#fff', cursor: 'pointer',
                       }}
                     >
                       +
@@ -2028,25 +2037,28 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <span style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>Tipo de opciones:</span>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 'bold', color: '#9aa1ac', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>
+                    Tipo de opciones
+                  </label>
                   <div
                     className="segmentado-tipo-opciones"
-                    style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}
+                    style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 2, background: '#f0f2f5', padding: 4, borderRadius: 12 }}
                   >
                     {[
-                      { valor: 2, texto: '2 opciones' },
-                      { valor: 3, texto: '3 opciones' },
-                      { valor: 4, texto: '4 opciones' },
-                      { valor: 'vf', texto: 'Verdadero/Falso' },
+                      { valor: 2, texto: '2' },
+                      { valor: 3, texto: '3' },
+                      { valor: 4, texto: '4' },
+                      { valor: 'vf', texto: 'V/F' },
                     ].map((op) => (
                       <button
                         key={op.valor}
                         type="button"
                         onClick={() => generarCamposRapidos(op.valor)}
+                        title={op.valor === 'vf' ? 'Verdadero/Falso' : `${op.texto} opciones`}
                         style={{
-                          height: 48, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                          fontSize: 13, fontWeight: tipoOpcionesActivo === op.valor ? 'bold' : 'normal',
-                          background: tipoOpcionesActivo === op.valor ? '#4a90d9' : '#f0f2f5',
+                          height: 36, minWidth: 44, padding: '0 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
+                          fontSize: 13, fontWeight: tipoOpcionesActivo === op.valor ? 'bold' : 500,
+                          background: tipoOpcionesActivo === op.valor ? '#4a90d9' : 'transparent',
                           color: tipoOpcionesActivo === op.valor ? '#fff' : '#555',
                         }}
                       >
@@ -2447,6 +2459,7 @@ export default function AdminPage() {
             </section>
           </div>
         )}
+        </div>
       </main>
       </div>
       )}
