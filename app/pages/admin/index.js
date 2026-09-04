@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import DonaResultado from '../../components/DonaResultado';
 import PantallaCarga from '../../components/PantallaCarga';
 import { renderizarExponentes } from '../../lib/formato';
 import parse from 'html-react-parser';
@@ -1515,6 +1514,8 @@ export default function AdminPage() {
           .alumnos-config-grid { grid-template-columns: 1fr 1fr !important; }
           .alumnos-stats-grid { grid-template-columns: 1fr !important; }
           .alumnos-filtros-fila input[type="date"] { width: 100% !important; }
+          .intento-dona-materias { grid-template-columns: 1fr !important; gap: 20px !important; }
+          .ficha-contacto-fila { flex-direction: column !important; }
         }
         .tabs-scroll-movil::-webkit-scrollbar { display: none; }
         .tabs-scroll-movil { scrollbar-width: none; }
@@ -2493,22 +2494,22 @@ export default function AdminPage() {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h1 className={mostrandoFicha ? 'ocultar-al-imprimir' : ''} style={{ margin: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+              <h1 className={mostrandoFicha ? 'ocultar-al-imprimir' : ''} style={{ margin: 0, fontSize: 28, fontWeight: 900, letterSpacing: '-0.5px' }}>
                 {detalleAlumno.alumno.nombre}
               </h1>
               <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                <button onClick={() => { setAlumnoSeleccionadoId(null); setDetalleAlumno(null); }} style={btnStyle('secundario')}>
+                <button onClick={() => { setAlumnoSeleccionadoId(null); setDetalleAlumno(null); }} style={btnStyle('secundario', { borderRadius: 12 })}>
                   ← Volver a la lista
                 </button>
-                <button onClick={() => window.print()} style={btnStyle('primario')}>
+                <button onClick={() => window.print()} style={btnStyle('primario', { borderRadius: 12, boxShadow: '0 1px 3px rgba(74,144,217,0.3)' })}>
                   🖨️ Imprimir / Guardar PDF
                 </button>
                 <div style={{ position: 'relative' }}>
                   <button
                     onClick={() => setMenuOpcionesAbierto((v) => !v)}
                     title="Más opciones"
-                    style={btnStyle('secundario', { padding: '10px 12px' })}
+                    style={btnStyle('secundario', { padding: '10px 12px', borderRadius: 12 })}
                   >
                     ⋯
                   </button>
@@ -2655,7 +2656,10 @@ export default function AdminPage() {
                   como referencia en ambas pestañas), pero al imprimir la
                   Ficha se oculta porque los mismos datos (o su equivalente)
                   ya están dentro de la ficha. */}
-              <div className={mostrandoFicha ? 'ocultar-al-imprimir' : ''} style={{ background: '#f7f8fa', borderRadius: 10, padding: 16, marginBottom: 20, fontSize: 14 }}>
+              <div
+                className={mostrandoFicha ? 'ocultar-al-imprimir' : ''}
+                style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20, marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+              >
                 {editandoPerfilAlumno ? (
                   <div>
                     <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 3 }}>Nombre</label>
@@ -2670,41 +2674,48 @@ export default function AdminPage() {
                     <button onClick={() => setEditandoPerfilAlumno(false)} style={btnStyle('secundario')}>Cancelar</button>
                   </div>
                 ) : (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ marginBottom: 6 }}><strong>Correo:</strong> {detalleAlumno.alumno.email}</div>
-                        {detalleAlumno.alumno.telefono && (
-                          <div style={{ marginBottom: 6 }}><strong>Teléfono:</strong> {detalleAlumno.alumno.telefono}</div>
-                        )}
-                        {detalleAlumno.alumno.preparatoria_procedencia && (
-                          <div style={{ marginBottom: 6 }}><strong>Preparatoria de procedencia:</strong> {detalleAlumno.alumno.preparatoria_procedencia}</div>
-                        )}
-                        <div style={{ color: '#888', fontSize: 13 }}>
-                          Registrado el {new Date(detalleAlumno.alumno.creado_en).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
-                        </div>
+                  <div className="ficha-contacto-fila" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 14, minWidth: 0 }}>
+                      <div style={{
+                        width: 48, height: 48, borderRadius: '50%', background: '#4a90d9', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: 15, flexShrink: 0,
+                      }}>
+                        {detalleAlumno.alumno.nombre.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join('').toUpperCase()}
                       </div>
-                      <button
-                        onClick={() => setEditandoPerfilAlumno(true)}
-                        title="Editar perfil"
-                        className="ocultar-al-imprimir"
-                        style={{ border: 'none', background: '#eef1f5', cursor: 'pointer', fontSize: 14, borderRadius: 6, width: 30, height: 30, flexShrink: 0 }}
-                      >
-                        ✏️
-                      </button>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: 11, fontWeight: 'bold', color: '#9aa1ac', textTransform: 'uppercase', letterSpacing: 0.4 }}>Contacto</p>
+                        <p style={{ margin: '4px 0 0 0', fontSize: 13, lineHeight: 1.6 }}>
+                          <strong>Correo:</strong> {detalleAlumno.alumno.email}
+                          {detalleAlumno.alumno.telefono && <> • <strong>Tel:</strong> {detalleAlumno.alumno.telefono}</>}
+                          {detalleAlumno.alumno.preparatoria_procedencia && <> • <strong>Prep:</strong> {detalleAlumno.alumno.preparatoria_procedencia}</>}
+                        </p>
+                        <p style={{ margin: '4px 0 0 0', fontSize: 12, color: '#aaa' }}>
+                          Registrado el {new Date(detalleAlumno.alumno.creado_en).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
+                        </p>
+                      </div>
                     </div>
-                  </>
+                    <button
+                      onClick={() => setEditandoPerfilAlumno(true)}
+                      title="Editar perfil"
+                      className="ocultar-al-imprimir"
+                      style={{ border: '1px solid #e5e7eb', background: '#fafbfc', cursor: 'pointer', fontSize: 14, borderRadius: '50%', width: 36, height: 36, flexShrink: 0 }}
+                    >
+                      ✏️
+                    </button>
+                  </div>
                 )}
               </div>
 
               {/* Pestañas: Desempeño (resultados de examen) vs Ficha de Ingreso (entrevista) */}
-              <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '2px solid #eee' }}>
+              <div className="ocultar-al-imprimir" style={{ display: 'inline-flex', gap: 2, background: '#f0f2f5', padding: 4, borderRadius: 12, marginBottom: 24 }}>
                 <button
                   onClick={() => setMostrandoFicha(false)}
                   style={{
-                    padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
-                    color: !mostrandoFicha ? '#0d3b66' : '#999',
-                    borderBottom: !mostrandoFicha ? '2px solid #0d3b66' : '2px solid transparent', marginBottom: -2,
+                    height: 36, padding: '0 20px', border: 'none', cursor: 'pointer', borderRadius: 9,
+                    fontSize: 14, fontWeight: !mostrandoFicha ? 'bold' : 500,
+                    color: !mostrandoFicha ? '#111' : '#666',
+                    background: !mostrandoFicha ? '#fff' : 'transparent',
+                    boxShadow: !mostrandoFicha ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
                   }}
                 >
                   📊 Desempeño
@@ -2712,9 +2723,11 @@ export default function AdminPage() {
                 <button
                   onClick={() => setMostrandoFicha(true)}
                   style={{
-                    padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
-                    color: mostrandoFicha ? '#0d3b66' : '#999',
-                    borderBottom: mostrandoFicha ? '2px solid #0d3b66' : '2px solid transparent', marginBottom: -2,
+                    height: 36, padding: '0 20px', border: 'none', cursor: 'pointer', borderRadius: 9,
+                    fontSize: 14, fontWeight: mostrandoFicha ? 'bold' : 500,
+                    color: mostrandoFicha ? '#111' : '#666',
+                    background: mostrandoFicha ? '#fff' : 'transparent',
+                    boxShadow: mostrandoFicha ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
                   }}
                 >
                   📋 Ficha de Ingreso
@@ -2727,48 +2740,114 @@ export default function AdminPage() {
                     <p style={{ color: '#888' }}>Este alumno aún no ha finalizado ningún examen.</p>
                   )}
                   {detalleAlumno.historial.map((h, idx) => {
-                const urlVerifAdmin = typeof window !== 'undefined'
-                  ? `${window.location.origin}/verificar?folio=${h.examenId}`
-                  : '';
-                const urlQrAdmin = urlVerifAdmin
-                  ? `https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(urlVerifAdmin)}`
-                  : '';
-                return (
-                <div key={h.examenId} style={{ border: '1px solid #eee', borderRadius: 8, padding: 20, marginBottom: 16, background: idx % 2 === 0 ? '#fff' : '#f7f7f7' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontWeight: 600, fontSize: 14 }}>
-                      {new Date(h.finalizadoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </span>
-                    <span style={{ fontSize: 12, color: '#999' }}>Folio #{h.examenId}</span>
-                  </div>
-                  {h.salidasPantalla > 0 && (
-                    <div
-                      title="Veces que el alumno cambió de pestaña, minimizó o cambió de app mientras el examen estaba en progreso"
-                      style={{ fontSize: 12, color: h.salidasPantalla >= 5 ? '#c0392b' : '#a8791b', marginBottom: 10 }}
-                    >
-                      ⚠️ Salió de la pantalla del examen {h.salidasPantalla} {h.salidasPantalla === 1 ? 'vez' : 'veces'}
-                    </div>
-                  )}
-                  <DonaResultado
-                    tamano={160}
-                    resultado={{
-                      general: { total: h.total, correctas: h.correctas, porcentaje: h.porcentaje },
-                      porCategoria: h.porCategoria,
-                    }}
-                  />
-                  <div className="solo-impresion" style={{ display: 'none', marginTop: 20 }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }}>
-                      <div style={{ textAlign: 'right', fontSize: 10, color: '#888', maxWidth: 160 }}>
-                        Folio #{h.examenId}<br />Escanea para verificar la autenticidad
+                    const urlVerifAdmin = typeof window !== 'undefined'
+                      ? `${window.location.origin}/verificar?folio=${h.examenId}`
+                      : '';
+                    const urlQrAdmin = urlVerifAdmin
+                      ? `https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(urlVerifAdmin)}`
+                      : '';
+                    const aprobado = h.porcentaje >= umbralAprobacion;
+                    const colorPrincipal = aprobado ? '#22c55e' : '#ef4444';
+                    const paletaMaterias = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+                    return (
+                      <div
+                        key={h.examenId}
+                        className="tarjeta-intento-alumno"
+                        style={{
+                          border: '1px solid #e5e7eb', borderRadius: 16, padding: 24, marginBottom: 16,
+                          background: idx === 0 ? '#fff' : 'rgba(255,255,255,0.7)', boxShadow: idx === 0 ? '0 1px 3px rgba(0,0,0,0.04)' : 'none',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: 'bold', fontSize: 16 }}>
+                                {new Date(h.finalizadoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              </span>
+                              {h.salidasPantalla > 0 && (
+                                <span
+                                  title="Veces que el alumno cambió de pestaña, minimizó o cambió de app mientras el examen estaba en progreso"
+                                  style={{
+                                    fontSize: 11, fontWeight: 'bold', padding: '4px 10px', borderRadius: 999,
+                                    background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a',
+                                  }}
+                                >
+                                  ⚠️ Salió de pantalla {h.salidasPantalla} {h.salidasPantalla === 1 ? 'vez' : 'veces'}
+                                </span>
+                              )}
+                            </div>
+                            <p style={{ margin: '6px 0 0 0', fontSize: 12, color: '#999' }}>
+                              {idx === 0 ? 'Intento más reciente' : `Intento anterior`} • Folio #{h.examenId} • {h.correctas} de {h.total} reactivos correctos
+                            </p>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: 12, fontWeight: 'bold', padding: '5px 12px', borderRadius: 999, flexShrink: 0,
+                              background: aprobado ? '#f0faf3' : '#fef2f2', color: colorPrincipal,
+                              border: `1px solid ${aprobado ? '#c8ecd3' : '#fecaca'}`,
+                            }}
+                          >
+                            {h.porcentaje}% {aprobado ? '- Aprobado' : '- No aprobado'}
+                          </span>
+                        </div>
+
+                        <div className="intento-dona-materias" style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
+                          {/* Dona limpia: solo el % general, sin etiquetas ni líneas afuera */}
+                          <div style={{ position: 'relative', width: 180, height: 180, margin: '0 auto' }}>
+                            <div
+                              style={{
+                                position: 'absolute', inset: 0, borderRadius: '50%',
+                                background: `conic-gradient(${colorPrincipal} ${h.porcentaje * 3.6}deg, #eef0f2 0deg)`,
+                              }}
+                            />
+                            <div
+                              style={{
+                                position: 'absolute', inset: 16, borderRadius: '50%', background: '#fff',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                              }}
+                            >
+                              <span style={{ fontSize: 34, fontWeight: 900, lineHeight: 1 }}>{h.porcentaje}%</span>
+                              <span style={{ fontSize: 12, color: '#999', marginTop: 4 }}>{h.correctas} de {h.total}</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            {h.porCategoria.map((c, i) => (
+                              <div
+                                key={c.categoria}
+                                style={{
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6,
+                                  padding: '12px 14px', borderRadius: 12, background: '#fafbfc', border: '1px solid #f0f0f0', marginBottom: 8,
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: paletaMaterias[i % paletaMaterias.length], flexShrink: 0 }} />
+                                  <span style={{ fontSize: 13, fontWeight: 500 }}>{c.categoria}</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, flexShrink: 0 }}>
+                                  <span style={{ color: '#22c55e', fontWeight: 'bold' }}>✓ {c.correctas}</span>
+                                  <span style={{ color: '#ef4444', fontWeight: 'bold' }}>✕ {c.incorrectas}</span>
+                                  <span style={{ color: '#aaa' }}>{c.sinContestar} sin contestar</span>
+                                  <span style={{ width: 40, textAlign: 'right', fontWeight: 900 }}>{c.porcentaje}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="solo-impresion" style={{ display: 'none', marginTop: 20 }}>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }}>
+                            <div style={{ textAlign: 'right', fontSize: 10, color: '#888', maxWidth: 160 }}>
+                              Folio #{h.examenId}<br />Escanea para verificar la autenticidad
+                            </div>
+                            {urlQrAdmin && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={urlQrAdmin} alt="Código QR de verificación" style={{ width: 60, height: 60 }} />
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      {urlQrAdmin && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={urlQrAdmin} alt="Código QR de verificación" style={{ width: 60, height: 60 }} />
-                      )}
-                    </div>
-                  </div>
-                </div>
-                );
+                    );
                   })}
                 </>
               )}
