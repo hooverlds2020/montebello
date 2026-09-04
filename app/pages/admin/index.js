@@ -756,6 +756,19 @@ export default function AdminPage() {
     // lo demás) para que esté listo cuando de verdad le den clic al botón
     // de fórmula del editor, en vez de esperar a ese momento para pedirlo.
     asegurarKatexCargado();
+    // Si venimos de "← Volver a [alumno]" desde la vista de un intento
+    // individual, reabrimos directo la ficha de ese alumno en vez de
+    // resetear a la pantalla de Asignaturas.
+    try {
+      const idAlumnoVolver = sessionStorage.getItem('montebello_volver_alumno_id');
+      if (idAlumnoVolver) {
+        sessionStorage.removeItem('montebello_volver_alumno_id');
+        setVistaGeneral('alumnos');
+        verDetalleAlumno(idAlumnoVolver);
+      }
+    } catch (e) {
+      // sessionStorage inaccesible: sin problema, simplemente no se restaura
+    }
   }, []);
 
   // Si estábamos editando una pregunta y esa pregunta vive dentro de un grupo
@@ -2503,7 +2516,9 @@ export default function AdminPage() {
                   ← Volver a la lista
                 </button>
                 <button onClick={() => window.print()} style={btnStyle('primario', { borderRadius: 12, boxShadow: '0 1px 3px rgba(74,144,217,0.3)' })}>
-                  🖨️ Imprimir / Guardar PDF
+                  {mostrandoFicha
+                    ? '🖨️ Imprimir / Guardar PDF'
+                    : `🖨️ Imprimir historial completo (${detalleAlumno.historial.length} ${detalleAlumno.historial.length === 1 ? 'intento' : 'intentos'})`}
                 </button>
                 <div style={{ position: 'relative' }}>
                   <button
@@ -2845,6 +2860,29 @@ export default function AdminPage() {
                               <img src={urlQrAdmin} alt="Código QR de verificación" style={{ width: 60, height: 60 }} />
                             )}
                           </div>
+                        </div>
+
+                        <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 8, marginTop: 20, paddingTop: 16, borderTop: '1px solid #eee' }}>
+                          <Link
+                            href={`/admin/alumno/${detalleAlumno.alumno.id}/intento/${h.examenId}`}
+                            style={{
+                              flex: 1, height: 40, background: '#1f2937', color: '#fff', borderRadius: 12,
+                              fontSize: 13, fontWeight: 'bold', textDecoration: 'none',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                            }}
+                          >
+                            👁️ Ver detalle de este intento
+                          </Link>
+                          <Link
+                            href={`/admin/alumno/${detalleAlumno.alumno.id}/intento/${h.examenId}?imprimir=1`}
+                            style={{
+                              height: 40, padding: '0 16px', background: '#fff', border: '1px solid #ddd', borderRadius: 12,
+                              fontSize: 13, color: '#333', textDecoration: 'none', whiteSpace: 'nowrap',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}
+                          >
+                            🖨️ PDF solo este
+                          </Link>
                         </div>
                       </div>
                     );
