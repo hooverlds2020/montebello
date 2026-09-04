@@ -1929,8 +1929,9 @@ export default function AdminPage() {
       </aside>
 
       {/* CONTENIDO PRINCIPAL */}
-      <main className="admin-main" style={{ flex: 1, padding: 0, maxWidth: 1100, minWidth: 0 }}>
+      <main className="admin-main" style={{ flex: 1, padding: 0, minWidth: 0 }}>
         <div className="contenido-principal-fondo" style={{ background: '#f8fafc', padding: 24, minHeight: '100%' }}>
+        <div className="contenido-principal-centrado" style={{ maxWidth: 1280, margin: '0 auto' }}>
         <div
           className="header-materia-sticky"
           style={{ position: 'sticky', top: 0, background: '#f8fafc', zIndex: 15, paddingBottom: 12, marginBottom: 20 }}
@@ -2566,6 +2567,7 @@ export default function AdminPage() {
             </section>
           </div>
         )}
+        </div>
         </div>
       </main>
       </div>
