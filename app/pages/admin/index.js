@@ -499,6 +499,129 @@ export default function AdminPage() {
     setConfirmacion({ mensaje, onConfirmar });
   }
 
+  // Qué opción está expandida ahora mismo (solo una a la vez, en cualquiera
+  // de los dos editores — "carga rápida" y "editar pregunta existente").
+  // `clave` es un string único por opción, ej. "rapida-2-1" o "edit-1".
+  const [opcionExpandidaClave, setOpcionExpandidaClave] = useState(null);
+
+  // Card de una opción de respuesta, con dos estados: colapsada (fila
+  // compacta con el texto truncado a 1 línea) y expandida (toolbar +
+  // textarea completo + imagen). Reemplaza el layout viejo donde el editor
+  // de texto enriquecido y el campo de URL de imagen iban lado a lado —
+  // eso generaba scroll horizontal en pantallas angostas y hacía cada
+  // opción altísima (varias filas de toolbar repetidas).
+  function EditorOpcion({ clave, indice, opcion, esCorrecta, nombreGrupoRadio, onSeleccionar, onCambiarTexto, onCambiarImagen, onQuitar }) {
+    const expandido = opcionExpandidaClave === clave;
+    const alternarExpandido = () => setOpcionExpandidaClave(expandido ? null : clave);
+    const textoPlano = (opcion.texto || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+    const tieneImagen = !!(opcion.imagen_url && opcion.imagen_url.trim());
+
+    if (!expandido) {
+      return (
+        <div
+          onClick={alternarExpandido}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, minHeight: 52, padding: '6px 8px',
+            border: '1px solid #e0e0e0', borderRadius: 8, cursor: 'pointer', marginBottom: 6, background: '#fff',
+          }}
+        >
+          <input
+            type="radio"
+            name={nombreGrupoRadio}
+            checked={esCorrecta}
+            onClick={(e) => e.stopPropagation()}
+            onChange={onSeleccionar}
+            style={{ width: 22, height: 22, flexShrink: 0, accentColor: '#4a90d9' }}
+          />
+          <span
+            style={{
+              flex: 1, minWidth: 0, fontSize: 14, color: textoPlano ? '#333' : '#aaa',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}
+          >
+            {textoPlano || `Opción ${indice + 1} (vacía — puede ser solo imagen)`}
+          </span>
+          <span
+            title={tieneImagen ? 'Esta opción tiene imagen' : 'Sin imagen'}
+            style={{
+              width: 40, height: 40, flexShrink: 0, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 16, background: tieneImagen ? '#eaf3ff' : '#f5f5f5', color: tieneImagen ? '#4a90d9' : '#bbb',
+            }}
+          >
+            📷
+          </span>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onQuitar(); }}
+            title="Quitar esta opción"
+            style={{
+              width: 40, height: 40, flexShrink: 0, border: 'none', borderRadius: 8, cursor: 'pointer',
+              background: '#fdeceb', color: '#c0392b', fontSize: 16,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          border: '1px solid #90c0ee', borderRadius: 8, padding: 10, marginBottom: 6,
+          background: 'rgba(74,144,217,0.05)', boxShadow: '0 2px 8px rgba(74,144,217,0.12)',
+        }}
+      >
+        <div onClick={alternarExpandido} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 8 }}>
+          <input
+            type="radio"
+            name={nombreGrupoRadio}
+            checked={esCorrecta}
+            onClick={(e) => e.stopPropagation()}
+            onChange={onSeleccionar}
+            style={{ width: 22, height: 22, flexShrink: 0, accentColor: '#4a90d9' }}
+          />
+          <span style={{ flex: 1, fontSize: 13, fontWeight: 'bold', color: '#4a90d9' }}>
+            Opción {indice + 1} {esCorrecta && '· correcta'}
+          </span>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onQuitar(); }}
+            title="Quitar esta opción"
+            style={{ width: 32, height: 32, flexShrink: 0, border: 'none', borderRadius: 8, cursor: 'pointer', background: '#fdeceb', color: '#c0392b', fontSize: 14 }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style={{ background: '#fff', borderRadius: 6, marginBottom: 8 }}>
+          <ReactQuill
+            theme="snow"
+            value={opcion.texto}
+            onChange={onCambiarTexto}
+            modules={quillPreguntaModules}
+            formats={quillPreguntaFormats}
+            placeholder={`Opción ${indice + 1} — puede quedar vacía si la opción es solo imagen`}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <input
+            value={opcion.imagen_url || ''}
+            onChange={(e) => onCambiarImagen(e.target.value)}
+            placeholder="URL de imagen para esta opción (opcional)"
+            style={{ flex: 1, padding: 8, fontSize: 13, boxSizing: 'border-box' }}
+          />
+          <BotonSubirImagen onSubida={onCambiarImagen} />
+          {tieneImagen && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={opcion.imagen_url} alt="" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 6, border: '1px solid #eee', flexShrink: 0 }} />
+          )}
+        </div>
+      </div>
+    );
+  }
+
   async function cerrarSesionAdmin() {
     await fetch('/api/admin/logout', { method: 'POST' });
     router.push('/admin/login');
@@ -1042,6 +1165,12 @@ export default function AdminPage() {
     } else {
       copia[idxPregunta].opciones[idxOpcion][campo] = valor;
     }
+    setPreguntasRapidas(copia);
+  }
+
+  function quitarOpcionRapida(idxPregunta, idxOpcion) {
+    const copia = [...preguntasRapidas];
+    copia[idxPregunta].opciones = copia[idxPregunta].opciones.filter((_, i) => i !== idxOpcion);
     setPreguntasRapidas(copia);
   }
 
@@ -1863,33 +1992,18 @@ export default function AdminPage() {
                         <img src={p.imagen_url} alt="" style={{ maxWidth: 220, maxHeight: 140, display: 'block', marginBottom: 6, borderRadius: 4, border: '1px solid #eee' }} />
                       )}
                       {p.opciones.map((o, idxO) => (
-                        <div key={idxO} style={{ marginBottom: 4 }}>
-                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                            <input
-                              type="radio"
-                              name={`correcta-rapida-${idxP}`}
-                              checked={o.es_correcta}
-                              onChange={() => actualizarOpcionRapida(idxP, idxO, 'es_correcta', true)}
-                            />
-                            <div style={{ flex: 1, background: '#fff' }}>
-                              <ReactQuill
-                                theme="snow"
-                                value={o.texto}
-                                onChange={(html) => actualizarOpcionRapida(idxP, idxO, 'texto', html)}
-                                modules={quillPreguntaModules}
-                                formats={quillPreguntaFormats}
-                                placeholder={`Opción ${idxO + 1}`}
-                              />
-                            </div>
-                            <input
-                              value={o.imagen_url || ''}
-                              onChange={(e) => actualizarOpcionRapida(idxP, idxO, 'imagen_url', e.target.value)}
-                              style={{ flex: 1, padding: 6, fontSize: 12 }}
-                              placeholder="URL imagen (opcional)"
-                            />
-                            <BotonSubirImagen onSubida={(url) => actualizarOpcionRapida(idxP, idxO, 'imagen_url', url)} />
-                          </div>
-                        </div>
+                        <EditorOpcion
+                          key={idxO}
+                          clave={`rapida-${idxP}-${idxO}`}
+                          indice={idxO}
+                          opcion={o}
+                          esCorrecta={o.es_correcta}
+                          nombreGrupoRadio={`correcta-rapida-${idxP}`}
+                          onSeleccionar={() => actualizarOpcionRapida(idxP, idxO, 'es_correcta', true)}
+                          onCambiarTexto={(html) => actualizarOpcionRapida(idxP, idxO, 'texto', html)}
+                          onCambiarImagen={(url) => actualizarOpcionRapida(idxP, idxO, 'imagen_url', url)}
+                          onQuitar={() => quitarOpcionRapida(idxP, idxO)}
+                        />
                       ))}
                     </div>
                   ))}
@@ -2082,45 +2196,18 @@ export default function AdminPage() {
                             <img src={editImagenUrl} alt="" style={{ maxWidth: 220, maxHeight: 140, display: 'block', marginBottom: 8, borderRadius: 4, border: '1px solid #eee' }} />
                           )}
                           {editOpciones.map((o, i) => (
-                            <div key={i} style={{ marginBottom: 4 }}>
-                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                <input
-                                  type="radio"
-                                  name={`correcta-edit-${r.id}`}
-                                  checked={o.es_correcta}
-                                  onChange={() => actualizarOpcionEdit(i, 'es_correcta', true)}
-                                />
-                                <div style={{ flex: 1, background: '#fff' }}>
-                                  <ReactQuill
-                                    theme="snow"
-                                    value={o.texto}
-                                    onChange={(html) => actualizarOpcionEdit(i, 'texto', html)}
-                                    modules={quillPreguntaModules}
-                                    formats={quillPreguntaFormats}
-                                    placeholder={`Opción ${i + 1} — puede quedar vacía si la opción es solo imagen`}
-                                  />
-                                </div>
-                                <input
-                                  value={o.imagen_url || ''}
-                                  onChange={(e) => actualizarOpcionEdit(i, 'imagen_url', e.target.value)}
-                                  style={{ flex: 1, padding: 8, fontSize: 12 }}
-                                  placeholder="URL imagen (opcional)"
-                                />
-                                <BotonSubirImagen onSubida={(url) => actualizarOpcionEdit(i, 'imagen_url', url)} />
-                                <button
-                                  type="button"
-                                  onClick={() => quitarOpcionEdit(i)}
-                                  title="Quitar esta opción"
-                                  style={{ border: 'none', background: '#fdeceb', color: '#c0392b', cursor: 'pointer', borderRadius: 4, width: 26, height: 26, flexShrink: 0 }}
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                              {o.imagen_url && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={o.imagen_url} alt="" style={{ maxWidth: 160, maxHeight: 100, display: 'block', marginTop: 4, marginLeft: 26, borderRadius: 4, border: '1px solid #eee' }} />
-                              )}
-                            </div>
+                            <EditorOpcion
+                              key={i}
+                              clave={`edit-${r.id}-${i}`}
+                              indice={i}
+                              opcion={o}
+                              esCorrecta={o.es_correcta}
+                              nombreGrupoRadio={`correcta-edit-${r.id}`}
+                              onSeleccionar={() => actualizarOpcionEdit(i, 'es_correcta', true)}
+                              onCambiarTexto={(html) => actualizarOpcionEdit(i, 'texto', html)}
+                              onCambiarImagen={(url) => actualizarOpcionEdit(i, 'imagen_url', url)}
+                              onQuitar={() => quitarOpcionEdit(i)}
+                            />
                           ))}
                           <button type="button" onClick={agregarOpcionEdit} style={btnStyle('secundario', { marginBottom: 10, fontSize: 13 })}>
                             + Agregar opción
