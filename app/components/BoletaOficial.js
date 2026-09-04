@@ -66,6 +66,13 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
     ? new Date(fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })
     : '';
 
+  // Caso excepcional: un intento sin ninguna pregunta ligada (registro
+  // dañado/incompleto, típicamente de antes de que el armado del examen se
+  // volviera transaccional). En vez de mostrar "0%" — que se lee como
+  // "reprobó" cuando en realidad no hay nada que calificar — se avisa
+  // claramente que ese folio no tiene datos.
+  const sinDatos = totalSeguro === 0;
+
   return (
     <div id="boleta-print" style={{ maxWidth: 780, margin: '0 auto', background: '#fff', padding: 28 }}>
       {/* Encabezado: logo + instituto a la izquierda, alumno + folio a la derecha */}
@@ -98,6 +105,26 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
         </div>
       )}
 
+      {sinDatos ? (
+        <div style={{ textAlign: 'center', padding: '32px 16px', marginBottom: 8 }}>
+          <div
+            style={{
+              width: 56, height: 56, borderRadius: '50%', background: '#fffbeb',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
+              margin: '0 auto 14px',
+            }}
+          >
+            ⚠️
+          </div>
+          <h2 style={{ margin: 0, fontSize: 16, fontWeight: 'bold', color: '#0d3b66' }}>Este folio no tiene datos para mostrar</h2>
+          <p style={{ margin: '8px auto 0', fontSize: 12, color: '#888', maxWidth: 340, lineHeight: 1.5 }}>
+            El folio #{folio} quedó registrado sin preguntas ligadas, así que no hay nada que calificar. No representa
+            un resultado de 0% — simplemente no se guardó información para este intento. Contacta al instituto si
+            necesitas revisar este caso.
+          </p>
+        </div>
+      ) : (
+      <>
       <h2 style={{ textAlign: 'center', fontSize: 15, fontWeight: 'bold', margin: '0 0 4px 0' }}>Resultado general</h2>
       <p style={{ textAlign: 'center', fontSize: 11, color: '#888', margin: '0 0 20px 0' }}>
         De <strong>{totalSeguro} preguntas</strong>, acertó <strong>{correctasSeguras}</strong> · Así se obtiene el {porcentajeSeguro}%
@@ -185,6 +212,8 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
       <p style={{ textAlign: 'center', fontSize: 9, color: '#aaa', margin: '4px 0 24px 0' }}>
         El porcentaje total es el promedio de aciertos. No cuenta salidas de pantalla.
       </p>
+      </>
+      )}
 
       {/* Pie: datos reales de contacto del instituto + QR de verificación */}
       <div style={{ borderTop: '1px solid #ddd', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16 }}>
