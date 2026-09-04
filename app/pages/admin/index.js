@@ -1173,6 +1173,7 @@ export default function AdminPage() {
   }
   const gruposReactivos = agruparPorLectura(reactivos);
   const [gruposAbiertos, setGruposAbiertos] = useState({});
+  const [menuLecturaAbiertaClave, setMenuLecturaAbiertaClave] = useState(null);
   function toggleGrupo(clave) {
     setGruposAbiertos((prev) => ({ ...prev, [clave]: !prev[clave] }));
     // Si al plegar/desplegar el grupo hay un formulario de "Editar lectura" abierto
@@ -1913,33 +1914,98 @@ export default function AdminPage() {
               {gruposReactivos.map((grupo) => {
                 const abierto = !!gruposAbiertos[grupo.clave];
                 return (
-                <div key={grupo.clave} style={{ marginBottom: 20 }}>
+                <div key={grupo.clave} style={{ marginBottom: 14 }}>
                   <div
                     onClick={() => toggleGrupo(grupo.clave)}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f0f4fa', padding: '6px 10px', borderRadius: 6, cursor: 'pointer', userSelect: 'none' }}
+                    className="card-lectura"
+                    style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10,
+                      background: '#f7f8fa', padding: 16, borderRadius: 10, cursor: 'pointer', userSelect: 'none',
+                      opacity: grupo.activa ? 1 : 0.6,
+                    }}
                   >
-                    <h3 style={{ fontSize: 15, margin: 0, flex: 1, opacity: grupo.activa ? 1 : 0.5 }}>
-                      <span style={{ display: 'inline-block', width: 16 }}>{abierto ? '▼' : '▶'}</span>
-                      {grupo.titulo ? `📖 ${grupo.titulo}` : 'Sin lectura asociada'} — {grupo.items.length} pregunta(s)
-                      {grupo.clave !== 'sin-lectura' && !grupo.activa && (
-                        <span style={{ marginLeft: 8, fontSize: 11, color: '#c0392b', fontWeight: 'bold' }}>DESHABILITADA</span>
-                      )}
-                    </h3>
+                    <div style={{ display: 'flex', gap: 10, flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 20, lineHeight: '24px', flexShrink: 0, color: '#4a90d9' }}>{abierto ? '▼' : '▶'}</span>
+                      <div style={{ minWidth: 0 }}>
+                        <h3
+                          style={{
+                            fontSize: 15, fontWeight: 600, margin: 0, color: '#222',
+                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                          }}
+                        >
+                          {grupo.titulo ? `📖 ${grupo.titulo}` : 'Sin lectura asociada'}
+                        </h3>
+                        <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, fontSize: 12, color: '#777' }}>
+                          <span>{grupo.items.length} pregunta{grupo.items.length === 1 ? '' : 's'}</span>
+                          {grupo.clave !== 'sin-lectura' && (
+                            <span
+                              style={{
+                                padding: '2px 8px', borderRadius: 999, fontWeight: 'bold', fontSize: 11,
+                                background: grupo.activa ? '#e3f6e8' : '#fdeceb',
+                                color: grupo.activa ? '#1e7d34' : '#c0392b',
+                              }}
+                            >
+                              {grupo.activa ? 'Habilitada' : 'Deshabilitada'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
                     {grupo.clave !== 'sin-lectura' && (
-                      <div style={{ display: 'flex', gap: 6 }}>
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
                         <button
-                          onClick={(e) => { e.stopPropagation(); toggleLecturaActiva(grupo.clave, grupo.activa); }}
-                          title={grupo.activa ? 'Deshabilitar (no se usará en el examen)' : 'Habilitar'}
-                          style={btnStyle('secundario', { fontSize: 12, padding: '4px 10px' })}
+                          onClick={(e) => { e.stopPropagation(); setMenuLecturaAbiertaClave(menuLecturaAbiertaClave === grupo.clave ? null : grupo.clave); }}
+                          title="Más opciones"
+                          aria-haspopup="true"
+                          aria-expanded={menuLecturaAbiertaClave === grupo.clave}
+                          style={{
+                            width: 44, height: 44, border: 'none', background: 'transparent', cursor: 'pointer',
+                            fontSize: 20, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}
                         >
-                          {grupo.activa ? '🔓 Habilitada' : '🔒 Deshabilitada'}
+                          ⋮
                         </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); iniciarEdicionLectura(grupo.clave); }}
-                          style={btnStyle('secundario', { fontSize: 12, padding: '4px 10px' })}
-                        >
-                          ✏️ Editar lectura
-                        </button>
+                        {menuLecturaAbiertaClave === grupo.clave && (
+                          <>
+                            <div
+                              onClick={(e) => { e.stopPropagation(); setMenuLecturaAbiertaClave(null); }}
+                              style={{ position: 'fixed', inset: 0, zIndex: 20 }}
+                            />
+                            <div
+                              style={{
+                                position: 'absolute', top: '100%', right: 0, marginTop: 2, zIndex: 21,
+                                background: '#fff', border: '1px solid #ddd', borderRadius: 8,
+                                boxShadow: '0 4px 14px rgba(0,0,0,0.12)', minWidth: 190, overflow: 'hidden',
+                              }}
+                            >
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setMenuLecturaAbiertaClave(null); toggleGrupo(grupo.clave); }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, color: '#333' }}
+                              >
+                                {abierto ? '🔽 Cerrar preguntas' : '▶️ Ver preguntas'}
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setMenuLecturaAbiertaClave(null); iniciarEdicionLectura(grupo.clave); }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', fontSize: 14, color: '#333' }}
+                              >
+                                ✏️ Editar lectura
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setMenuLecturaAbiertaClave(null); toggleLecturaActiva(grupo.clave, grupo.activa); }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', fontSize: 14, color: '#333' }}
+                              >
+                                {grupo.activa ? '🔒 Cambiar a Deshabilitada' : '🔓 Cambiar a Habilitada'}
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setMenuLecturaAbiertaClave(null); borrarLectura(grupo.clave); }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', fontSize: 14, color: '#c0392b' }}
+                              >
+                                🗑️ Eliminar
+                              </button>
+                            </div>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
