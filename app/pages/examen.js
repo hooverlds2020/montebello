@@ -64,6 +64,12 @@ export default function Examen() {
   const [modalFinalizar, setModalFinalizar] = useState(null); // { faltan } o null: confirmación propia (no window.confirm) al finalizar con preguntas pendientes
   const [modalTerminado, setModalTerminado] = useState(false); // true cuando ya contestó todas y le ofrecemos finalizar
   const [mapaAbiertoMovil, setMapaAbiertoMovil] = useState(false); // ventana emergente del mapa en celular
+  // Posición de la burbuja flotante del mapa en móvil (arrastrable con el
+  // dedo, como el burbujeo de Messenger). Se guarda en localStorage para
+  // que la próxima vez que entre al examen se acuerde dónde la dejó.
+  const [burbujaPos, setBurbujaPos] = useState({ right: 20, bottom: 90 });
+  const burbujaPosRef = useRef(burbujaPos);
+  const arrastreRef = useRef({ activo: false, movida: false, inicioX: 0, inicioY: 0 });
   const [avisoSalidaPantalla, setAvisoSalidaPantalla] = useState(false); // banner al regresar de cambiar de pestaña/app
 
   const router = useRouter();
@@ -90,6 +96,17 @@ export default function Examen() {
         setInstruccionesExamen(data.instrucciones || null);
       })
       .catch(() => {}); // si falla, se queda con los valores por defecto
+
+    try {
+      const guardada = localStorage.getItem('montebello_burbuja_pos');
+      if (guardada) {
+        const pos = JSON.parse(guardada);
+        setBurbujaPos(pos);
+        burbujaPosRef.current = pos;
+      }
+    } catch (e) {
+      // sin problema, se queda en la posición por defecto
+    }
   }, []);
 
   async function cargarHistorial() {
@@ -392,6 +409,41 @@ export default function Examen() {
     );
   }
 
+  // Arrastre de la burbuja flotante del mapa en móvil (Pointer Events sirve
+  // tanto para dedo/touch como mouse). Distingue "toco para abrir el mapa"
+  // de "arrastro para moverla": si el dedo se movió más de unos pocos
+  // pixeles, se cuenta como arrastre y el click de apertura no se dispara.
+  function iniciarArrastreBurbuja(e) {
+    arrastreRef.current = { activo: true, movida: false, inicioX: e.clientX, inicioY: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+  function moverBurbuja(e) {
+    if (!arrastreRef.current.activo) return;
+    const dx = e.clientX - arrastreRef.current.inicioX;
+    const dy = e.clientY - arrastreRef.current.inicioY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) arrastreRef.current.movida = true;
+    if (!arrastreRef.current.movida) return;
+    const tam = 56;
+    const margen = 8;
+    const nuevaRight = Math.min(
+      window.innerWidth - tam - margen,
+      Math.max(margen, window.innerWidth - e.clientX - tam / 2)
+    );
+    const nuevaBottom = Math.min(
+      window.innerHeight - tam - margen,
+      Math.max(margen, window.innerHeight - e.clientY - tam / 2)
+    );
+    const nuevaPos = { right: nuevaRight, bottom: nuevaBottom };
+    burbujaPosRef.current = nuevaPos;
+    setBurbujaPos(nuevaPos);
+  }
+  function soltarBurbuja() {
+    if (arrastreRef.current.movida) {
+      try { localStorage.setItem('montebello_burbuja_pos', JSON.stringify(burbujaPosRef.current)); } catch (e) {}
+    }
+    arrastreRef.current.activo = false;
+  }
+
   // Arma la lista de materias/lecturas/circulitos del mapa de preguntas.
   // Recibe qué "ref" usar para el circulito activo (uno para el panel de
   // escritorio, otro para el modal de móvil, nunca los dos montados a la
@@ -451,8 +503,31 @@ export default function Examen() {
     const posicionActual = flatList.findIndex((i) => i.examenReactivoId === pregunta.examenReactivoId) + 1;
 
     return (
-      <div style={{ maxWidth: pregunta.lectura ? 980 : 860, margin: '40px auto', fontFamily: 'sans-serif', padding: 24, display: 'flex', gap: 24, alignItems: 'stretch', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 480px', minWidth: 0 }}>
+      <div style={{ maxWidth: pregunta.lectura ? 1400 : 860, margin: '40px auto', fontFamily: 'sans-serif', padding: 24, display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        {pregunta.lectura && (
+          <div className="columna-lectura" style={{ flex: '1 1 400px', minWidth: 0, order: 1 }}>
+            {pregunta.lectura.instruccion && (
+              <div style={{ background: '#eaf2fb', border: '1px solid #cfe0f5', borderRadius: 8, padding: '12px 16px', marginBottom: 14, fontSize: 14, color: '#2a5f9e', lineHeight: 1.5 }}>{renderizarHTMLconMatematicas(pregunta.lectura.instruccion)}</div>
+            )}
+            <div className="panel-lectura" style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 20 }}>
+              {pregunta.lectura.titulo && (
+                <h2 style={{ textAlign: 'center', fontSize: 18, marginBottom: 4 }}>{pregunta.lectura.titulo}</h2>
+              )}
+              {pregunta.lectura.subtitulo && (
+                <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#666', fontSize: 14, marginBottom: 16 }}>
+                  {pregunta.lectura.subtitulo}
+                </p>
+              )}
+              {pregunta.lectura.imagenUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={pregunta.lectura.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16, display: 'block' }} />
+              )}
+              <div style={{ fontSize: 15, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{renderizarHTMLconMatematicas(pregunta.lectura.texto)}</div>
+            </div>
+          </div>
+        )}
+
+        <div style={{ flex: '1 1 480px', minWidth: 0, order: 2 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, color: '#666', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
             <span>{pregunta.categoria}</span>
             {totalPreguntas > 0 && <span>Pregunta {posicionActual} de {totalPreguntas}</span>}
@@ -505,28 +580,6 @@ export default function Examen() {
             </div>
           )}
 
-          {pregunta.lectura && pregunta.lectura.instruccion && (
-            <div style={{ background: '#eaf2fb', border: '1px solid #cfe0f5', borderRadius: 8, padding: '12px 16px', marginBottom: 14, fontSize: 14, color: '#2a5f9e', lineHeight: 1.5 }}>{renderizarHTMLconMatematicas(pregunta.lectura.instruccion)}</div>
-          )}
-
-          {pregunta.lectura && (
-            <div className="panel-lectura" style={{ background: '#fafafa', border: '1px solid #e5e5e5', borderRadius: 8, padding: 20, marginBottom: 20 }}>
-              {pregunta.lectura.titulo && (
-                <h2 style={{ textAlign: 'center', fontSize: 18, marginBottom: 4 }}>{pregunta.lectura.titulo}</h2>
-              )}
-              {pregunta.lectura.subtitulo && (
-                <p style={{ textAlign: 'center', fontStyle: 'italic', color: '#666', fontSize: 14, marginBottom: 16 }}>
-                  {pregunta.lectura.subtitulo}
-                </p>
-              )}
-              {pregunta.lectura.imagenUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={pregunta.lectura.imagenUrl} alt="" style={{ maxWidth: '100%', marginBottom: 16, display: 'block' }} />
-              )}
-              <div style={{ fontSize: 15, lineHeight: 1.6 }}>{renderizarHTMLconMatematicas(pregunta.lectura.texto)}</div>
-            </div>
-          )}
-
           <div style={{ border: '1px solid #e0e0e0', borderRadius: 10, padding: '20px 22px', background: '#fff', marginBottom: 12 }}>
             <div style={{ fontSize: 17, marginBottom: 16, lineHeight: 1.5 }}>{renderizarHTMLconMatematicas(pregunta.pregunta)}</div>
             {pregunta.imagenUrl && (
@@ -574,7 +627,7 @@ export default function Examen() {
             oculta en pantallas angostas (ver .panel-mapa-escritorio en el
             <style> de más abajo) porque ahí es mejor un botón flotante que
             no le quite espacio a la pregunta. */}
-        <div className="panel-mapa-escritorio" style={{ width: 220, flexShrink: 0 }}>
+        <div className="panel-mapa-escritorio" style={{ width: 220, flexShrink: 0, order: 3 }}>
           <div
             ref={mapaScrollRef}
             style={{
@@ -599,18 +652,21 @@ export default function Examen() {
             de avance, que abre el mapa completo como ventana emergente
             desde abajo, en vez de ocupar espacio fijo en pantallas
             angostas donde cada pixel de alto importa. */}
-        <button
+        <div
           className="boton-mapa-movil"
-          onClick={() => setMapaAbiertoMovil(true)}
+          onClick={() => { if (!arrastreRef.current.movida) setMapaAbiertoMovil(true); }}
+          onPointerDown={iniciarArrastreBurbuja}
+          onPointerMove={moverBurbuja}
+          onPointerUp={soltarBurbuja}
           style={{
-            display: 'none', position: 'fixed', bottom: 20, right: 20, zIndex: 900,
-            background: '#0d3b66', color: '#fff', border: 'none', borderRadius: 30,
-            padding: '12px 18px', fontSize: 14, fontWeight: 600, boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
-            cursor: 'pointer', alignItems: 'center', gap: 8,
+            display: 'none', position: 'fixed', right: burbujaPos.right, bottom: burbujaPos.bottom, zIndex: 900,
+            background: '#0d3b66', color: '#fff', border: 'none', borderRadius: '50%',
+            width: 56, height: 56, fontSize: 13, fontWeight: 700, boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+            cursor: 'grab', alignItems: 'center', justifyContent: 'center', touchAction: 'none', userSelect: 'none',
           }}
         >
-          🗺️ {aplanarMapa(mapa).filter((i) => i.respondida).length}/{aplanarMapa(mapa).length}
-        </button>
+          {aplanarMapa(mapa).filter((i) => i.respondida).length}/{aplanarMapa(mapa).length}
+        </div>
 
         {mapaAbiertoMovil && (
           <div
@@ -736,10 +792,29 @@ export default function Examen() {
               padding-right: 32px !important;
             }
           }
-          /* Mapa de preguntas: panel fijo en pantallas anchas, botón
-             flotante + ventana emergente en pantallas angostas (celular Y
-             tablet en vertical — normalmente ~768-820px de ancho, donde el
-             panel lateral de 220px ya no cabe cómodo junto al contenido). */
+          /* Escritorio de verdad (≥1100px, hay espacio para las 3 columnas
+             lectura + pregunta + mapa a la vez, como el EXANI oficial): la
+             lectura deja de tener su cajita chica con scroll interno y en
+             vez de eso toda su columna es la que hace scroll, fija en su
+             lugar mientras te mueves por las preguntas. */
+          @media (min-width: 1100px) {
+            .columna-lectura {
+              position: sticky;
+              top: 20px;
+              align-self: flex-start;
+              max-height: calc(100vh - 40px);
+              overflow-y: auto;
+            }
+            .panel-lectura {
+              max-height: none !important;
+              overflow-y: visible !important;
+            }
+          }
+          /* Mapa de preguntas: panel fijo en pantallas anchas, burbuja
+             flotante arrastrable + ventana emergente en pantallas angostas
+             (celular Y tablet en vertical — normalmente ~768-820px de
+             ancho, donde el panel lateral de 220px ya no cabe cómodo junto
+             al contenido). */
           @media (max-width: 820px) {
             .panel-mapa-escritorio {
               display: none !important;
