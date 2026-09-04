@@ -79,13 +79,19 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
         </div>
       )}
 
-      <h2 style={{ textAlign: 'center', fontSize: 15, fontWeight: 'bold', margin: '0 0 20px 0' }}>Detalle del intento</h2>
+      <h2 style={{ textAlign: 'center', fontSize: 15, fontWeight: 'bold', margin: '0 0 4px 0' }}>Resultado general</h2>
+      <p style={{ textAlign: 'center', fontSize: 11, color: '#888', margin: '0 0 20px 0' }}>
+        De {total} preguntas, acertó {correctas}. El porcentaje es aciertos ÷ {total}.
+      </p>
 
       {/* Dona: solo pinta las materias con aciertos (>0%); el resto queda
           gris, sin segmento ni etiqueta, para no confundir con "algo que sí
-          se contó" cuando en realidad fueron 0 aciertos. */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-        <div style={{ position: 'relative', width: 170, height: 170 }}>
+          se contó" cuando en realidad fueron 0 aciertos. Junto a la dona va
+          una leyenda en lenguaje llano (no técnico) para que un papá que
+          nunca ha visto el sistema entienda la gráfica sin que nadie se la
+          tenga que explicar por teléfono. */}
+      <div className="boleta-dona-leyenda" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 32, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', width: 170, height: 170, flexShrink: 0 }}>
           <div
             style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
@@ -99,7 +105,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
             }}
           >
             <span style={{ fontSize: 30, fontWeight: 900, lineHeight: 1 }}>{porcentaje}%</span>
-            <span style={{ fontSize: 11, color: '#999', marginTop: 3 }}>{correctas} de {total}</span>
+            <span style={{ fontSize: 11, color: '#999', marginTop: 3 }}>{correctas} de {total} aciertos</span>
             <span
               style={{
                 marginTop: 5, fontSize: 9, fontWeight: 'bold', padding: '2px 8px', borderRadius: 999,
@@ -107,34 +113,57 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
                 border: `1px solid ${aprobado ? '#c8ecd3' : '#fecaca'}`,
               }}
             >
-              {aprobado ? 'Aprobado' : 'No aprobado'} · umbral {umbral}%
+              {aprobado ? 'Aprobado' : 'Requiere nivelación'} · umbral {umbral}%
             </span>
+          </div>
+        </div>
+
+        <div style={{ fontSize: 11, maxWidth: 220 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#0d3b66', flexShrink: 0 }} />
+            Aciertos: {correctas}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#e5e7eb', border: '1px solid #ccc', flexShrink: 0 }} />
+            Por mejorar: {total - correctas}
+          </div>
+          <div style={{ marginTop: 12, background: '#fafbfc', border: '1px solid #eee', borderRadius: 8, padding: 10, fontSize: 10, lineHeight: 1.5, color: '#666' }}>
+            <strong style={{ color: '#333' }}>¿Cómo se lee?</strong><br />
+            Si el círculo está gris es que hubo pocas respuestas correctas. Los colores solo aparecen donde hubo aciertos en esa materia.
           </div>
         </div>
       </div>
 
-      {/* Materias: fila con borde de color a la izquierda (mismo color que
-          su segmento en la dona), aciertos/errores/sin contestar y % */}
-      <div style={{ maxWidth: 460, margin: '0 auto 24px' }}>
-        {porCategoria.map((c, i) => (
-          <div
-            key={c.categoria}
-            style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
-              background: '#fafbfc', borderLeft: `4px solid ${PALETA_MATERIAS[i % PALETA_MATERIAS.length]}`,
-              borderRadius: 8, padding: '8px 12px', marginBottom: 8,
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 'bold' }}>{c.categoria}</p>
-              <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#777' }}>
-                ✅ {c.correctas} · ❌ {c.incorrectas} · ☐ {c.sinContestar} sin contestar
-              </p>
+      {/* Materias en lenguaje llano: sin símbolos ✓/✕/☐, solo "X de Y
+          aciertos" y el % — así se entiende sin necesitar leyenda aparte. */}
+      <div style={{ maxWidth: 460, margin: '0 auto 8px' }}>
+        <p style={{ fontSize: 11, fontWeight: 'bold', color: '#555', textAlign: 'center', margin: '0 0 10px 0' }}>Desglose por materia</p>
+        {porCategoria.map((c, i) => {
+          const totalMateria = c.correctas + c.incorrectas + c.sinContestar;
+          return (
+            <div
+              key={c.categoria}
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+                background: '#fafbfc', borderLeft: `4px solid ${c.porcentaje > 0 ? PALETA_MATERIAS[i % PALETA_MATERIAS.length] : '#d1d5db'}`,
+                borderRadius: 8, padding: '10px 12px', marginBottom: 8,
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 'bold' }}>{c.categoria.replace('›', '·')}</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#777' }}>
+                  {c.correctas} de {totalMateria} aciertos · {c.porcentaje > 0 ? `${c.porcentaje}% de avance` : 'Aún por reforzar'}
+                </p>
+              </div>
+              <span style={{ fontSize: 15, fontWeight: 900, flexShrink: 0, minWidth: 34, textAlign: 'right' }}>{c.porcentaje}%</span>
             </div>
-            <span style={{ fontSize: 15, fontWeight: 900, flexShrink: 0 }}>{c.porcentaje}%</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      <p style={{ textAlign: 'center', fontSize: 9, color: '#aaa', margin: '4px 0 24px 0' }}>
+        El porcentaje total es el promedio de aciertos. No cuenta salidas de pantalla.
+      </p>
 
       {/* Pie: datos reales de contacto del instituto + QR de verificación */}
       <div style={{ borderTop: '1px solid #ddd', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16 }}>
@@ -180,6 +209,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
           .boleta-titulo { font-size: 12px !important; }
           .boleta-subtitulo { font-size: 8px !important; }
           .boleta-qr-caja { width: 60px !important; height: 60px !important; }
+          .boleta-dona-leyenda { gap: 16px !important; }
         }
       `}</style>
     </div>
