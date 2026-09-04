@@ -72,119 +72,152 @@ export default function Registro() {
     router.push('/examen');
   }
 
-  const estiloInput = { display: 'block', width: '100%', padding: 10, marginBottom: 4, boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 6 };
-  const estiloInputError = { ...estiloInput, border: '1px solid #c0392b' };
+  const estiloInput = {
+    display: 'block', width: '100%', height: 44, padding: '0 16px', marginBottom: 4,
+    boxSizing: 'border-box', border: '1px solid #e5e7eb', borderRadius: 12,
+    background: '#fafbfc', fontSize: 14,
+  };
+  const estiloInputError = { ...estiloInput, border: '1px solid #c0392b', background: '#fff' };
   const estiloErrorCampo = { color: '#c0392b', fontSize: 12, margin: '0 0 10px 2px' };
 
   return (
-    <div style={{ maxWidth: 380, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
-      <h1 style={{ fontSize: 22, textAlign: 'center' }}>Crear cuenta</h1>
-      <p style={{ textAlign: 'center', color: '#666', marginBottom: 24 }}>Examen de diagnóstico</p>
+    <div style={{ background: '#f8fafc', minHeight: '100vh' }}>
+      <div style={{ maxWidth: 420, margin: '0 auto', padding: '56px 24px', fontFamily: 'sans-serif' }}>
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/logo-montebello-icono.webp" alt="" style={{ width: 48, height: 'auto', margin: '0 auto 12px' }} />
+          <h1 style={{ fontSize: 22, fontWeight: 'bold', color: '#0f2a44', margin: 0 }}>Crear cuenta</h1>
+          <p style={{ color: '#888', fontSize: 13, margin: '4px 0 0 0' }}>Examen de diagnóstico</p>
+        </div>
 
-      <form onSubmit={handleSubmit} noValidate>
-        <input
-          placeholder="Nombre y apellido"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          required
-          autoComplete="name"
-          style={{ ...estiloInput, marginBottom: 10 }}
-        />
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          onBlur={() => marcarTocado('email')}
-          required
-          autoComplete="email"
-          inputMode="email"
-          aria-invalid={tocado.email && !emailValido}
-          style={tocado.email && !emailValido ? estiloInputError : { ...estiloInput, marginBottom: 10 }}
-        />
-        {tocado.email && !emailValido && (
-          <p style={estiloErrorCampo}>Ese correo no parece válido (ej. nombre@correo.com)</p>
-        )}
-        <input
-          type="tel"
-          placeholder="Teléfono"
-          value={telefono}
-          onChange={(e) => setTelefono(e.target.value)}
-          required
-          autoComplete="tel"
-          inputMode="tel"
-          style={{ ...estiloInput, marginBottom: 10 }}
-        />
-        <input
-          placeholder="Escuela de procedencia"
-          value={preparatoriaProcedencia}
-          onChange={(e) => setPreparatoriaProcedencia(e.target.value)}
-          required
-          autoComplete="organization"
-          style={{ ...estiloInput, marginBottom: 10 }}
-        />
-        <input
-          type="password"
-          placeholder="Contraseña (mínimo 6 caracteres)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onBlur={() => marcarTocado('password')}
-          required
-          minLength={6}
-          autoComplete="new-password"
-          style={estiloInput}
-        />
-        {password && (
-          <div style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  style={{
-                    height: 4, flex: 1, borderRadius: 2,
-                    background: i < fuerza.puntos ? fuerza.color : '#eee',
-                  }}
-                />
-              ))}
-            </div>
-            <span style={{ fontSize: 12, color: fuerza.color }}>
-              Seguridad: {fuerza.etiqueta}
-              {password.length < 6 && ' — falta llegar al mínimo de 6 caracteres'}
-            </span>
-          </div>
-        )}
-        <input
-          type="password"
-          placeholder="Confirma tu contraseña"
-          value={password2}
-          onChange={(e) => setPassword2(e.target.value)}
-          onBlur={() => marcarTocado('password2')}
-          required
-          autoComplete="new-password"
-          aria-invalid={tocado.password2 && !passwordsCoinciden}
-          style={tocado.password2 && !passwordsCoinciden ? estiloInputError : { ...estiloInput, marginBottom: 10 }}
-        />
-        {tocado.password2 && !passwordsCoinciden && (
-          <p style={estiloErrorCampo}>Las contraseñas no coinciden</p>
-        )}
-        <button
-          type="submit"
-          disabled={cargando}
-          aria-busy={cargando}
-          style={{
-            width: '100%', padding: 10, background: cargando ? '#8fb6de' : '#4a90d9', color: '#fff',
-            border: 'none', borderRadius: 6, cursor: cargando ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {cargando ? 'Creando cuenta...' : 'Crear cuenta'}
-        </button>
-      </form>
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 28, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <form onSubmit={handleSubmit} noValidate>
+            <input
+              placeholder="Nombre y apellido"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              required
+              autoComplete="name"
+              className="input-registro-premium"
+              style={{ ...estiloInput, marginBottom: 12 }}
+            />
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => marcarTocado('email')}
+              required
+              autoComplete="email"
+              inputMode="email"
+              aria-invalid={tocado.email && !emailValido}
+              className="input-registro-premium"
+              style={tocado.email && !emailValido ? estiloInputError : { ...estiloInput, marginBottom: 12 }}
+            />
+            {tocado.email && !emailValido && (
+              <p style={estiloErrorCampo}>Ese correo no parece válido (ej. nombre@correo.com)</p>
+            )}
+            <input
+              type="tel"
+              placeholder="Teléfono"
+              value={telefono}
+              onChange={(e) => setTelefono(e.target.value)}
+              required
+              autoComplete="tel"
+              inputMode="tel"
+              className="input-registro-premium"
+              style={{ ...estiloInput, marginBottom: 12 }}
+            />
+            <input
+              placeholder="Escuela de procedencia"
+              value={preparatoriaProcedencia}
+              onChange={(e) => setPreparatoriaProcedencia(e.target.value)}
+              required
+              autoComplete="organization"
+              className="input-registro-premium"
+              style={{ ...estiloInput, marginBottom: 12 }}
+            />
+            <input
+              type="password"
+              placeholder="Contraseña (mínimo 6 caracteres)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onBlur={() => marcarTocado('password')}
+              required
+              minLength={6}
+              autoComplete="new-password"
+              className="input-registro-premium"
+              style={estiloInput}
+            />
+            {password && (
+              <div style={{ marginBottom: 12, marginTop: 6 }}>
+                <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+                  {[0, 1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      style={{
+                        height: 4, flex: 1, borderRadius: 2,
+                        background: i < fuerza.puntos ? fuerza.color : '#eee',
+                      }}
+                    />
+                  ))}
+                </div>
+                <span style={{ fontSize: 12, color: fuerza.color }}>
+                  Seguridad: {fuerza.etiqueta}
+                  {password.length < 6 && ' — falta llegar al mínimo de 6 caracteres'}
+                </span>
+              </div>
+            )}
+            <input
+              type="password"
+              placeholder="Confirma tu contraseña"
+              value={password2}
+              onChange={(e) => setPassword2(e.target.value)}
+              onBlur={() => marcarTocado('password2')}
+              required
+              autoComplete="new-password"
+              aria-invalid={tocado.password2 && !passwordsCoinciden}
+              className="input-registro-premium"
+              style={tocado.password2 && !passwordsCoinciden ? estiloInputError : { ...estiloInput, marginBottom: 12 }}
+            />
+            {tocado.password2 && !passwordsCoinciden && (
+              <p style={estiloErrorCampo}>Las contraseñas no coinciden</p>
+            )}
+            <button
+              type="submit"
+              disabled={cargando}
+              aria-busy={cargando}
+              className="boton-registro-premium"
+              style={{
+                width: '100%', height: 44, marginTop: 8, background: cargando ? '#7c8fa0' : '#0f2a44', color: '#fff',
+                border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: cargando ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {cargando ? 'Creando cuenta...' : 'Crear cuenta'}
+            </button>
+          </form>
 
-      {error && <p style={{ color: '#c0392b', marginTop: 10 }}>{error}</p>}
+          {error && <p style={{ color: '#c0392b', fontSize: 13, marginTop: 12, marginBottom: 0 }}>{error}</p>}
+        </div>
 
-      <div style={{ marginTop: 16, textAlign: 'center', fontSize: 14 }}>
-        ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
+        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: '#666' }}>
+          ¿Ya tienes cuenta? <Link href="/login" style={{ color: '#0f2a44', fontWeight: 600 }}>Inicia sesión</Link>
+        </div>
       </div>
+
+      <style jsx global>{`
+        .input-registro-premium {
+          outline: none;
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .input-registro-premium:focus {
+          border-color: #0f2a44 !important;
+          box-shadow: 0 0 0 3px rgba(15,42,68,0.12);
+        }
+        .boton-registro-premium:hover:not(:disabled) {
+          background: #162f4a !important;
+        }
+      `}</style>
     </div>
   );
 }
