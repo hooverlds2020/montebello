@@ -113,16 +113,16 @@ export default function IntentoIndividual() {
       {/* Esta es la boleta tal cual — lo único que se imprime. Todo lo de
           arriba (Volver / Imprimir) tiene className="no-print" y desaparece
           al imprimir. */}
-      <div id="boleta" style={{ maxWidth: 780, margin: '20px auto 40px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28 }}>
+      <div id="boleta" className="boleta-card" style={{ maxWidth: 780, margin: '20px auto 40px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28 }}>
         {/* Encabezado con logo, nombre del instituto, datos del alumno y QR */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, borderBottom: '3px solid #0d3b66', paddingBottom: 16, marginBottom: 20 }}>
-          <div style={{ display: 'flex', gap: 12 }}>
+        <div className="boleta-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, borderBottom: '3px solid #0d3b66', paddingBottom: 16, marginBottom: 20 }}>
+          <div className="boleta-header-izq" style={{ display: 'flex', gap: 12, flex: 1, minWidth: 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/img/logo-montebello-icono.webp" alt="" style={{ width: 48, height: 'auto', flexShrink: 0 }} />
-            <div>
-              <h1 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#0d3b66', letterSpacing: 0.3 }}>INSTITUTO EDUCATIVO MONTEBELLO</h1>
-              <p style={{ margin: '3px 0 0 0', fontSize: 10, fontWeight: 'bold', color: '#555', letterSpacing: 0.5 }}>DIAGNÓSTICO DE ADMISIÓN — RESULTADO OFICIAL</p>
-              <p style={{ margin: '6px 0 0 0', fontSize: 12, color: '#333' }}>
+            <img src="/img/logo-montebello-icono.webp" alt="" className="boleta-logo" style={{ width: 48, height: 'auto', flexShrink: 0 }} />
+            <div style={{ minWidth: 0 }}>
+              <h1 className="boleta-titulo" style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#0d3b66', letterSpacing: 0.3 }}>INSTITUTO EDUCATIVO MONTEBELLO</h1>
+              <p className="boleta-subtitulo" style={{ margin: '3px 0 0 0', fontSize: 10, fontWeight: 'bold', color: '#555', letterSpacing: 0.5 }}>DIAGNÓSTICO DE ADMISIÓN — RESULTADO OFICIAL</p>
+              <p className="boleta-alumno-linea" style={{ margin: '6px 0 0 0', fontSize: 12, color: '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 <strong>{alumno.nombre}</strong> · {alumno.email}
               </p>
               <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#888' }}>
@@ -131,7 +131,7 @@ export default function IntentoIndividual() {
             </div>
           </div>
           <div style={{ textAlign: 'center', flexShrink: 0 }}>
-            <div style={{ width: 78, height: 78, border: '1px solid #ccc', padding: 4, background: '#fff' }}>
+            <div className="boleta-qr-caja" style={{ width: 78, height: 78, border: '1px solid #ccc', padding: 4, background: '#fff' }}>
               {urlQr && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={urlQr} alt="Código QR de verificación" style={{ width: '100%', height: '100%' }} />
@@ -249,6 +249,20 @@ export default function IntentoIndividual() {
             grid-template-columns: 1fr !important;
             gap: 16px !important;
           }
+          .boleta-card { padding: 16px !important; }
+          .boleta-header { gap: 10px !important; padding-bottom: 12px !important; }
+          .boleta-header-izq { gap: 8px !important; }
+          .boleta-logo { width: 36px !important; }
+          .boleta-titulo { font-size: 12px !important; }
+          .boleta-subtitulo { font-size: 8px !important; }
+          .boleta-alumno-linea { font-size: 10px !important; }
+          .boleta-qr-caja { width: 60px !important; height: 60px !important; }
+        }
+        @media (max-width: 380px) {
+          /* En pantallas angostísimas ya no cabe todo en una fila: el QR
+             baja debajo del texto en vez de apretarse hasta lo ilegible. */
+          .boleta-header { flex-wrap: wrap; }
+          .boleta-header-izq { flex-basis: 100%; }
         }
       `}</style>
     </div>
