@@ -118,7 +118,7 @@ export default function IntentoIndividual() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, borderBottom: '3px solid #0d3b66', paddingBottom: 16, marginBottom: 20 }}>
           <div style={{ display: 'flex', gap: 12 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/img/logo-montebello.webp" alt="" style={{ width: 48, height: 'auto', flexShrink: 0 }} />
+            <img src="/img/logo-montebello-icono.webp" alt="" style={{ width: 48, height: 'auto', flexShrink: 0 }} />
             <div>
               <h1 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#0d3b66', letterSpacing: 0.3 }}>INSTITUTO EDUCATIVO MONTEBELLO</h1>
               <p style={{ margin: '3px 0 0 0', fontSize: 10, fontWeight: 'bold', color: '#555', letterSpacing: 0.5 }}>DIAGNÓSTICO DE ADMISIÓN — RESULTADO OFICIAL</p>

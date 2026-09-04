@@ -13,7 +13,7 @@ export default function PantallaCarga({ mensaje = 'Cargando...' }) {
         <div className="anillo-carga" />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/img/logo-montebello.webp"
+          src="/img/logo-montebello-icono.webp"
           alt="Instituto Educativo Montebello"
           className="logo-pulso"
           style={{ width: 56, height: 'auto', position: 'relative', zIndex: 1 }}

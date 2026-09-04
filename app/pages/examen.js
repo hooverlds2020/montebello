@@ -376,7 +376,7 @@ export default function Examen() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0d3b66', paddingBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/img/logo-montebello.webp" alt="" style={{ width: 42, height: 'auto' }} />
+              <img src="/img/logo-montebello-icono.webp" alt="" style={{ width: 42, height: 'auto' }} />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: '#0d3b66' }}>Instituto Educativo Montebello</div>
                 <div style={{ fontSize: 10, color: '#888', fontStyle: 'italic' }}>Transformando la educación hacia la sociedad del conocimiento</div>
@@ -815,7 +815,7 @@ export default function Examen() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0d3b66', paddingBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/img/logo-montebello.webp" alt="" style={{ width: 42, height: 'auto' }} />
+              <img src="/img/logo-montebello-icono.webp" alt="" style={{ width: 42, height: 'auto' }} />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: '#0d3b66' }}>Instituto Educativo Montebello</div>
                 <div style={{ fontSize: 10, color: '#888', fontStyle: 'italic' }}>Transformando la educación hacia la sociedad del conocimiento</div>
