@@ -1548,6 +1548,10 @@ export default function AdminPage() {
           .alumnos-filtros-fila input[type="date"] { width: 100% !important; }
           .intento-dona-materias { grid-template-columns: 1fr !important; gap: 20px !important; }
           .ficha-contacto-fila { flex-direction: column !important; }
+          .carga-rapida-controles { grid-template-columns: 1fr !important; }
+          .tipo-opciones-grid { grid-template-columns: 1fr 1fr !important; }
+          .carga-rapida-layout { grid-template-columns: 1fr !important; }
+          .carga-rapida-preview { position: static !important; }
         }
         .tabs-scroll-movil::-webkit-scrollbar { display: none; }
         .tabs-scroll-movil { scrollbar-width: none; }
@@ -1964,9 +1968,10 @@ export default function AdminPage() {
 
         {categoriaActivaId && (
           <div style={{ opacity: categoriaActiva?.activa === false ? 0.5 : 1 }}>
+            <div className="carga-rapida-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start', marginBottom: 32 }}>
             <section
               ref={cargaRapidaRef}
-              style={{ marginBottom: 32, padding: 24, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', maxWidth: 860 }}
+              style={{ padding: 24, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', minWidth: 0 }}
             >
               {insertarInfo && (
                 <div style={{ marginBottom: 12, padding: 10, background: '#eaf3ff', border: '1px solid #4a90d9', borderRadius: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -2100,33 +2105,40 @@ export default function AdminPage() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 'bold', color: '#9aa1ac', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>
-                    Tipo de opciones
+                    Tipo de reactivo
                   </label>
                   <div
-                    className="segmentado-tipo-opciones"
-                    style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 2, background: '#f0f2f5', padding: 4, borderRadius: 12 }}
+                    className="tipo-opciones-grid"
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}
                   >
                     {[
-                      { valor: 2, texto: '2' },
-                      { valor: 3, texto: '3' },
-                      { valor: 4, texto: '4' },
-                      { valor: 'vf', texto: 'V/F' },
-                    ].map((op) => (
-                      <button
-                        key={op.valor}
-                        type="button"
-                        onClick={() => generarCamposRapidos(op.valor)}
-                        title={op.valor === 'vf' ? 'Verdadero/Falso' : `${op.texto} opciones`}
-                        style={{
-                          height: 36, minWidth: 44, padding: '0 14px', borderRadius: 9, border: 'none', cursor: 'pointer',
-                          fontSize: 13, fontWeight: tipoOpcionesActivo === op.valor ? 'bold' : 500,
-                          background: tipoOpcionesActivo === op.valor ? '#4a90d9' : 'transparent',
-                          color: tipoOpcionesActivo === op.valor ? '#fff' : '#555',
-                        }}
-                      >
-                        {op.texto}
-                      </button>
-                    ))}
+                      { valor: 2, texto: '2 opciones', ejemplo: 'A)  B)' },
+                      { valor: 3, texto: '3 opciones', ejemplo: 'A)  B)  C)' },
+                      { valor: 4, texto: '4 opciones', ejemplo: 'A)  B)  C)  D)' },
+                      { valor: 'vf', texto: 'Verdadero / Falso', ejemplo: 'V   F' },
+                    ].map((op) => {
+                      const activo = tipoOpcionesActivo === op.valor;
+                      return (
+                        <button
+                          key={op.valor}
+                          type="button"
+                          onClick={() => generarCamposRapidos(op.valor)}
+                          style={{
+                            textAlign: 'left', borderRadius: 12, padding: '10px 12px', cursor: 'pointer',
+                            border: `2px solid ${activo ? '#0d3b66' : '#e5e7eb'}`,
+                            background: activo ? '#0d3b66' : '#fff',
+                            minWidth: 0,
+                          }}
+                        >
+                          <span style={{ display: 'block', fontSize: 13, fontWeight: 900, lineHeight: 1.2, color: activo ? '#fff' : '#222' }}>
+                            {op.texto}
+                          </span>
+                          <span style={{ display: 'block', fontSize: 11, marginTop: 4, color: activo ? 'rgba(255,255,255,0.75)' : '#999' }}>
+                            {op.ejemplo}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -2206,6 +2218,39 @@ export default function AdminPage() {
                 </div>
               )}
             </section>
+
+            {/* Panel de vista previa: ocupa el espacio que antes quedaba en
+                blanco a la derecha, mostrando de un vistazo cómo se ve una
+                pregunta desde el lado del alumno. Se queda fijo (sticky) al
+                hacer scroll en desktop; en móvil baja debajo del formulario. */}
+            <aside className="carga-rapida-preview" style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 16, padding: 16, position: 'sticky', top: 90 }}>
+              <h3 style={{ margin: '0 0 12px 0', fontSize: 10, fontWeight: 900, color: '#9aa1ac', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Vista previa · así lo ve el alumno
+              </h3>
+              <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <p style={{ margin: '0 0 10px 0', fontSize: 13, fontWeight: 'bold' }}>1. ¿De qué trata la lectura?</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {(tipoOpcionesActivo === 'vf'
+                    ? [{ letra: 'V', texto: 'Verdadero' }, { letra: 'F', texto: 'Falso' }]
+                    : Array.from({ length: typeof tipoOpcionesActivo === 'number' ? tipoOpcionesActivo : 2 }, (_, i) => ({
+                        letra: String.fromCharCode(65 + i),
+                        texto: `Respuesta opción ${String.fromCharCode(65 + i)}`,
+                      }))
+                  ).map((op) => (
+                    <div key={op.letra} style={{ display: 'flex', gap: 8, border: '1px solid #eee', borderRadius: 10, padding: '8px 10px', fontSize: 12 }}>
+                      <strong>{op.letra})</strong> {op.texto}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginTop: 12, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: 12, display: 'flex', gap: 8 }}>
+                <span style={{ fontSize: 14 }}>🎯</span>
+                <p style={{ margin: 0, fontSize: 11, lineHeight: 1.5, color: '#666' }}>
+                  <strong style={{ color: '#333' }}>Tip:</strong> para comprensión lectora, 2 opciones agiliza el examen. Para matemáticas, 4 opciones da más margen a distractores.
+                </p>
+              </div>
+            </aside>
+            </div>
 
             <section style={{ marginTop: 32 }}>
               <h2 style={{ fontSize: 18, fontWeight: 'bold', margin: 0 }}>
