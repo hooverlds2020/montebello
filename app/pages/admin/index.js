@@ -1509,7 +1509,11 @@ export default function AdminPage() {
             border-bottom: 1px solid #ddd;
           }
           .admin-main { max-width: 100% !important; padding: 16px !important; }
+          .barra-superior-desktop { display: none !important; }
+          .barra-superior-movil { display: flex !important; }
         }
+        .tabs-scroll-movil::-webkit-scrollbar { display: none; }
+        .tabs-scroll-movil { scrollbar-width: none; }
         .card-lectura {
           transition: box-shadow 0.15s ease;
         }
@@ -1585,35 +1589,124 @@ export default function AdminPage() {
         }
       `}</style>
 
-      {/* BARRA SUPERIOR: cambia entre Asignaturas y Alumnos, un solo panel, sin roles separados */}
-      <div className="barra-superior-admin ocultar-al-imprimir" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '1px solid #ddd', background: '#fafbfc' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {/* BARRA SUPERIOR: dos variantes (móvil/desktop) alternadas por CSS,
+          ambas cambian entre Asignaturas/Alumnos/Usuarios, un solo panel
+          sin roles separados. */}
+
+      {/* --- Variante desktop: logo + pestañas a la izquierda, cerrar sesión con borde a la derecha --- */}
+      <header
+        className="barra-superior-admin barra-superior-desktop ocultar-al-imprimir"
+        style={{
+          height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 24px', borderBottom: '1px solid #ddd', background: '#fff',
+          position: 'sticky', top: 0, zIndex: 30,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <span style={{ fontWeight: 900, fontSize: 18, color: '#222' }}>Montebello</span>
+          <nav style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={() => setVistaGeneral('asignaturas')}
+              style={{
+                height: 36, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
+                background: vistaGeneral === 'asignaturas' ? '#4a90d9' : 'transparent',
+                color: vistaGeneral === 'asignaturas' ? '#fff' : '#333',
+                fontWeight: vistaGeneral === 'asignaturas' ? 'bold' : 'normal',
+              }}
+            >
+              📚 Asignaturas
+            </button>
+            <button
+              onClick={() => setVistaGeneral('alumnos')}
+              style={{
+                height: 36, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
+                background: vistaGeneral === 'alumnos' ? '#4a90d9' : 'transparent',
+                color: vistaGeneral === 'alumnos' ? '#fff' : '#333',
+                fontWeight: vistaGeneral === 'alumnos' ? 'bold' : 'normal',
+              }}
+            >
+              👥 Alumnos
+            </button>
+            <button
+              onClick={() => setVistaGeneral('usuarios')}
+              style={{
+                height: 36, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
+                background: vistaGeneral === 'usuarios' ? '#4a90d9' : 'transparent',
+                color: vistaGeneral === 'usuarios' ? '#fff' : '#333',
+                fontWeight: vistaGeneral === 'usuarios' ? 'bold' : 'normal',
+              }}
+            >
+              ⚙️ Administradores
+            </button>
+          </nav>
+        </div>
+        <button
+          onClick={cerrarSesionAdmin}
+          style={{ height: 36, padding: '0 16px', borderRadius: 999, border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500, flexShrink: 0 }}
+        >
+          🚪 Cerrar sesión
+        </button>
+      </header>
+
+      {/* --- Variante móvil: pestañas con scroll horizontal, cerrar sesión como icono solo --- */}
+      <header
+        className="barra-superior-admin barra-superior-movil ocultar-al-imprimir"
+        style={{
+          minHeight: 56, display: 'none', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 12px', borderBottom: '1px solid #ddd', background: '#fff',
+          position: 'sticky', top: 0, zIndex: 30, gap: 8,
+        }}
+      >
+        <div className="tabs-scroll-movil" style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
           <button
             onClick={() => setVistaGeneral('asignaturas')}
-            style={btnStyle(vistaGeneral === 'asignaturas' ? 'primario' : 'secundario', { fontSize: 14 })}
+            style={{
+              height: 40, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
+              whiteSpace: 'nowrap', flexShrink: 0,
+              background: vistaGeneral === 'asignaturas' ? '#4a90d9' : '#f0f0f0',
+              color: vistaGeneral === 'asignaturas' ? '#fff' : '#333',
+              fontWeight: vistaGeneral === 'asignaturas' ? 'bold' : 500,
+            }}
           >
             📚 Asignaturas
           </button>
           <button
             onClick={() => setVistaGeneral('alumnos')}
-            style={btnStyle(vistaGeneral === 'alumnos' ? 'primario' : 'secundario', { fontSize: 14 })}
+            style={{
+              height: 40, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
+              whiteSpace: 'nowrap', flexShrink: 0,
+              background: vistaGeneral === 'alumnos' ? '#4a90d9' : '#f0f0f0',
+              color: vistaGeneral === 'alumnos' ? '#fff' : '#333',
+              fontWeight: vistaGeneral === 'alumnos' ? 'bold' : 500,
+            }}
           >
             👥 Alumnos
           </button>
           <button
             onClick={() => setVistaGeneral('usuarios')}
-            style={btnStyle(vistaGeneral === 'usuarios' ? 'primario' : 'secundario', { fontSize: 14 })}
+            style={{
+              height: 40, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
+              whiteSpace: 'nowrap', flexShrink: 0,
+              background: vistaGeneral === 'usuarios' ? '#4a90d9' : '#f0f0f0',
+              color: vistaGeneral === 'usuarios' ? '#fff' : '#333',
+              fontWeight: vistaGeneral === 'usuarios' ? 'bold' : 500,
+            }}
           >
             ⚙️ Usuarios
           </button>
         </div>
         <button
           onClick={cerrarSesionAdmin}
-          style={btnStyle('secundario', { fontSize: 14, flexShrink: 0 })}
+          title="Cerrar sesión"
+          style={{
+            width: 40, height: 40, flexShrink: 0, borderRadius: '50%', border: 'none',
+            background: '#f0f0f0', cursor: 'pointer', fontSize: 18,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
         >
-          🚪 Cerrar sesión
+          🚪
         </button>
-      </div>
+      </header>
 
       {vistaGeneral === 'asignaturas' && (
       <div className="admin-body" style={{ display: 'flex' }}>
