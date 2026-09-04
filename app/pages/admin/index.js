@@ -40,6 +40,24 @@ function quillEstaVacio(html) {
   return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() === '';
 }
 
+// Construye el conic-gradient de la dona de resultados a partir del
+// desglose real por materia — cada materia ocupa la porción de la dona que
+// corresponde a SUS aciertos sobre el total del examen (no un solo color
+// plano), y usa exactamente los mismos colores que las filas de materia de
+// abajo, para que la gráfica sí sea el reflejo de los datos y no algo
+// desconectado que confunda a quien la ve (ej. un papá revisando el PDF).
+function construirGradienteDona(porCategoria, total, paleta) {
+  if (!total) return `conic-gradient(#e5e7eb 0% 100%)`;
+  let acumulado = 0;
+  const tramos = porCategoria.map((c, i) => {
+    const desde = acumulado;
+    acumulado += (c.correctas / total) * 100;
+    return `${paleta[i % paleta.length]} ${desde}% ${acumulado}%`;
+  });
+  tramos.push(`#e5e7eb ${acumulado}% 100%`);
+  return `conic-gradient(${tramos.join(', ')})`;
+}
+
 // Igual que en examen.js: vuelve a renderizar en vivo cualquier fórmula
 // (los <span class="ql-formula"> que deja Quill al usar el botón ∑) con
 // react-katex, para que se vean bien también en el panel admin (revisión
@@ -112,6 +130,7 @@ export default function AdminPage() {
   const [perfilInput, setPerfilInput] = useState({});
   const [menuOpcionesAbierto, setMenuOpcionesAbierto] = useState(false);
   const [cargandoAlumnos, setCargandoAlumnos] = useState(false);
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
   // Usuarios administradores del panel
   const [usuariosAdmin, setUsuariosAdmin] = useState(null);
@@ -1671,7 +1690,7 @@ export default function AdminPage() {
         </button>
       </header>
 
-      {/* --- Variante móvil: pestañas con scroll horizontal, cerrar sesión como icono solo --- */}
+      {/* --- Variante móvil: logo + botón hamburguesa, con panel desplegable vertical --- */}
       <header
         className="barra-superior-admin barra-superior-movil ocultar-al-imprimir"
         style={{
@@ -1682,55 +1701,77 @@ export default function AdminPage() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/img/logo-montebello.webp" alt="Montebello" style={{ height: 28, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
-        <div className="tabs-scroll-movil" style={{ flex: '1 1 0%', minWidth: 0, display: 'flex', gap: 8, overflowX: 'auto' }}>
-          <button
-            onClick={() => setVistaGeneral('asignaturas')}
-            style={{
-              height: 40, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
-              whiteSpace: 'nowrap', flexShrink: 0,
-              background: vistaGeneral === 'asignaturas' ? '#4a90d9' : '#f0f0f0',
-              color: vistaGeneral === 'asignaturas' ? '#fff' : '#333',
-              fontWeight: vistaGeneral === 'asignaturas' ? 'bold' : 500,
-            }}
-          >
-            📚 Asignaturas
-          </button>
-          <button
-            onClick={() => setVistaGeneral('alumnos')}
-            style={{
-              height: 40, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
-              whiteSpace: 'nowrap', flexShrink: 0,
-              background: vistaGeneral === 'alumnos' ? '#4a90d9' : '#f0f0f0',
-              color: vistaGeneral === 'alumnos' ? '#fff' : '#333',
-              fontWeight: vistaGeneral === 'alumnos' ? 'bold' : 500,
-            }}
-          >
-            👥 Alumnos
-          </button>
-          <button
-            onClick={() => setVistaGeneral('usuarios')}
-            style={{
-              height: 40, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
-              whiteSpace: 'nowrap', flexShrink: 0,
-              background: vistaGeneral === 'usuarios' ? '#4a90d9' : '#f0f0f0',
-              color: vistaGeneral === 'usuarios' ? '#fff' : '#333',
-              fontWeight: vistaGeneral === 'usuarios' ? 'bold' : 500,
-            }}
-          >
-            ⚙️ Usuarios
-          </button>
-        </div>
         <button
-          onClick={cerrarSesionAdmin}
-          title="Cerrar sesión"
+          onClick={() => setMenuMovilAbierto((v) => !v)}
+          aria-label={menuMovilAbierto ? 'Cerrar menú' : 'Abrir menú'}
           style={{
-            width: 40, height: 40, flexShrink: 0, borderRadius: '50%', border: 'none',
-            background: '#f0f0f0', cursor: 'pointer', fontSize: 18,
+            width: 40, height: 40, flexShrink: 0, borderRadius: 12, border: '1px solid #e5e7eb',
+            background: '#f7f8fa', cursor: 'pointer', fontSize: 20,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          🚪
+          {menuMovilAbierto ? '✕' : '☰'}
         </button>
+
+        {menuMovilAbierto && (
+          <>
+            <div
+              onClick={() => setMenuMovilAbierto(false)}
+              style={{ position: 'fixed', inset: 0, top: 56, background: 'rgba(0,0,0,0.15)', zIndex: 29 }}
+            />
+            <div
+              style={{
+                position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30,
+                background: '#fff', borderBottom: '1px solid #e5e7eb', boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                padding: 12, display: 'flex', flexDirection: 'column', gap: 8,
+              }}
+            >
+              <button
+                onClick={() => { setVistaGeneral('asignaturas'); setMenuMovilAbierto(false); }}
+                style={{
+                  height: 48, borderRadius: 12, border: 'none', textAlign: 'left', padding: '0 16px', fontSize: 15, cursor: 'pointer',
+                  background: vistaGeneral === 'asignaturas' ? '#4a90d9' : '#f7f8fa',
+                  color: vistaGeneral === 'asignaturas' ? '#fff' : '#333',
+                  fontWeight: vistaGeneral === 'asignaturas' ? 'bold' : 500,
+                }}
+              >
+                📚 Asignaturas
+              </button>
+              <button
+                onClick={() => { setVistaGeneral('alumnos'); setMenuMovilAbierto(false); }}
+                style={{
+                  height: 48, borderRadius: 12, border: 'none', textAlign: 'left', padding: '0 16px', fontSize: 15, cursor: 'pointer',
+                  background: vistaGeneral === 'alumnos' ? '#4a90d9' : '#f7f8fa',
+                  color: vistaGeneral === 'alumnos' ? '#fff' : '#333',
+                  fontWeight: vistaGeneral === 'alumnos' ? 'bold' : 500,
+                }}
+              >
+                👥 Alumnos
+              </button>
+              <button
+                onClick={() => { setVistaGeneral('usuarios'); setMenuMovilAbierto(false); }}
+                style={{
+                  height: 48, borderRadius: 12, border: 'none', textAlign: 'left', padding: '0 16px', fontSize: 15, cursor: 'pointer',
+                  background: vistaGeneral === 'usuarios' ? '#4a90d9' : '#f7f8fa',
+                  color: vistaGeneral === 'usuarios' ? '#fff' : '#333',
+                  fontWeight: vistaGeneral === 'usuarios' ? 'bold' : 500,
+                }}
+              >
+                ⚙️ Usuarios
+              </button>
+              <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
+              <button
+                onClick={() => { setMenuMovilAbierto(false); cerrarSesionAdmin(); }}
+                style={{
+                  height: 48, borderRadius: 12, border: 'none', textAlign: 'left', padding: '0 16px', fontSize: 15, cursor: 'pointer',
+                  background: '#f7f8fa', color: '#c0392b', fontWeight: 500,
+                }}
+              >
+                🚪 Cerrar sesión
+              </button>
+            </div>
+          </>
+        )}
       </header>
 
       {vistaGeneral === 'asignaturas' && (
@@ -2807,22 +2848,36 @@ export default function AdminPage() {
                         </div>
 
                         <div className="intento-dona-materias" style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
-                          {/* Dona limpia: solo el % general, sin etiquetas ni líneas afuera */}
-                          <div style={{ position: 'relative', width: 180, height: 180, margin: '0 auto' }}>
-                            <div
-                              style={{
-                                position: 'absolute', inset: 0, borderRadius: '50%',
-                                background: `conic-gradient(${colorPrincipal} ${h.porcentaje * 3.6}deg, #eef0f2 0deg)`,
-                              }}
-                            />
-                            <div
-                              style={{
-                                position: 'absolute', inset: 16, borderRadius: '50%', background: '#fff',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                              }}
-                            >
-                              <span style={{ fontSize: 34, fontWeight: 900, lineHeight: 1 }}>{h.porcentaje}%</span>
-                              <span style={{ fontSize: 12, color: '#999', marginTop: 4 }}>{h.correctas} de {h.total}</span>
+                          {/* Dona segmentada: cada materia ocupa la porción de la
+                              dona correspondiente a sus aciertos sobre el total del
+                              examen, con el MISMO color que su fila de abajo — así
+                              la gráfica sí refleja los datos, no es un solo color
+                              que no se conecta con nada. */}
+                          <div>
+                            <div style={{ position: 'relative', width: 180, height: 180, margin: '0 auto' }}>
+                              <div
+                                style={{
+                                  position: 'absolute', inset: 0, borderRadius: '50%',
+                                  background: construirGradienteDona(h.porCategoria, h.total, paletaMaterias),
+                                }}
+                              />
+                              <div
+                                style={{
+                                  position: 'absolute', inset: 16, borderRadius: '50%', background: '#fff',
+                                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                }}
+                              >
+                                <span style={{ fontSize: 34, fontWeight: 900, lineHeight: 1 }}>{h.porcentaje}%</span>
+                                <span style={{ fontSize: 12, color: '#999', marginTop: 4 }}>{h.correctas} de {h.total}</span>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+                              {h.porCategoria.map((c, i) => (
+                                <span key={c.categoria} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#666' }}>
+                                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: paletaMaterias[i % paletaMaterias.length], flexShrink: 0 }} />
+                                  {c.categoria.split('›').pop().trim()} {c.porcentaje}%
+                                </span>
+                              ))}
                             </div>
                           </div>
 

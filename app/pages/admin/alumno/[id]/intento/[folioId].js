@@ -13,6 +13,20 @@ export async function getServerSideProps({ req }) {
 const PALETA_MATERIAS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 const UMBRAL_POR_DEFECTO = 60;
 
+// Igual que en el panel: la dona refleja el desglose real por materia (mismos
+// colores que las filas de abajo), no un solo color plano desconectado.
+function construirGradienteDona(porCategoria, total, paleta) {
+  if (!total) return `conic-gradient(#e5e7eb 0% 100%)`;
+  let acumulado = 0;
+  const tramos = porCategoria.map((c, i) => {
+    const desde = acumulado;
+    acumulado += (c.correctas / total) * 100;
+    return `${paleta[i % paleta.length]} ${desde}% ${acumulado}%`;
+  });
+  tramos.push(`#e5e7eb ${acumulado}% 100%`);
+  return `conic-gradient(${tramos.join(', ')})`;
+}
+
 export default function IntentoIndividual() {
   const router = useRouter();
   const { id, folioId, imprimir } = router.query;
@@ -128,21 +142,31 @@ export default function IntentoIndividual() {
           </div>
 
           <div className="intento-individual-grid" style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 32, alignItems: 'center' }}>
-            <div style={{ position: 'relative', width: 180, height: 180, margin: '0 auto' }}>
-              <div
-                style={{
-                  position: 'absolute', inset: 0, borderRadius: '50%',
-                  background: `conic-gradient(${colorPrincipal} ${intento.porcentaje * 3.6}deg, #eef0f2 0deg)`,
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute', inset: 16, borderRadius: '50%', background: '#fff',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                }}
-              >
-                <span style={{ fontSize: 34, fontWeight: 900, lineHeight: 1 }}>{intento.porcentaje}%</span>
-                <span style={{ fontSize: 12, color: '#999', marginTop: 4 }}>{intento.correctas} de {intento.total}</span>
+            <div>
+              <div style={{ position: 'relative', width: 180, height: 180, margin: '0 auto' }}>
+                <div
+                  style={{
+                    position: 'absolute', inset: 0, borderRadius: '50%',
+                    background: construirGradienteDona(intento.porCategoria, intento.total, PALETA_MATERIAS),
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute', inset: 16, borderRadius: '50%', background: '#fff',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <span style={{ fontSize: 34, fontWeight: 900, lineHeight: 1 }}>{intento.porcentaje}%</span>
+                  <span style={{ fontSize: 12, color: '#999', marginTop: 4 }}>{intento.correctas} de {intento.total}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+                {intento.porCategoria.map((c, i) => (
+                  <span key={c.categoria} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#666' }}>
+                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: PALETA_MATERIAS[i % PALETA_MATERIAS.length], flexShrink: 0 }} />
+                    {c.categoria.split('›').pop().trim()} {c.porcentaje}%
+                  </span>
+                ))}
               </div>
             </div>
 
