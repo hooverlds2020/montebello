@@ -389,6 +389,7 @@ export default function AdminPage() {
   // Carga rápida: generar N preguntas de una lectura de golpe
   const [lecturaRapidaId, setLecturaRapidaId] = useState('');
   const [numPreguntas, setNumPreguntas] = useState(5);
+  const [tipoOpcionesActivo, setTipoOpcionesActivo] = useState(null);
   const [preguntasRapidas, setPreguntasRapidas] = useState([]);
   const [mensajeRapido, setMensajeRapido] = useState('');
 
@@ -697,6 +698,7 @@ export default function AdminPage() {
       // al cambiar de categoría, limpiamos la carga rápida en curso
       setPreguntasRapidas([]);
       setLecturaRapidaId('');
+      setTipoOpcionesActivo(null);
     }
   }, [categoriaActivaId]);
 
@@ -1006,6 +1008,7 @@ export default function AdminPage() {
 
   // ---- Carga rápida por lectura ----
   function generarCamposRapidos(tipo) {
+    setTipoOpcionesActivo(tipo);
     const opcionesBase =
       tipo === 'vf'
         ? [{ texto: 'Verdadero', es_correcta: false, imagen_url: '' }, { texto: 'Falso', es_correcta: false, imagen_url: '' }]
@@ -1662,16 +1665,31 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <div style={{ marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: '4px 16px' }}>
-                <label>
-                  <input type="radio" checked={modoLectura === 'ninguna'} onChange={() => setModoLectura('ninguna')} /> Sin lectura
-                </label>
-                <label>
-                  <input type="radio" checked={modoLectura === 'nueva'} onChange={() => setModoLectura('nueva')} /> Crear nueva lectura
-                </label>
-                <label>
-                  <input type="radio" checked={modoLectura === 'continuar'} onChange={() => setModoLectura('continuar')} /> Agregar más preguntas a una lectura ya guardada
-                </label>
+              <div className="carga-rapida-radios" style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  { valor: 'ninguna', texto: 'Sin lectura' },
+                  { valor: 'nueva', texto: 'Crear nueva lectura' },
+                  { valor: 'continuar', texto: 'Agregar más preguntas a una lectura ya guardada' },
+                ].map((op) => (
+                  <label
+                    key={op.valor}
+                    className="opcion-lectura-card"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10, minHeight: 44, padding: '8px 12px',
+                      border: `1px solid ${modoLectura === op.valor ? '#4a90d9' : '#ddd'}`,
+                      background: modoLectura === op.valor ? '#eaf3ff' : '#fff',
+                      borderRadius: 8, cursor: 'pointer', fontSize: 14,
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      checked={modoLectura === op.valor}
+                      onChange={() => setModoLectura(op.valor)}
+                      style={{ width: 18, height: 18, flexShrink: 0, accentColor: '#4a90d9' }}
+                    />
+                    {op.texto}
+                  </label>
+                ))}
               </div>
 
               {modoLectura === 'continuar' && (
@@ -1725,30 +1743,86 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '10px 14px', rowGap: 14, alignItems: 'center', marginBottom: 24, marginTop: 4, flexWrap: 'wrap' }}>
-                <label>
-                  Número de preguntas:{' '}
-                  <input
-                    type="number"
-                    min="1"
-                    max="30"
-                    value={numPreguntas}
-                    onChange={(e) => setNumPreguntas(parseInt(e.target.value, 10) || 1)}
-                    style={{ width: 60, padding: 6 }}
-                  />
-                </label>
-                <span style={{ color: '#666', fontSize: 13 }}>Tipo de opciones:</span>
-                <button type="button" onClick={() => generarCamposRapidos(2)} style={btnStyle('secundario', { minWidth: 96 })}>2 opciones</button>
-                <button type="button" onClick={() => generarCamposRapidos(3)} style={btnStyle('secundario', { minWidth: 96 })}>3 opciones</button>
-                <button type="button" onClick={() => generarCamposRapidos(4)} style={btnStyle('secundario', { minWidth: 96 })}>4 opciones</button>
-                <button type="button" onClick={() => generarCamposRapidos('vf')} style={btnStyle('secundario', { minWidth: 96 })}>Verdadero/Falso</button>
+              <div className="carga-rapida-controles" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px 20px', alignItems: 'flex-start', marginBottom: 12, marginTop: 4 }}>
+                <div>
+                  <span style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>Número de preguntas:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button
+                      type="button"
+                      onClick={() => setNumPreguntas((n) => Math.max(1, n - 1))}
+                      aria-label="Restar una pregunta"
+                      style={{
+                        width: 44, height: 44, flexShrink: 0, fontSize: 20, borderRadius: 8,
+                        border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer',
+                      }}
+                    >
+                      −
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      max="50"
+                      value={numPreguntas}
+                      onChange={(e) => {
+                        const n = parseInt(e.target.value, 10);
+                        setNumPreguntas(Number.isNaN(n) ? 1 : Math.min(50, Math.max(1, n)));
+                      }}
+                      style={{ width: 60, height: 44, padding: 6, textAlign: 'center', fontSize: 16, border: '1px solid #ddd', borderRadius: 8 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setNumPreguntas((n) => Math.min(50, n + 1))}
+                      aria-label="Sumar una pregunta"
+                      style={{
+                        width: 44, height: 44, flexShrink: 0, fontSize: 20, borderRadius: 8,
+                        border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer',
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <span style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>Tipo de opciones:</span>
+                  <div
+                    className="segmentado-tipo-opciones"
+                    style={{ display: 'flex', flexWrap: 'wrap', gap: 4, background: '#f0f2f5', borderRadius: 8, padding: 4 }}
+                  >
+                    {[
+                      { valor: 2, texto: '2 opciones' },
+                      { valor: 3, texto: '3 opciones' },
+                      { valor: 4, texto: '4 opciones' },
+                      { valor: 'vf', texto: 'Verdadero/Falso' },
+                    ].map((op) => (
+                      <button
+                        key={op.valor}
+                        type="button"
+                        onClick={() => generarCamposRapidos(op.valor)}
+                        style={{
+                          minHeight: 44, padding: '0 14px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                          fontSize: 13, fontWeight: tipoOpcionesActivo === op.valor ? 'bold' : 'normal',
+                          background: tipoOpcionesActivo === op.valor ? '#4a90d9' : 'transparent',
+                          color: tipoOpcionesActivo === op.valor ? '#fff' : '#555',
+                        }}
+                      >
+                        {op.texto}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              <p style={{ fontSize: 12, color: '#888', marginTop: -8, marginBottom: 12 }}>
-                💡 Para exponentes en las opciones escribe <code>^3</code> (ej. <code>(4a+6b)^3</code>). Si tu teclado no
-                deja escribir el símbolo <code>^</code> solo (algunos teclados en español lo tratan como tecla muerta),
-                escríbelo con un espacio después: <code>^ 3</code> — funciona igual.
-              </p>
+              <details style={{ marginBottom: 20, fontSize: 12, color: '#888' }}>
+                <summary style={{ cursor: 'pointer', color: '#4a90d9', fontWeight: 'bold', userSelect: 'none' }}>
+                  💡 ¿Cómo escribo exponentes? <code>^3</code>
+                </summary>
+                <p style={{ marginTop: 8, marginBottom: 0 }}>
+                  Para exponentes en las opciones escribe <code>^3</code> (ej. <code>(4a+6b)^3</code>). Si tu teclado no
+                  deja escribir el símbolo <code>^</code> solo (algunos teclados en español lo tratan como tecla muerta),
+                  escríbelo con un espacio después: <code>^ 3</code> — funciona igual.
+                </p>
+              </details>
 
               {preguntasRapidas.length > 0 && (
                 <div>
