@@ -1079,6 +1079,27 @@ export default function AdminPage() {
     });
   }
 
+  async function duplicarReactivo(r) {
+    const res = await fetch('/api/admin/reactivos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        categoria_id: r.categoria_id,
+        lectura_id: r.lectura_id || null,
+        pregunta: r.pregunta,
+        imagen_url: r.imagen_url || '',
+        opciones: r.opciones.map((o) => ({ texto: o.texto, es_correcta: o.es_correcta, imagen_url: o.imagen_url || '' })),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      mostrarToast(data.error || 'No se pudo duplicar el reactivo', 'error');
+      return;
+    }
+    mostrarToast('Pregunta duplicada ✓', 'exito');
+    cargarReactivos(categoriaActivaId);
+  }
+
   function iniciarEdicion(r) {
     setEditandoId(r.id);
     setEditPregunta(r.pregunta);
@@ -1917,7 +1938,7 @@ export default function AdminPage() {
                   <span style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>Tipo de opciones:</span>
                   <div
                     className="segmentado-tipo-opciones"
-                    style={{ display: 'flex', flexWrap: 'wrap', gap: 4, background: '#f0f2f5', borderRadius: 8, padding: 4 }}
+                    style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}
                   >
                     {[
                       { valor: 2, texto: '2 opciones' },
@@ -1930,9 +1951,9 @@ export default function AdminPage() {
                         type="button"
                         onClick={() => generarCamposRapidos(op.valor)}
                         style={{
-                          minHeight: 44, padding: '0 14px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                          height: 48, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer',
                           fontSize: 13, fontWeight: tipoOpcionesActivo === op.valor ? 'bold' : 'normal',
-                          background: tipoOpcionesActivo === op.valor ? '#4a90d9' : 'transparent',
+                          background: tipoOpcionesActivo === op.valor ? '#4a90d9' : '#f0f2f5',
                           color: tipoOpcionesActivo === op.valor ? '#fff' : '#555',
                         }}
                       >
@@ -2033,30 +2054,35 @@ export default function AdminPage() {
                     onClick={() => toggleGrupo(grupo.clave)}
                     className="card-lectura"
                     style={{
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10,
-                      background: '#f7f8fa', padding: 16, borderRadius: 10, cursor: 'pointer', userSelect: 'none',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+                      background: '#fff', border: '1px solid #e5e5e5', padding: 12, borderRadius: 12, cursor: 'pointer', userSelect: 'none',
                       opacity: grupo.activa ? 1 : 0.6,
                     }}
                   >
-                    <div style={{ display: 'flex', gap: 10, flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: 20, lineHeight: '24px', flexShrink: 0, color: '#4a90d9' }}>{abierto ? '▼' : '▶'}</span>
-                      <div style={{ minWidth: 0 }}>
-                        <h3
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3
+                        style={{
+                          fontSize: 15, fontWeight: 700, margin: 0, color: '#222',
+                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        }}
+                      >
+                        {grupo.titulo ? `📖 ${grupo.titulo}` : 'Sin lectura asociada'}
+                      </h3>
+                      <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+                        <span
                           style={{
-                            fontSize: 15, fontWeight: 600, margin: 0, color: '#222',
-                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                            padding: '4px 10px', borderRadius: 999, fontWeight: 600, fontSize: 12,
+                            background: '#dbeafe', color: '#1d5fad',
                           }}
                         >
-                          {grupo.titulo ? `📖 ${grupo.titulo}` : 'Sin lectura asociada'}
-                        </h3>
-                        <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, fontSize: 12, color: '#777' }}>
-                          <span>{grupo.items.length} pregunta{grupo.items.length === 1 ? '' : 's'}</span>
-                          {grupo.clave !== 'sin-lectura' && (
-                            <span
-                              style={{
-                                padding: '2px 8px', borderRadius: 999, fontWeight: 'bold', fontSize: 11,
-                                background: grupo.activa ? '#e3f6e8' : '#fdeceb',
-                                color: grupo.activa ? '#1e7d34' : '#c0392b',
+                          {grupo.items.length} pregunta{grupo.items.length === 1 ? '' : 's'}
+                        </span>
+                        {grupo.clave !== 'sin-lectura' && (
+                          <span
+                            style={{
+                              padding: '4px 10px', borderRadius: 999, fontWeight: 'bold', fontSize: 11,
+                              background: grupo.activa ? '#e3f6e8' : '#fdeceb',
+                              color: grupo.activa ? '#1e7d34' : '#c0392b',
                               }}
                             >
                               {grupo.activa ? 'Habilitada' : 'Deshabilitada'}
@@ -2064,10 +2090,10 @@ export default function AdminPage() {
                           )}
                         </div>
                       </div>
-                    </div>
 
-                    {grupo.clave !== 'sin-lectura' && (
-                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                      {grupo.clave !== 'sin-lectura' && (
+                        <div style={{ position: 'relative' }}>
                         <button
                           onClick={(e) => { e.stopPropagation(); setMenuLecturaAbiertaClave(menuLecturaAbiertaClave === grupo.clave ? null : grupo.clave); }}
                           title="Más opciones"
@@ -2120,8 +2146,21 @@ export default function AdminPage() {
                             </div>
                           </>
                         )}
-                      </div>
-                    )}
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleGrupo(grupo.clave); }}
+                        title={abierto ? 'Cerrar preguntas' : 'Ver preguntas'}
+                        style={{
+                          width: 40, height: 40, flexShrink: 0, border: 'none', borderRadius: '50%',
+                          background: '#4a90d9', color: '#fff', fontSize: 16, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transform: abierto ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease',
+                        }}
+                      >
+                        ▶
+                      </button>
+                    </div>
                   </div>
 
                   {editandoLecturaId === grupo.clave && (
@@ -2218,47 +2257,89 @@ export default function AdminPage() {
                         </div>
                       ) : (
                         <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ color: '#4a90d9', fontWeight: 'bold', fontSize: 13, marginBottom: 4 }}>Pregunta {r.numero}</div>
-                              <div>{renderizarHTMLconMatematicas(r.pregunta)}</div>
-                              {r.imagen_url && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={r.imagen_url} alt="" style={{ maxWidth: 260, maxHeight: 180, display: 'block', marginTop: 4, marginBottom: 6, borderRadius: 4, border: '1px solid #eee' }} />
-                              )}
-                              <ul>
-                                {r.opciones.map((o, idx) => (
-                                  <li key={o.id} style={{ color: o.es_correcta ? 'green' : 'inherit' }}>
-                                    <strong>{String.fromCharCode(97 + idx)})</strong>{' '}
-                                    <span>{renderizarHTMLconMatematicas(o.texto)}</span>
-                                    {' '}{o.imagen_url && `[img: ${o.imagen_url}]`} {o.es_correcta && '✓'}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                            <div style={{ display: 'flex', gap: 4, flexShrink: 0, marginLeft: 8 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                            <div style={{ color: '#4a90d9', fontWeight: 'bold', fontSize: 13 }}>Pregunta {r.numero}</div>
+                            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                              <button
+                                onClick={() => duplicarReactivo(r)}
+                                title="Duplicar esta pregunta"
+                                style={{ border: 'none', background: '#eef1f5', cursor: 'pointer', fontSize: 17, borderRadius: 8, width: 44, height: 44 }}
+                              >
+                                📄
+                              </button>
                               <button
                                 onClick={() => iniciarInsercionDespuesDe(r, reactivos.findIndex((x) => x.id === r.id))}
                                 title="Insertar una pregunta nueva justo después de esta"
-                                style={{ border: 'none', background: '#eef1f5', cursor: 'pointer', fontSize: 15, borderRadius: 6, width: 30, height: 30 }}
+                                style={{ border: 'none', background: '#eef1f5', cursor: 'pointer', fontSize: 17, borderRadius: 8, width: 44, height: 44 }}
                               >
                                 ⤵️
                               </button>
                               <button
                                 onClick={() => iniciarEdicion(r)}
                                 title="Editar"
-                                style={{ border: 'none', background: '#eef1f5', cursor: 'pointer', fontSize: 15, borderRadius: 6, width: 30, height: 30 }}
+                                style={{ border: 'none', background: '#eef1f5', cursor: 'pointer', fontSize: 17, borderRadius: 8, width: 44, height: 44 }}
                               >
                                 ✏️
                               </button>
                               <button
                                 onClick={() => borrarReactivo(r.id)}
                                 title="Borrar"
-                                style={{ border: 'none', background: '#fdeceb', cursor: 'pointer', fontSize: 15, borderRadius: 6, width: 30, height: 30 }}
+                                style={{ border: 'none', background: '#fdeceb', color: '#c0392b', cursor: 'pointer', fontSize: 17, borderRadius: 8, width: 44, height: 44 }}
                               >
                                 🗑️
                               </button>
                             </div>
+                          </div>
+
+                          <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 10, color: '#1a1a1a' }}>
+                            {renderizarHTMLconMatematicas(r.pregunta)}
+                          </div>
+                          {r.imagen_url && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={r.imagen_url} alt="" style={{ maxWidth: 260, maxHeight: 180, display: 'block', marginBottom: 10, borderRadius: 6, border: '1px solid #eee' }} />
+                          )}
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                            {r.opciones.map((o, idx) => (
+                              <div
+                                key={o.id}
+                                style={{
+                                  position: 'relative', minHeight: 80, padding: '14px 10px 10px', borderRadius: 10,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center',
+                                  border: `1.5px solid ${o.es_correcta ? '#4caf50' : '#e0e0e0'}`,
+                                  background: o.es_correcta ? '#eaf7ec' : '#fff',
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    position: 'absolute', top: 6, left: 8, fontSize: 11, fontWeight: 'bold',
+                                    color: '#888', background: '#f0f0f0', borderRadius: 6, padding: '1px 6px',
+                                  }}
+                                >
+                                  {String.fromCharCode(97 + idx)})
+                                </span>
+                                {o.es_correcta && (
+                                  <span style={{ position: 'absolute', top: 4, right: 8, color: '#2e7d32', fontSize: 16 }}>✓</span>
+                                )}
+                                <div style={{ fontSize: 15, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                                  {o.imagen_url && (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={o.imagen_url} alt="" style={{ maxWidth: '100%', maxHeight: 40, borderRadius: 4 }} />
+                                  )}
+                                  {!quillEstaVacio(o.texto) && renderizarHTMLconMatematicas(o.texto)}
+                                </div>
+                                {o.es_correcta && (
+                                  <span
+                                    style={{
+                                      position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)',
+                                      fontSize: 10, fontWeight: 'bold', color: '#2e7d32', whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    ✓ Correcta
+                                  </span>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
