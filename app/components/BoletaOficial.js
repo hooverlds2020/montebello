@@ -14,6 +14,30 @@
 //   alerta: texto opcional, ej. "Salió de pantalla 2 veces"
 
 const PALETA_MATERIAS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+const PALETA_GRUPOS = ['#0f2a44', '#1976d2', '#0d9488', '#b45309', '#7c3aed', '#be185d'];
+
+// Agrupa las subcategorías por su materia raíz (el texto antes del "›" que
+// ya viene armado desde la BD, ej. "Español › Comprensión lectora"). Si una
+// categoría no tiene padre, es su propio grupo. Todo proporcional: nunca se
+// asume una cantidad fija de preguntas ni de materias — se suma lo que
+// realmente venga en cada categoría.
+function agruparPorMateriaRaiz(categorias) {
+  const grupos = {};
+  const orden = [];
+  categorias.forEach((c) => {
+    const partes = c.categoria.split('›').map((s) => s.trim());
+    const nombreGrupo = partes.length > 1 ? partes[0] : partes[0];
+    const detalle = partes.length > 1 ? partes[1] : partes[0];
+    if (!grupos[nombreGrupo]) {
+      grupos[nombreGrupo] = { grupo: nombreGrupo, total: 0, detalles: [] };
+      orden.push(nombreGrupo);
+    }
+    const totalCategoria = (Number(c.correctas) || 0) + (Number(c.incorrectas) || 0) + (Number(c.sinContestar) || 0);
+    grupos[nombreGrupo].total += totalCategoria;
+    grupos[nombreGrupo].detalles.push(`${detalle} ${totalCategoria}`);
+  });
+  return orden.map((k) => grupos[k]);
+}
 
 function construirGradienteDona(porCategoria, total, paleta) {
   if (!total) return 'conic-gradient(#e5e7eb 0% 100%)';
@@ -132,6 +156,38 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
         De <strong>{totalSeguro} preguntas</strong>, acertó <strong>{correctasSeguras}</strong> · Así se obtiene el {porcentajeSeguro}%
       </p>
 
+      {/* Composición del examen: cuánto pesa cada materia dentro del total,
+          calculado 100% en proporción a lo que traiga cada categoría — no
+          hay ningún número fijo aquí, si mañana el examen tiene otra
+          cantidad de preguntas u otra materia, esto se recalcula solo. */}
+      {(() => {
+        const grupos = agruparPorMateriaRaiz(categorias);
+        return grupos.length > 0 && totalSeguro > 0 ? (
+          <div style={{ maxWidth: 460, margin: '0 auto 24px' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#0f2a44', margin: '0 0 6px 0' }}>
+              Composición de {totalSeguro} preguntas
+            </p>
+            <div style={{ display: 'flex', width: '100%', height: 10, borderRadius: 999, overflow: 'hidden', background: '#eee' }}>
+              {grupos.map((g, i) => (
+                <div
+                  key={g.grupo}
+                  title={`${g.grupo}: ${g.detalles.join(' / ')}`}
+                  style={{ width: `${(g.total / totalSeguro) * 100}%`, background: PALETA_GRUPOS[i % PALETA_GRUPOS.length] }}
+                />
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginTop: 8 }}>
+              {grupos.map((g, i) => (
+                <span key={g.grupo} style={{ fontSize: 10, color: '#666', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: PALETA_GRUPOS[i % PALETA_GRUPOS.length], flexShrink: 0 }} />
+                  {g.total} de {totalSeguro} · {g.grupo} {Math.round((g.total / totalSeguro) * 100)}%
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      })()}
+
       {/* Dona: solo pinta las materias con aciertos (>0%); el resto queda
           gris, sin segmento ni etiqueta, para no confundir con "algo que sí
           se contó" cuando en realidad fueron 0 aciertos. Junto a la dona va
@@ -190,6 +246,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
           const porcentajeM = Number.isFinite(Number(c.porcentaje))
             ? Number(c.porcentaje)
             : (totalMateria > 0 ? Math.round((correctasM / totalMateria) * 100) : 0);
+          const porMejorarM = Math.max(0, totalMateria - correctasM);
           return (
             <div
               key={c.categoria}
@@ -199,11 +256,14 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
                 borderRadius: 8, padding: '10px 12px', marginBottom: 8,
               }}
             >
-              <div style={{ minWidth: 0 }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 'bold' }}>{c.categoria.replace('›', '·')}</p>
                 <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#777' }}>
-                  {correctasM} de {totalMateria} aciertos · {porcentajeM > 0 ? `${porcentajeM}% de avance` : 'Aún por reforzar'}
+                  {correctasM} de {totalMateria} aciertos · {porMejorarM} por mejorar · {porcentajeM}%
                 </p>
+                <div style={{ width: '100%', height: 6, background: '#eee', borderRadius: 999, marginTop: 6, overflow: 'hidden' }}>
+                  <div style={{ width: `${porcentajeM}%`, height: '100%', background: '#0f2a44', borderRadius: 999 }} />
+                </div>
               </div>
               <span style={{ fontSize: 15, fontWeight: 900, flexShrink: 0, minWidth: 34, textAlign: 'right' }}>{c.porcentaje}%</span>
             </div>
