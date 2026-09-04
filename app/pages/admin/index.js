@@ -1564,6 +1564,26 @@ export default function AdminPage() {
         .card-lectura:hover {
           box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
+        .input-admin-premium {
+          outline: none;
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .input-admin-premium:focus {
+          border-color: #0f2a44 !important;
+          box-shadow: 0 0 0 3px rgba(15,42,68,0.12);
+        }
+        .boton-agregar-admin:hover {
+          background: #162f4a !important;
+        }
+        .fila-admin-registrado {
+          transition: box-shadow 0.15s ease;
+        }
+        .fila-admin-registrado:hover {
+          box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+        }
+        @media (max-width: 600px) {
+          .boton-agregar-admin { width: 100%; justify-content: center; }
+        }
         .fila-alumno-card:hover {
           box-shadow: 0 2px 8px rgba(0,0,0,0.06);
           border-color: #ccc !important;
@@ -3383,69 +3403,108 @@ export default function AdminPage() {
       )}
 
       {vistaGeneral === 'usuarios' && (
-        <div style={{ maxWidth: 700, margin: '0 auto', padding: 24 }}>
-          <h1 style={{ marginTop: 0 }}>Usuarios del panel de administración</h1>
-          <p style={{ color: '#666', fontSize: 14, marginBottom: 24 }}>
+        <div style={{ background: '#f8fafc', minHeight: '100%' }}>
+        <div style={{ maxWidth: 680, margin: '0 auto', padding: '32px 24px' }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 'bold', color: '#0f2a44' }}>Usuarios del panel de administración</h1>
+          <p style={{ color: '#888', fontSize: 13, margin: '4px 0 24px 0' }}>
             Controla quién puede entrar al panel de administración con su propio correo y contraseña.
           </p>
 
-          <div style={{ border: '2px solid #4a90d9', borderRadius: 8, padding: 20, marginBottom: 32 }}>
-            <h2 style={{ fontSize: 16, marginTop: 0 }}>Agregar administrador</h2>
+          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 32 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+              👤 Agregar administrador
+            </h3>
             <form onSubmit={crearUsuarioAdmin}>
-              <input
-                placeholder="Nombre completo"
-                value={nuevoAdminNombre}
-                onChange={(e) => setNuevoAdminNombre(e.target.value)}
-                required
-                style={{ display: 'block', width: '100%', padding: 8, marginBottom: 8, boxSizing: 'border-box' }}
-              />
-              <input
-                type="email"
-                placeholder="Correo electrónico"
-                value={nuevoAdminEmail}
-                onChange={(e) => setNuevoAdminEmail(e.target.value)}
-                required
-                style={{ display: 'block', width: '100%', padding: 8, marginBottom: 8, boxSizing: 'border-box' }}
-              />
-              <input
-                type="password"
-                placeholder="Contraseña (mínimo 6 caracteres)"
-                value={nuevoAdminPassword}
-                onChange={(e) => setNuevoAdminPassword(e.target.value)}
-                required
-                minLength={6}
-                style={{ display: 'block', width: '100%', padding: 8, marginBottom: 12, boxSizing: 'border-box' }}
-              />
-              <button type="submit" style={btnStyle('primario')}>+ Agregar administrador</button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+                <input
+                  placeholder="Nombre completo"
+                  value={nuevoAdminNombre}
+                  onChange={(e) => setNuevoAdminNombre(e.target.value)}
+                  required
+                  className="input-admin-premium"
+                  style={{ height: 44, padding: '0 16px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box' }}
+                />
+                <input
+                  type="email"
+                  placeholder="Correo electrónico"
+                  value={nuevoAdminEmail}
+                  onChange={(e) => setNuevoAdminEmail(e.target.value)}
+                  required
+                  className="input-admin-premium"
+                  style={{ height: 44, padding: '0 16px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box' }}
+                />
+                <input
+                  type="password"
+                  placeholder="Contraseña (mínimo 6 caracteres)"
+                  value={nuevoAdminPassword}
+                  onChange={(e) => setNuevoAdminPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="input-admin-premium"
+                  style={{ height: 44, padding: '0 16px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box' }}
+                />
+              </div>
+              <button
+                type="submit"
+                style={{
+                  height: 44, padding: '0 24px', background: '#0f2a44', color: '#fff', border: 'none',
+                  borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                }}
+                className="boton-agregar-admin"
+              >
+                <span>+</span> Agregar administrador
+              </button>
             </form>
-            {mensajeUsuarios && <p style={{ color: '#c0392b', fontSize: 14 }}>{mensajeUsuarios}</p>}
+            {mensajeUsuarios && <p style={{ color: '#c0392b', fontSize: 13, marginTop: 12, marginBottom: 0 }}>{mensajeUsuarios}</p>}
           </div>
 
-          <h2 style={{ fontSize: 16 }}>Administradores registrados</h2>
-          {!usuariosAdmin && <p style={{ color: '#888' }}>Cargando...</p>}
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px 0' }}>Administradores registrados</h3>
+          {!usuariosAdmin && <p style={{ color: '#888', fontSize: 13 }}>Cargando...</p>}
           {usuariosAdmin && usuariosAdmin.length === 0 && (
-            <p style={{ color: '#888' }}>
+            <p style={{ color: '#888', fontSize: 13 }}>
               Aún no hay administradores individuales — el acceso funciona con la clave maestra
               (variable <code>ADMIN_PASSWORD</code>). Agrega el primero arriba.
             </p>
           )}
-          {usuariosAdmin && usuariosAdmin.map((u) => (
-            <div
-              key={u.id}
-              style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: 14, border: '1px solid #eee', borderRadius: 8, marginBottom: 8,
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 14 }}>{u.nombre}</div>
-                <div style={{ fontSize: 13, color: '#888' }}>{u.email}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {usuariosAdmin && usuariosAdmin.map((u) => (
+              <div
+                key={u.id}
+                className="fila-admin-registrado"
+                style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+                  background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: '14px 16px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                  <span
+                    style={{
+                      width: 36, height: 36, borderRadius: '50%', background: '#0f2a44', color: '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 'bold', flexShrink: 0,
+                    }}
+                  >
+                    {u.nombre?.[0]?.toUpperCase() || '?'}
+                  </span>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{u.nombre}</p>
+                    <p style={{ margin: '2px 0 0 0', fontSize: 12, color: '#888' }}>{u.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => borrarUsuarioAdmin(u)}
+                  style={{
+                    fontSize: 12, color: '#c0392b', background: '#fdeceb', border: 'none', borderRadius: 999,
+                    padding: '7px 14px', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
+                  }}
+                >
+                  🗑️ Quitar acceso
+                </button>
               </div>
-              <button onClick={() => borrarUsuarioAdmin(u)} style={btnStyle('peligro', { fontSize: 12, padding: '4px 10px' })}>
-                🗑️ Quitar acceso
-              </button>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
         </div>
       )}
 
