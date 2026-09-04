@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import DonaResultado from '../components/DonaResultado';
+import BoletaOficial from '../components/BoletaOficial';
 import PantallaCarga from '../components/PantallaCarga';
 import { renderizarExponentes } from '../lib/formato';
 import parse from 'html-react-parser';
@@ -362,50 +362,23 @@ export default function Examen() {
 
   // ---- Pantalla de resultado (examen recién terminado) ----
   if (resultado) {
-    const urlVerificacion = typeof window !== 'undefined'
-      ? `${window.location.origin}/verificar?folio=${resultado.examenId}`
-      : '';
-    const urlQr = urlVerificacion
-      ? `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(urlVerificacion)}`
-      : '';
-
     return (
-      <div style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
-        {/* Membrete de impresión: logo+instituto a la izquierda, alumno+fecha a la derecha */}
-        <div className="solo-impresion" style={{ display: 'none', marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0d3b66', paddingBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/img/logo-montebello-icono.webp" alt="" style={{ width: 42, height: 'auto' }} />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#0d3b66' }}>Instituto Educativo Montebello</div>
-                <div style={{ fontSize: 10, color: '#888', fontStyle: 'italic' }}>Transformando la educación hacia la sociedad del conocimiento</div>
-              </div>
-            </div>
-            <div style={{ textAlign: 'right', fontSize: 11, color: '#555' }}>
-              <div>{alumno?.nombre}</div>
-              <div>{new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
-            </div>
-          </div>
+      <div style={{ maxWidth: 780, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
+        <h1 style={{ textAlign: 'center', marginBottom: 24 }}>Resultado del diagnóstico</h1>
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12 }}>
+          <BoletaOficial
+            alumno={alumno}
+            folio={resultado.examenId}
+            fecha={new Date()}
+            porCategoria={resultado.porCategoria}
+            total={resultado.general.total}
+            correctas={resultado.general.correctas}
+            porcentaje={resultado.general.porcentaje}
+            umbral={umbralAprobacion}
+          />
         </div>
 
-        <h1 style={{ textAlign: 'center', marginBottom: 32 }}>Resultado del diagnóstico</h1>
-        <DonaResultado resultado={resultado} />
-
-        {/* QR de verificación: solo en impresión, esquina inferior derecha */}
-        <div className="solo-impresion" style={{ display: 'none', marginTop: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }}>
-            <div style={{ textAlign: 'right', fontSize: 10, color: '#888', maxWidth: 160 }}>
-              Folio #{resultado.examenId}<br />Escanea para verificar la autenticidad
-            </div>
-            {urlQr && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={urlQr} alt="Código QR de verificación" style={{ width: 70, height: 70 }} />
-            )}
-          </div>
-        </div>
-
-        <div className="ocultar-al-imprimir" style={{ textAlign: 'center', marginTop: 40, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="ocultar-al-imprimir" style={{ textAlign: 'center', marginTop: 24, display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
             onClick={() => { setResultado(null); }}
             style={{ padding: '8px 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
@@ -415,18 +388,6 @@ export default function Examen() {
           <button onClick={() => window.print()} style={{ padding: '8px 16px' }}>🖨️ Imprimir / Guardar PDF</button>
           <button onClick={cerrarSesion} style={{ padding: '8px 16px' }}>Cerrar sesión</button>
         </div>
-        <style jsx global>{`
-          @page { margin: 15mm; }
-          @media print {
-            .ocultar-al-imprimir { display: none !important; }
-            .solo-impresion { display: block !important; }
-            * {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-          }
-        `}</style>
       </div>
     );
   }
@@ -794,15 +755,12 @@ export default function Examen() {
 
   // ---- Ver el detalle de un intento pasado ----
   if (resultadoHistorico) {
-    const urlVerifHist = typeof window !== 'undefined'
-      ? `${window.location.origin}/verificar?folio=${resultadoHistorico.examenId}`
-      : '';
-    const urlQrHist = urlVerifHist
-      ? `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(urlVerifHist)}`
-      : '';
+    const alertaHist = resultadoHistorico.salidasPantalla > 0
+      ? `Salió de pantalla ${resultadoHistorico.salidasPantalla} ${resultadoHistorico.salidasPantalla === 1 ? 'vez' : 'veces'}`
+      : null;
 
     return (
-      <div className="hoja-impresion" style={{ maxWidth: 640, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
+      <div className="pagina-detalle-intento" style={{ maxWidth: 780, margin: '40px auto', fontFamily: 'sans-serif', padding: 24 }}>
         <button
           onClick={() => setResultadoHistorico(null)}
           className="ocultar-al-imprimir"
@@ -811,38 +769,18 @@ export default function Examen() {
           ← Volver al panel
         </button>
 
-        <div className="solo-impresion" style={{ display: 'none', marginBottom: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0d3b66', paddingBottom: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/img/logo-montebello-icono.webp" alt="" style={{ width: 42, height: 'auto' }} />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#0d3b66' }}>Instituto Educativo Montebello</div>
-                <div style={{ fontSize: 10, color: '#888', fontStyle: 'italic' }}>Transformando la educación hacia la sociedad del conocimiento</div>
-              </div>
-            </div>
-            <div style={{ textAlign: 'right', fontSize: 11, color: '#555' }}>
-              <div>{alumno?.nombre}</div>
-              <div>{new Date(resultadoHistorico.finalizadoEn || Date.now()).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="tarjeta-resultado" style={{ background: '#fff', border: '1px solid #eee', borderRadius: 14, padding: '36px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
-          <h1 className="titulo-detalle" style={{ textAlign: 'center', marginTop: 0, marginBottom: 28, fontSize: 20 }}>Detalle del intento</h1>
-          <DonaResultado resultado={resultadoHistorico} />
-
-          <div className="solo-impresion" style={{ display: 'none', marginTop: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }}>
-              <div style={{ textAlign: 'right', fontSize: 10, color: '#888', maxWidth: 160 }}>
-                Folio #{resultadoHistorico.examenId}<br />Escanea para verificar la autenticidad
-              </div>
-              {urlQrHist && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={urlQrHist} alt="Código QR de verificación" style={{ width: 70, height: 70 }} />
-              )}
-            </div>
-          </div>
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12 }}>
+          <BoletaOficial
+            alumno={alumno}
+            folio={resultadoHistorico.examenId}
+            fecha={resultadoHistorico.finalizadoEn}
+            porCategoria={resultadoHistorico.porCategoria}
+            total={resultadoHistorico.total}
+            correctas={resultadoHistorico.correctas}
+            porcentaje={resultadoHistorico.porcentaje}
+            umbral={umbralAprobacion}
+            alerta={alertaHist}
+          />
         </div>
 
         <div className="ocultar-al-imprimir" style={{ textAlign: 'center', marginTop: 20 }}>
@@ -850,18 +788,8 @@ export default function Examen() {
         </div>
 
         <style jsx global>{`
-          @page { size: letter; margin: 12mm; }
           @media print {
-            .ocultar-al-imprimir { display: none !important; }
-            .solo-impresion { display: block !important; }
-            .hoja-impresion { margin: 0 !important; padding: 0 !important; }
-            .tarjeta-resultado { padding: 14px 16px !important; border: none !important; box-shadow: none !important; }
-            .titulo-detalle { margin-bottom: 12px !important; }
-            * {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
+            .pagina-detalle-intento { margin: 0 !important; padding: 0 !important; }
           }
         `}</style>
       </div>

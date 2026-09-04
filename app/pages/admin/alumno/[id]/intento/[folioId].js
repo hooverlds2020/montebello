@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import BoletaOficial from '../../../../../components/BoletaOficial';
 import { estaAutenticado } from '../../../../../lib/auth';
 
 export async function getServerSideProps({ req }) {
@@ -10,29 +11,12 @@ export async function getServerSideProps({ req }) {
   return { props: {} };
 }
 
-const PALETA_MATERIAS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
-const UMBRAL_POR_DEFECTO = 60;
-
-// Igual que en el panel: la dona refleja el desglose real por materia (mismos
-// colores que la tabla de abajo), no un solo color plano desconectado.
-function construirGradienteDona(porCategoria, total, paleta) {
-  if (!total) return `conic-gradient(#e5e7eb 0% 100%)`;
-  let acumulado = 0;
-  const tramos = porCategoria.map((c, i) => {
-    const desde = acumulado;
-    acumulado += (c.correctas / total) * 100;
-    return `${paleta[i % paleta.length]} ${desde}% ${acumulado}%`;
-  });
-  tramos.push(`#e5e7eb ${acumulado}% 100%`);
-  return `conic-gradient(${tramos.join(', ')})`;
-}
-
 export default function IntentoIndividual() {
   const router = useRouter();
   const { id, folioId, imprimir } = router.query;
   const [alumno, setAlumno] = useState(null);
   const [intento, setIntento] = useState(null);
-  const [umbral, setUmbral] = useState(UMBRAL_POR_DEFECTO);
+  const [umbral, setUmbral] = useState(60);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -83,17 +67,12 @@ export default function IntentoIndividual() {
     return <div style={{ padding: 40, textAlign: 'center', fontFamily: 'sans-serif', color: '#888' }}>Cargando...</div>;
   }
 
-  const aprobado = intento.porcentaje >= umbral;
-  const colorPrincipal = aprobado ? '#22c55e' : '#ef4444';
-  const urlVerificacion = typeof window !== 'undefined'
-    ? `${window.location.origin}/verificar?folio=${intento.examenId}`
-    : '';
-  const urlQr = urlVerificacion
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=${encodeURIComponent(urlVerificacion)}`
-    : '';
+  const alerta = intento.salidasPantalla > 0
+    ? `Salió de pantalla ${intento.salidasPantalla} ${intento.salidasPantalla === 1 ? 'vez' : 'veces'}`
+    : null;
 
   return (
-    <div className="pagina-boleta" style={{ background: '#f0f2f5', fontFamily: 'sans-serif' }}>
+    <div className="pagina-intento-individual" style={{ background: '#f0f2f5', minHeight: '100vh', fontFamily: 'sans-serif' }}>
       <div className="no-print" style={{ maxWidth: 780, margin: '0 auto', padding: '20px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <Link
           href={`/admin`}
@@ -110,159 +89,23 @@ export default function IntentoIndividual() {
         </button>
       </div>
 
-      {/* Esta es la boleta tal cual — lo único que se imprime. Todo lo de
-          arriba (Volver / Imprimir) tiene className="no-print" y desaparece
-          al imprimir. */}
-      <div id="boleta" className="boleta-card" style={{ maxWidth: 780, margin: '20px auto 40px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 28 }}>
-        {/* Encabezado con logo, nombre del instituto, datos del alumno y QR */}
-        <div className="boleta-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, borderBottom: '3px solid #0d3b66', paddingBottom: 16, marginBottom: 20 }}>
-          <div className="boleta-header-izq" style={{ display: 'flex', gap: 12, flex: 1, minWidth: 0 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/img/logo-montebello-icono.webp" alt="" className="boleta-logo" style={{ width: 48, height: 'auto', flexShrink: 0 }} />
-            <div style={{ minWidth: 0 }}>
-              <h1 className="boleta-titulo" style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#0d3b66', letterSpacing: 0.3 }}>INSTITUTO EDUCATIVO MONTEBELLO</h1>
-              <p className="boleta-subtitulo" style={{ margin: '3px 0 0 0', fontSize: 10, fontWeight: 'bold', color: '#555', letterSpacing: 0.5 }}>DIAGNÓSTICO DE ADMISIÓN — RESULTADO OFICIAL</p>
-              <p className="boleta-alumno-linea" style={{ margin: '6px 0 0 0', fontSize: 12, color: '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                <strong>{alumno.nombre}</strong> · {alumno.email}
-              </p>
-              <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#888' }}>
-                Folio #{intento.examenId} · {new Date(intento.finalizadoEn).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}
-              </p>
-            </div>
-          </div>
-          <div style={{ textAlign: 'center', flexShrink: 0 }}>
-            <div className="boleta-qr-caja" style={{ width: 78, height: 78, border: '1px solid #ccc', padding: 4, background: '#fff' }}>
-              {urlQr && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={urlQr} alt="Código QR de verificación" style={{ width: '100%', height: '100%' }} />
-              )}
-            </div>
-            <p style={{ margin: '4px 0 0 0', fontSize: 8, color: '#999', fontFamily: 'monospace' }}>Verificar folio</p>
-          </div>
-        </div>
-
-        {intento.salidasPantalla > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            <span
-              style={{
-                fontSize: 11, fontWeight: 'bold', padding: '4px 10px', borderRadius: 999,
-                background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a',
-              }}
-            >
-              ⚠️ Salió de pantalla {intento.salidasPantalla} {intento.salidasPantalla === 1 ? 'vez' : 'veces'}
-            </span>
-          </div>
-        )}
-
-        {/* Cuerpo: dona a la izquierda, tabla de materias a la derecha (2
-            columnas para que quepa todo en 1 sola hoja) */}
-        <div className="boleta-grid" style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 24, alignItems: 'start' }}>
-          <div>
-            <div style={{ position: 'relative', width: 150, height: 150, margin: '0 auto' }}>
-              <div
-                style={{
-                  position: 'absolute', inset: 0, borderRadius: '50%',
-                  background: construirGradienteDona(intento.porCategoria, intento.total, PALETA_MATERIAS),
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute', inset: 14, borderRadius: '50%', background: '#fff',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                }}
-              >
-                <span style={{ fontSize: 28, fontWeight: 900, lineHeight: 1 }}>{intento.porcentaje}%</span>
-                <span style={{ fontSize: 11, color: '#999', marginTop: 3 }}>{intento.correctas} de {intento.total}</span>
-                <span
-                  style={{
-                    marginTop: 5, fontSize: 9, fontWeight: 'bold', padding: '2px 8px', borderRadius: 999,
-                    background: aprobado ? '#f0faf3' : '#fef2f2', color: colorPrincipal,
-                    border: `1px solid ${aprobado ? '#c8ecd3' : '#fecaca'}`,
-                  }}
-                >
-                  {aprobado ? 'Aprobado' : 'No aprobado'}
-                </span>
-              </div>
-            </div>
-            <p style={{ textAlign: 'center', fontSize: 10, color: '#999', marginTop: 10 }}>Umbral de aprobación: {umbral}%</p>
-          </div>
-
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-            <thead>
-              <tr style={{ background: '#0d3b66', color: '#fff' }}>
-                <th style={{ textAlign: 'left', padding: '8px 10px', fontWeight: 'bold' }}>Materia</th>
-                <th style={{ padding: '8px 6px', width: 40 }}>✓</th>
-                <th style={{ padding: '8px 6px', width: 40 }}>✕</th>
-                <th style={{ padding: '8px 6px', width: 70 }}>Sin cont.</th>
-                <th style={{ padding: '8px 6px', width: 50 }}>%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {intento.porCategoria.map((c, i) => (
-                <tr key={c.categoria} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: PALETA_MATERIAS[i % PALETA_MATERIAS.length], flexShrink: 0 }} />
-                    {c.categoria}
-                  </td>
-                  <td style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 'bold', color: '#22c55e' }}>{c.correctas}</td>
-                  <td style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 'bold', color: '#ef4444' }}>{c.incorrectas}</td>
-                  <td style={{ padding: '8px 6px', textAlign: 'center', color: '#999' }}>{c.sinContestar}</td>
-                  <td style={{ padding: '8px 6px', textAlign: 'center', fontWeight: 900 }}>{c.porcentaje}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div style={{ marginTop: 24, paddingTop: 10, borderTop: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#999', fontFamily: 'monospace', flexWrap: 'wrap', gap: 6 }}>
-          <span>Folio #{intento.examenId} · Generado el {new Date().toLocaleString('es-MX')}</span>
-          <span>Documento verificable con el código QR · montebello.clicknube.site</span>
-        </div>
+      <div style={{ maxWidth: 780, margin: '20px auto 40px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12 }}>
+        <BoletaOficial
+          alumno={alumno}
+          folio={intento.examenId}
+          fecha={intento.finalizadoEn}
+          porCategoria={intento.porCategoria}
+          total={intento.total}
+          correctas={intento.correctas}
+          porcentaje={intento.porcentaje}
+          umbral={umbral}
+          alerta={alerta}
+        />
       </div>
 
       <style jsx global>{`
-        @page { size: letter; margin: 12mm; }
         @media print {
-          /* Técnica robusta: se oculta TODO el documento y solo se hace
-             visible la boleta — así, sin importar qué más hubiera en la
-             página, nunca se cuela una segunda hoja en blanco ni contenido
-             de más. Esto es más confiable que ocultar elemento por
-             elemento (header/nav/botón), que es justo lo que fallaba
-             antes: el contenedor exterior tenía un alto mínimo de pantalla
-             completa (100vh) que no se anulaba al imprimir, y el navegador
-             agregaba una segunda hoja en blanco para "completar" ese
-             espacio de sobra. */
-          body * { visibility: hidden; }
-          #boleta, #boleta * { visibility: visible; }
-          #boleta {
-            position: absolute; left: 0; top: 0; width: 100%;
-            margin: 0 !important; border: none !important; border-radius: 0 !important; padding: 0 !important;
-          }
-          .pagina-boleta { background: #fff !important; min-height: 0 !important; }
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-        }
-        @media (max-width: 600px) {
-          .boleta-grid {
-            grid-template-columns: 1fr !important;
-            gap: 16px !important;
-          }
-          .boleta-card { padding: 16px !important; }
-          .boleta-header { gap: 10px !important; padding-bottom: 12px !important; }
-          .boleta-header-izq { gap: 8px !important; }
-          .boleta-logo { width: 36px !important; }
-          .boleta-titulo { font-size: 12px !important; }
-          .boleta-subtitulo { font-size: 8px !important; }
-          .boleta-alumno-linea { font-size: 10px !important; }
-          .boleta-qr-caja { width: 60px !important; height: 60px !important; }
-        }
-        @media (max-width: 380px) {
-          /* En pantallas angostísimas ya no cabe todo en una fila: el QR
-             baja debajo del texto en vez de apretarse hasta lo ilegible. */
-          .boleta-header { flex-wrap: wrap; }
-          .boleta-header-izq { flex-basis: 100%; }
+          .pagina-intento-individual { min-height: 0 !important; background: #fff !important; }
         }
       `}</style>
     </div>
