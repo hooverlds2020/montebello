@@ -1358,7 +1358,7 @@ export default function AdminPage() {
             />
           </div>
         ) : (
-          <div className="fila-materia" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+          <div className="fila-materia" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <button
               onClick={() => setCategoriaActivaId(c.id)}
               style={{
@@ -1382,6 +1382,39 @@ export default function AdminPage() {
             >
               {c.nombre} {c.codigo && <span style={{ fontSize: 11, opacity: 0.7 }}>({c.codigo})</span>} {c.activa === false && '(deshabilitada)'}
             </button>
+
+            <div
+              className="stepper-en-examen"
+              title="Cuántas preguntas de esta materia se incluyen al azar en el examen"
+              style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}
+            >
+              <button
+                type="button"
+                className="stepper-boton"
+                onClick={() => actualizarCantidadExamen(c, Math.max(0, (c.cantidad_examen || 0) - 1))}
+                aria-label="Restar una pregunta"
+                style={{ border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer', width: 22, height: 22, fontSize: 13, borderRadius: 5, lineHeight: 1, flexShrink: 0 }}
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min="0"
+                defaultValue={c.cantidad_examen || 0}
+                onBlur={(e) => actualizarCantidadExamen(c, e.target.value)}
+                style={{ width: 32, fontSize: 12, padding: 2, textAlign: 'center', flexShrink: 0 }}
+              />
+              <button
+                type="button"
+                className="stepper-boton"
+                onClick={() => actualizarCantidadExamen(c, (c.cantidad_examen || 0) + 1)}
+                aria-label="Sumar una pregunta"
+                style={{ border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer', width: 22, height: 22, fontSize: 13, borderRadius: 5, lineHeight: 1, flexShrink: 0 }}
+              >
+                +
+              </button>
+            </div>
+
             <div className="menu-materia-wrap" style={{ position: 'relative', flexShrink: 0 }}>
               <button
                 onClick={(e) => { e.stopPropagation(); setMenuMateriaAbiertoId(menuMateriaAbiertoId === c.id ? null : c.id); }}
@@ -1437,44 +1470,6 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-        {editandoMateriaId !== c.id && (
-          <div className="fila-en-examen" style={{ display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 10, marginTop: 6 }}>
-            <span
-              style={{ fontSize: 11, color: '#888', cursor: 'help' }}
-              title="Cuántas preguntas de esta materia se incluyen al azar en el examen de diagnóstico"
-            >
-              En examen: ⓘ
-            </span>
-            <div className="stepper-en-examen" style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <button
-                type="button"
-                className="stepper-boton"
-                onClick={() => actualizarCantidadExamen(c, Math.max(0, (c.cantidad_examen || 0) - 1))}
-                aria-label="Restar una pregunta"
-                style={{ border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer', width: 20, height: 20, fontSize: 12, borderRadius: 4, lineHeight: 1 }}
-              >
-                −
-              </button>
-              <input
-                type="number"
-                min="0"
-                defaultValue={c.cantidad_examen || 0}
-                onBlur={(e) => actualizarCantidadExamen(c, e.target.value)}
-                title="Cuántas preguntas de esta materia se incluyen al azar en el examen"
-                style={{ width: 36, fontSize: 11, padding: 3, textAlign: 'center' }}
-              />
-              <button
-                type="button"
-                className="stepper-boton"
-                onClick={() => actualizarCantidadExamen(c, (c.cantidad_examen || 0) + 1)}
-                aria-label="Sumar una pregunta"
-                style={{ border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer', width: 20, height: 20, fontSize: 12, borderRadius: 4, lineHeight: 1 }}
-              >
-                +
-              </button>
-            </div>
-          </div>
-        )}
       </>
     );
   }
@@ -1500,6 +1495,12 @@ export default function AdminPage() {
         .fila-materia .iconos-materia {
           opacity: 0;
           transition: opacity 0.15s ease;
+        }
+        .card-lectura {
+          transition: box-shadow 0.15s ease;
+        }
+        .card-lectura:hover {
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .fila-materia:hover .menu-materia-wrap,
         .fila-materia:hover .iconos-materia {
@@ -1627,7 +1628,7 @@ export default function AdminPage() {
       {vistaGeneral === 'asignaturas' && (
       <div className="admin-body" style={{ display: 'flex' }}>
       {/* MENÚ LATERAL */}
-      <aside className="admin-sidebar" style={{ width: 300, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
+      <aside className="admin-sidebar" style={{ width: 320, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
         <h2 style={{ fontSize: 16, marginBottom: 12 }}>Materias</h2>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {categorias
@@ -1776,14 +1777,24 @@ export default function AdminPage() {
 
       {/* CONTENIDO PRINCIPAL */}
       <main className="admin-main" style={{ flex: 1, padding: 24, maxWidth: 900, minWidth: 0 }}>
-        <h1 style={{ marginTop: 0, marginBottom: 20 }}>
-          {categoriaActiva
-            ? (categoriaPadreActiva ? `${categoriaPadreActiva.nombre} › ${categoriaActiva.nombre}` : categoriaActiva.nombre)
-            : 'Selecciona una materia'}
-          {categoriaActiva?.codigo && (
-            <span style={{ fontSize: 15, color: '#888', fontWeight: 'normal', marginLeft: 10 }}>({categoriaActiva.codigo})</span>
+        <div
+          className="header-materia-sticky"
+          style={{ position: 'sticky', top: 0, background: '#fff', zIndex: 15, paddingBottom: 12, marginBottom: 12, borderBottom: '1px solid #eee' }}
+        >
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 'bold', lineHeight: 1.3 }}>
+            {categoriaActiva
+              ? (categoriaPadreActiva ? `${categoriaPadreActiva.nombre} › ${categoriaActiva.nombre}` : categoriaActiva.nombre)
+              : 'Selecciona una materia'}
+            {categoriaActiva?.codigo && (
+              <span style={{ fontSize: 15, color: '#888', fontWeight: 'normal', marginLeft: 10 }}>({categoriaActiva.codigo})</span>
+            )}
+          </h1>
+          {categoriaActiva && (
+            <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>
+              {categoriaActiva.cantidad_examen || 0} reactivos en examen
+            </div>
           )}
-        </h1>
+        </div>
 
         {categoriaActiva && categoriaActiva.activa === false && (
           <div style={{
@@ -1816,30 +1827,29 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <div className="carga-rapida-radios" style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div
+                className="carga-rapida-tabs"
+                style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 20, borderBottom: '1px solid #e5e5e5' }}
+              >
                 {[
                   { valor: 'ninguna', texto: 'Sin lectura' },
                   { valor: 'nueva', texto: 'Crear nueva lectura' },
-                  { valor: 'continuar', texto: 'Agregar más preguntas a una lectura ya guardada' },
+                  { valor: 'continuar', texto: 'Agregar a lectura existente' },
                 ].map((op) => (
-                  <label
+                  <button
                     key={op.valor}
-                    className="opcion-lectura-card"
+                    type="button"
+                    onClick={() => setModoLectura(op.valor)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 10, minHeight: 44, padding: '8px 12px',
-                      border: `1px solid ${modoLectura === op.valor ? '#4a90d9' : '#ddd'}`,
-                      background: modoLectura === op.valor ? '#eaf3ff' : '#fff',
-                      borderRadius: 8, cursor: 'pointer', fontSize: 14,
+                      minHeight: 44, padding: '0 14px', border: 'none', background: 'transparent', cursor: 'pointer',
+                      fontSize: 14, fontWeight: modoLectura === op.valor ? 'bold' : 'normal',
+                      color: modoLectura === op.valor ? '#4a90d9' : '#666',
+                      borderBottom: `2px solid ${modoLectura === op.valor ? '#4a90d9' : 'transparent'}`,
+                      marginBottom: -1,
                     }}
                   >
-                    <input
-                      type="radio"
-                      checked={modoLectura === op.valor}
-                      onChange={() => setModoLectura(op.valor)}
-                      style={{ width: 18, height: 18, flexShrink: 0, accentColor: '#4a90d9' }}
-                    />
                     {op.texto}
-                  </label>
+                  </button>
                 ))}
               </div>
 
@@ -1894,7 +1904,7 @@ export default function AdminPage() {
                 </div>
               )}
 
-              <div className="carga-rapida-controles" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px 20px', alignItems: 'flex-start', marginBottom: 12, marginTop: 4 }}>
+              <div className="carga-rapida-controles" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '16px 20px', alignItems: 'flex-start', marginBottom: 4, marginTop: 4 }}>
                 <div>
                   <span style={{ display: 'block', fontSize: 13, color: '#666', marginBottom: 6 }}>Número de preguntas:</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -2040,9 +2050,11 @@ export default function AdminPage() {
               )}
             </section>
 
-            <section>
-              <h2>Reactivos de {categoriaActiva?.nombre} ({cargandoReactivos ? '…' : reactivos.length})</h2>
-              <p style={{ color: '#666', fontSize: 13 }}>
+            <section style={{ marginTop: 32 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 'bold', margin: 0 }}>
+                Reactivos de {categoriaActiva?.nombre} ({cargandoReactivos ? '…' : reactivos.length})
+              </h2>
+              <p style={{ color: '#888', fontSize: 12, marginTop: 4, marginBottom: 16 }}>
                 Agrupadas por lectura, en el orden en que se cargaron, para no mezclar preguntas de una
                 lectura con las de otra.
               </p>
