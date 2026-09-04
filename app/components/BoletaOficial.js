@@ -100,7 +100,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
 
       <h2 style={{ textAlign: 'center', fontSize: 15, fontWeight: 'bold', margin: '0 0 4px 0' }}>Resultado general</h2>
       <p style={{ textAlign: 'center', fontSize: 11, color: '#888', margin: '0 0 20px 0' }}>
-        De {totalSeguro} preguntas, acertó {correctasSeguras}. El porcentaje es aciertos ÷ {totalSeguro}.
+        De <strong>{totalSeguro} preguntas</strong>, acertó <strong>{correctasSeguras}</strong> · Así se obtiene el {porcentajeSeguro}%
       </p>
 
       {/* Dona: solo pinta las materias con aciertos (>0%); el resto queda
@@ -145,10 +145,6 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#e5e7eb', border: '1px solid #ccc', flexShrink: 0 }} />
             Por mejorar: {porMejorar}
-          </div>
-          <div style={{ marginTop: 12, background: '#fafbfc', border: '1px solid #eee', borderRadius: 8, padding: 10, fontSize: 10, lineHeight: 1.5, color: '#666' }}>
-            <strong style={{ color: '#333' }}>¿Cómo se lee?</strong><br />
-            Si el círculo está gris es que hubo pocas respuestas correctas. Los colores solo aparecen donde hubo aciertos en esa materia.
           </div>
         </div>
       </div>
