@@ -1538,6 +1538,9 @@ export default function AdminPage() {
             width: 100% !important;
             border-right: none !important;
             border-bottom: 1px solid #ddd;
+            position: static !important;
+            max-height: none !important;
+            overflow-y: visible !important;
           }
           .admin-main { max-width: 100% !important; padding: 0 !important; }
           .contenido-principal-fondo { padding: 16px !important; }
@@ -1779,9 +1782,20 @@ export default function AdminPage() {
       </header>
 
       {vistaGeneral === 'asignaturas' && (
-      <div className="admin-body" style={{ display: 'flex' }}>
-      {/* MENÚ LATERAL */}
-      <aside className="admin-sidebar" style={{ width: 320, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0 }}>
+      <div className="admin-body" style={{ display: 'flex', alignItems: 'flex-start' }}>
+      {/* MENÚ LATERAL: sticky (no fixed) — baja acompañando el scroll mientras
+          hay contenido debajo, y en cuanto no hay más espacio se detiene
+          justo bajo el header en vez de salirse de la pantalla o seguir de
+          largo. Si hay muchas materias, el propio menú scrollea por dentro
+          (max-height + overflow-y) en vez de empujar la página entera. */}
+      <aside
+        className="admin-sidebar"
+        style={{
+          width: 320, borderRight: '1px solid #ddd', padding: 16, flexShrink: 0,
+          position: 'sticky', top: 64, alignSelf: 'flex-start',
+          maxHeight: 'calc(100vh - 64px)', overflowY: 'auto',
+        }}
+      >
         <h2 style={{ fontSize: 16, marginBottom: 12 }}>Materias</h2>
         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
           {categorias
