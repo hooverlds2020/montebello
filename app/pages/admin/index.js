@@ -1358,115 +1358,134 @@ export default function AdminPage() {
             />
           </div>
         ) : (
-          <div className="fila-materia" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <button
-              onClick={() => setCategoriaActivaId(c.id)}
-              style={{
-                display: 'block',
-                flex: 1,
-                minWidth: 0,
-                textAlign: 'left',
-                padding: '8px 10px',
-                border: 'none',
-                borderRadius: 6,
-                cursor: 'pointer',
-                background: c.id === categoriaActivaId ? '#4a90d9' : 'transparent',
-                color: c.id === categoriaActivaId ? '#fff' : c.activa === false ? '#aaa' : '#333',
-                fontWeight: c.id === categoriaActivaId ? 'bold' : 'normal',
-                fontStyle: c.activa === false ? 'italic' : 'normal',
-                fontSize: 14,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {c.nombre} {c.codigo && <span style={{ fontSize: 11, opacity: 0.7 }}>({c.codigo})</span>} {c.activa === false && '(deshabilitada)'}
-            </button>
-
-            <div
-              className="stepper-en-examen"
-              title="Cuántas preguntas de esta materia se incluyen al azar en el examen"
-              style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}
-            >
+          <div
+            className="fila-materia"
+            style={{
+              border: c.id === categoriaActivaId ? 'none' : '1px solid #e5e5e5',
+              borderRadius: 16,
+              padding: 12,
+              marginBottom: 10,
+              background: c.id === categoriaActivaId ? '#4a90d9' : '#fff',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6, marginBottom: 12 }}>
               <button
-                type="button"
-                className="stepper-boton"
-                onClick={() => actualizarCantidadExamen(c, Math.max(0, (c.cantidad_examen || 0) - 1))}
-                aria-label="Restar una pregunta"
-                style={{ border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer', width: 22, height: 22, fontSize: 13, borderRadius: 5, lineHeight: 1, flexShrink: 0 }}
-              >
-                −
-              </button>
-              <input
-                type="number"
-                min="0"
-                defaultValue={c.cantidad_examen || 0}
-                onBlur={(e) => actualizarCantidadExamen(c, e.target.value)}
-                style={{ width: 32, fontSize: 12, padding: 2, textAlign: 'center', flexShrink: 0 }}
-              />
-              <button
-                type="button"
-                className="stepper-boton"
-                onClick={() => actualizarCantidadExamen(c, (c.cantidad_examen || 0) + 1)}
-                aria-label="Sumar una pregunta"
-                style={{ border: '1px solid #ddd', background: '#f7f7f7', cursor: 'pointer', width: 22, height: 22, fontSize: 13, borderRadius: 5, lineHeight: 1, flexShrink: 0 }}
-              >
-                +
-              </button>
-            </div>
-
-            <div className="menu-materia-wrap" style={{ position: 'relative', flexShrink: 0 }}>
-              <button
-                onClick={(e) => { e.stopPropagation(); setMenuMateriaAbiertoId(menuMateriaAbiertoId === c.id ? null : c.id); }}
-                title="Más opciones"
-                aria-haspopup="true"
-                aria-expanded={menuMateriaAbiertoId === c.id}
-                className="boton-kebab"
+                onClick={() => setCategoriaActivaId(c.id)}
                 style={{
-                  border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18,
-                  width: 32, height: 32, borderRadius: 6, lineHeight: 1,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  display: 'block', flex: 1, minWidth: 0, textAlign: 'left', padding: 0, border: 'none',
+                  background: 'transparent', cursor: 'pointer',
+                  fontWeight: 600, fontSize: 14, lineHeight: 1.35,
+                  color: c.id === categoriaActivaId ? '#fff' : c.activa === false ? '#aaa' : '#222',
+                  fontStyle: c.activa === false ? 'italic' : 'normal',
                 }}
               >
-                ⋮
+                {c.nombre}
+                {c.codigo && (
+                  <>
+                    <br />
+                    <span style={{ fontSize: 12, fontWeight: 'normal', color: c.id === categoriaActivaId ? '#cfe3f7' : '#888' }}>
+                      ({c.codigo})
+                    </span>
+                  </>
+                )}
+                {c.activa === false && <span style={{ fontSize: 11 }}> (deshabilitada)</span>}
               </button>
-              {menuMateriaAbiertoId === c.id && (
-                <>
-                  {/* Capa invisible para cerrar el menú al tocar/hacer clic afuera */}
-                  <div
-                    onClick={() => setMenuMateriaAbiertoId(null)}
-                    style={{ position: 'fixed', inset: 0, zIndex: 20 }}
-                  />
-                  <div
-                    className="menu-materia-desplegable"
-                    style={{
-                      position: 'absolute', top: '100%', right: 0, marginTop: 2, zIndex: 21,
-                      background: '#fff', border: '1px solid #ddd', borderRadius: 8,
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.12)', minWidth: 170, overflow: 'hidden',
-                    }}
-                  >
-                    <button
-                      onClick={() => { setMenuMateriaAbiertoId(null); iniciarEdicionMateria(c); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, color: '#333' }}
+
+              <div className="menu-materia-wrap" style={{ position: 'relative', flexShrink: 0 }}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setMenuMateriaAbiertoId(menuMateriaAbiertoId === c.id ? null : c.id); }}
+                  title="Más opciones"
+                  aria-haspopup="true"
+                  aria-expanded={menuMateriaAbiertoId === c.id}
+                  className="boton-kebab"
+                  style={{
+                    border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18,
+                    width: 32, height: 32, borderRadius: 6, lineHeight: 1, flexShrink: 0,
+                    color: c.id === categoriaActivaId ? '#fff' : '#333',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  ⋮
+                </button>
+                {menuMateriaAbiertoId === c.id && (
+                  <>
+                    <div
+                      onClick={() => setMenuMateriaAbiertoId(null)}
+                      style={{ position: 'fixed', inset: 0, zIndex: 20 }}
+                    />
+                    <div
+                      className="menu-materia-desplegable"
+                      style={{
+                        position: 'absolute', top: '100%', right: 0, marginTop: 2, zIndex: 21,
+                        background: '#fff', border: '1px solid #ddd', borderRadius: 8,
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.12)', minWidth: 170, overflow: 'hidden',
+                      }}
                     >
-                      ✏️ Renombrar
-                    </button>
-                    <button
-                      onClick={() => { setMenuMateriaAbiertoId(null); toggleMateriaActiva(c); }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', fontSize: 14, color: '#333' }}
-                    >
-                      {c.activa === false ? '🔓 Habilitar' : '🔒 Deshabilitar'}
-                    </button>
-                    <button
-                      onClick={() => { setMenuMateriaAbiertoId(null); borrarMateria(c); }}
-                      title="Borrar (solo si no tiene preguntas)"
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', fontSize: 14, color: '#c0392b' }}
-                    >
-                      🗑️ Eliminar
-                    </button>
-                  </div>
-                </>
-              )}
+                      <button
+                        onClick={() => { setMenuMateriaAbiertoId(null); iniciarEdicionMateria(c); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, color: '#333' }}
+                      >
+                        ✏️ Renombrar
+                      </button>
+                      <button
+                        onClick={() => { setMenuMateriaAbiertoId(null); toggleMateriaActiva(c); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', fontSize: 14, color: '#333' }}
+                      >
+                        {c.activa === false ? '🔓 Habilitar' : '🔒 Deshabilitar'}
+                      </button>
+                      <button
+                        onClick={() => { setMenuMateriaAbiertoId(null); borrarMateria(c); }}
+                        title="Borrar (solo si no tiene preguntas)"
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '12px 14px', border: 'none', borderTop: '1px solid #f0f0f0', background: 'none', cursor: 'pointer', fontSize: 14, color: '#c0392b' }}
+                      >
+                        🗑️ Eliminar
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, color: c.id === categoriaActivaId ? '#cfe3f7' : '#888' }}>En examen</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => actualizarCantidadExamen(c, Math.max(0, (c.cantidad_examen || 0) - 1))}
+                  aria-label="Restar una pregunta"
+                  style={{
+                    width: 44, height: 44, borderRadius: 12, fontSize: 20, cursor: 'pointer', flexShrink: 0,
+                    border: c.id === categoriaActivaId ? 'none' : '1px solid #ddd',
+                    background: c.id === categoriaActivaId ? '#3a7bc0' : '#f5f5f5',
+                    color: c.id === categoriaActivaId ? '#fff' : '#333',
+                  }}
+                >
+                  −
+                </button>
+                <div
+                  style={{
+                    width: 56, height: 44, borderRadius: 12, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: 15,
+                    border: c.id === categoriaActivaId ? 'none' : '2px solid #ddd',
+                    background: c.id === categoriaActivaId ? '#fff' : '#fff',
+                    color: c.id === categoriaActivaId ? '#4a90d9' : '#222',
+                  }}
+                >
+                  {c.cantidad_examen || 0}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => actualizarCantidadExamen(c, (c.cantidad_examen || 0) + 1)}
+                  aria-label="Sumar una pregunta"
+                  style={{
+                    width: 44, height: 44, borderRadius: 12, fontSize: 20, cursor: 'pointer', flexShrink: 0, border: 'none',
+                    background: c.id === categoriaActivaId ? '#fff' : '#4a90d9',
+                    color: c.id === categoriaActivaId ? '#4a90d9' : '#fff',
+                  }}
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1491,30 +1510,15 @@ export default function AdminPage() {
           }
           .admin-main { max-width: 100% !important; padding: 16px !important; }
         }
-        .fila-materia .menu-materia-wrap,
-        .fila-materia .iconos-materia {
-          opacity: 0;
-          transition: opacity 0.15s ease;
-        }
         .card-lectura {
           transition: box-shadow 0.15s ease;
         }
         .card-lectura:hover {
           box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .fila-materia:hover .menu-materia-wrap,
-        .fila-materia:hover .iconos-materia {
-          opacity: 1;
-        }
-        /* En pantallas táctiles (sin hover real) el botón de opciones se
-           queda siempre visible, y con un objetivo táctil de 44x44 mínimo
-           en vez de los 32px de escritorio. También agrandamos el stepper
-           de "En examen" y le damos más aire a la fila (efecto "tarjeta"). */
+        /* Kebab de cada materia: en táctil crece a 44x44 (objetivo mínimo),
+           en mouse se queda en 32x32. */
         @media (hover: none) {
-          .fila-materia .menu-materia-wrap,
-          .fila-materia .iconos-materia {
-            opacity: 1;
-          }
           .boton-kebab {
             width: 44px !important;
             height: 44px !important;
@@ -1523,22 +1527,6 @@ export default function AdminPage() {
           .menu-materia-desplegable button {
             padding: 14px 16px !important;
             font-size: 15px !important;
-          }
-          .fila-en-examen {
-            margin-top: 10px !important;
-            padding: 8px 10px !important;
-            background: #f8f9fb;
-            border-radius: 6px;
-          }
-          .stepper-boton {
-            width: 32px !important;
-            height: 32px !important;
-            font-size: 16px !important;
-          }
-          .stepper-en-examen input {
-            width: 46px !important;
-            font-size: 14px !important;
-            padding: 6px !important;
           }
         }
         @page { size: letter; margin: 10mm; }
@@ -1598,28 +1586,30 @@ export default function AdminPage() {
       `}</style>
 
       {/* BARRA SUPERIOR: cambia entre Asignaturas y Alumnos, un solo panel, sin roles separados */}
-      <div className="barra-superior-admin ocultar-al-imprimir" style={{ display: 'flex', gap: 8, padding: '12px 16px', borderBottom: '1px solid #ddd', background: '#fafbfc', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => setVistaGeneral('asignaturas')}
-          style={btnStyle(vistaGeneral === 'asignaturas' ? 'primario' : 'secundario', { fontSize: 14 })}
-        >
-          📚 Asignaturas
-        </button>
-        <button
-          onClick={() => setVistaGeneral('alumnos')}
-          style={btnStyle(vistaGeneral === 'alumnos' ? 'primario' : 'secundario', { fontSize: 14 })}
-        >
-          👥 Alumnos
-        </button>
-        <button
-          onClick={() => setVistaGeneral('usuarios')}
-          style={btnStyle(vistaGeneral === 'usuarios' ? 'primario' : 'secundario', { fontSize: 14 })}
-        >
-          ⚙️ Usuarios
-        </button>
+      <div className="barra-superior-admin ocultar-al-imprimir" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '12px 16px', borderBottom: '1px solid #ddd', background: '#fafbfc' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setVistaGeneral('asignaturas')}
+            style={btnStyle(vistaGeneral === 'asignaturas' ? 'primario' : 'secundario', { fontSize: 14 })}
+          >
+            📚 Asignaturas
+          </button>
+          <button
+            onClick={() => setVistaGeneral('alumnos')}
+            style={btnStyle(vistaGeneral === 'alumnos' ? 'primario' : 'secundario', { fontSize: 14 })}
+          >
+            👥 Alumnos
+          </button>
+          <button
+            onClick={() => setVistaGeneral('usuarios')}
+            style={btnStyle(vistaGeneral === 'usuarios' ? 'primario' : 'secundario', { fontSize: 14 })}
+          >
+            ⚙️ Usuarios
+          </button>
+        </div>
         <button
           onClick={cerrarSesionAdmin}
-          style={btnStyle('secundario', { fontSize: 14, marginLeft: 'auto' })}
+          style={btnStyle('secundario', { fontSize: 14, flexShrink: 0 })}
         >
           🚪 Cerrar sesión
         </button>
