@@ -23,7 +23,7 @@ function construirGradienteDona(porCategoria, total, paleta) {
     // Las materias en 0% no pintan segmento (se funden con el gris de
     // fondo) — pintar un segmento de ancho cero no cambia nada visualmente,
     // pero así queda explícito que solo lo que sí tiene aciertos colorea.
-    const ancho = (c.correctas / total) * 100;
+    const ancho = ((Number(c.correctas) || 0) / total) * 100;
     if (ancho > 0) {
       const desde = acumulado;
       acumulado += ancho;
@@ -35,7 +35,26 @@ function construirGradienteDona(porCategoria, total, paleta) {
 }
 
 export default function BoletaOficial({ alumno, folio, fecha, porCategoria, total, correctas, porcentaje, umbral = 60, alerta }) {
-  const aprobado = porcentaje >= umbral;
+  // Cálculo a prueba de datos incompletos: si `total`/`correctas` llegan
+  // undefined (ej. un examen con un registro raro o incompleto), en vez de
+  // arrastrar el undefined hasta el JSX y terminar en "NaN" o casillas
+  // vacías, se recalculan a partir del desglose por materia — que si tiene
+  // datos reales, siempre suma correcto. Solo si TODO viene vacío se cae a 0.
+  const categorias = Array.isArray(porCategoria) ? porCategoria : [];
+  const totalCategorias = categorias.reduce(
+    (acc, c) => acc + (Number(c.correctas) || 0) + (Number(c.incorrectas) || 0) + (Number(c.sinContestar) || 0),
+    0
+  );
+  const correctasCategorias = categorias.reduce((acc, c) => acc + (Number(c.correctas) || 0), 0);
+
+  const totalSeguro = Number.isFinite(Number(total)) && Number(total) > 0 ? Number(total) : totalCategorias;
+  const correctasSeguras = Number.isFinite(Number(correctas)) ? Number(correctas) : correctasCategorias;
+  const porcentajeSeguro = Number.isFinite(Number(porcentaje))
+    ? Number(porcentaje)
+    : (totalSeguro > 0 ? Math.round((correctasSeguras / totalSeguro) * 100) : 0);
+  const porMejorar = Math.max(0, totalSeguro - correctasSeguras);
+
+  const aprobado = porcentajeSeguro >= umbral;
   const colorPrincipal = aprobado ? '#22c55e' : '#ef4444';
   const urlVerificacion = typeof window !== 'undefined'
     ? `${window.location.origin}/verificar?folio=${folio}`
@@ -81,7 +100,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
 
       <h2 style={{ textAlign: 'center', fontSize: 15, fontWeight: 'bold', margin: '0 0 4px 0' }}>Resultado general</h2>
       <p style={{ textAlign: 'center', fontSize: 11, color: '#888', margin: '0 0 20px 0' }}>
-        De {total} preguntas, acertó {correctas}. El porcentaje es aciertos ÷ {total}.
+        De {totalSeguro} preguntas, acertó {correctasSeguras}. El porcentaje es aciertos ÷ {totalSeguro}.
       </p>
 
       {/* Dona: solo pinta las materias con aciertos (>0%); el resto queda
@@ -95,7 +114,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
           <div
             style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
-              background: construirGradienteDona(porCategoria, total, PALETA_MATERIAS),
+              background: construirGradienteDona(categorias, totalSeguro, PALETA_MATERIAS),
             }}
           />
           <div
@@ -104,8 +123,8 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <span style={{ fontSize: 30, fontWeight: 900, lineHeight: 1 }}>{porcentaje}%</span>
-            <span style={{ fontSize: 11, color: '#999', marginTop: 3 }}>{correctas} de {total} aciertos</span>
+            <span style={{ fontSize: 30, fontWeight: 900, lineHeight: 1 }}>{porcentajeSeguro}%</span>
+            <span style={{ fontSize: 11, color: '#999', marginTop: 3 }}>{correctasSeguras} de {totalSeguro} aciertos</span>
             <span
               style={{
                 marginTop: 5, fontSize: 9, fontWeight: 'bold', padding: '2px 8px', borderRadius: 999,
@@ -121,11 +140,11 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
         <div style={{ fontSize: 11, maxWidth: 220 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#0d3b66', flexShrink: 0 }} />
-            Aciertos: {correctas}
+            Aciertos: {correctasSeguras}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#e5e7eb', border: '1px solid #ccc', flexShrink: 0 }} />
-            Por mejorar: {total - correctas}
+            Por mejorar: {porMejorar}
           </div>
           <div style={{ marginTop: 12, background: '#fafbfc', border: '1px solid #eee', borderRadius: 8, padding: 10, fontSize: 10, lineHeight: 1.5, color: '#666' }}>
             <strong style={{ color: '#333' }}>¿Cómo se lee?</strong><br />
@@ -138,21 +157,27 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
           aciertos" y el % — así se entiende sin necesitar leyenda aparte. */}
       <div style={{ maxWidth: 460, margin: '0 auto 8px' }}>
         <p style={{ fontSize: 11, fontWeight: 'bold', color: '#555', textAlign: 'center', margin: '0 0 10px 0' }}>Desglose por materia</p>
-        {porCategoria.map((c, i) => {
-          const totalMateria = c.correctas + c.incorrectas + c.sinContestar;
+        {categorias.map((c, i) => {
+          const correctasM = Number(c.correctas) || 0;
+          const incorrectasM = Number(c.incorrectas) || 0;
+          const sinContestarM = Number(c.sinContestar) || 0;
+          const totalMateria = correctasM + incorrectasM + sinContestarM;
+          const porcentajeM = Number.isFinite(Number(c.porcentaje))
+            ? Number(c.porcentaje)
+            : (totalMateria > 0 ? Math.round((correctasM / totalMateria) * 100) : 0);
           return (
             <div
               key={c.categoria}
               style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
-                background: '#fafbfc', borderLeft: `4px solid ${c.porcentaje > 0 ? PALETA_MATERIAS[i % PALETA_MATERIAS.length] : '#d1d5db'}`,
+                background: '#fafbfc', borderLeft: `4px solid ${porcentajeM > 0 ? PALETA_MATERIAS[i % PALETA_MATERIAS.length] : '#d1d5db'}`,
                 borderRadius: 8, padding: '10px 12px', marginBottom: 8,
               }}
             >
               <div style={{ minWidth: 0 }}>
                 <p style={{ margin: 0, fontSize: 12, fontWeight: 'bold' }}>{c.categoria.replace('›', '·')}</p>
                 <p style={{ margin: '2px 0 0 0', fontSize: 11, color: '#777' }}>
-                  {c.correctas} de {totalMateria} aciertos · {c.porcentaje > 0 ? `${c.porcentaje}% de avance` : 'Aún por reforzar'}
+                  {correctasM} de {totalMateria} aciertos · {porcentajeM > 0 ? `${porcentajeM}% de avance` : 'Aún por reforzar'}
                 </p>
               </div>
               <span style={{ fontSize: 15, fontWeight: 900, flexShrink: 0, minWidth: 34, textAlign: 'right' }}>{c.porcentaje}%</span>
