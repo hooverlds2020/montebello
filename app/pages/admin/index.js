@@ -1512,14 +1512,21 @@ export default function AdminPage() {
           .contenido-principal-fondo { padding: 16px !important; }
           .barra-superior-desktop { display: none !important; }
           .barra-superior-movil { display: flex !important; }
+          .alumnos-config-grid { grid-template-columns: 1fr 1fr !important; }
+          .alumnos-stats-grid { grid-template-columns: 1fr !important; }
+          .alumnos-filtros-fila input[type="date"] { width: 100% !important; }
         }
         .tabs-scroll-movil::-webkit-scrollbar { display: none; }
         .tabs-scroll-movil { scrollbar-width: none; }
-        .card-lectura {
-          transition: box-shadow 0.15s ease;
+        .card-lectura, .fila-alumno-card {
+          transition: box-shadow 0.15s ease, border-color 0.15s ease;
         }
         .card-lectura:hover {
           box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .fila-alumno-card:hover {
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          border-color: #ccc !important;
         }
         /* Kebab de cada materia: en táctil crece a 44x44 (objetivo mínimo),
            en mouse se queda en 32x32. */
@@ -2465,12 +2472,31 @@ export default function AdminPage() {
       )}
 
       {vistaGeneral === 'alumnos' && (
-        <div style={{ maxWidth: 1000, margin: '0 auto', padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <h1 className={mostrandoFicha ? 'ocultar-al-imprimir' : ''} style={{ margin: 0 }}>
-              {detalleAlumno ? detalleAlumno.alumno.nombre : 'Resultados del diagnóstico'}
-            </h1>
-            {detalleAlumno ? (
+        <div style={{ background: '#f8fafc', minHeight: '100%' }}>
+        <div style={{ maxWidth: 1150, margin: '0 auto', padding: 24 }}>
+          {!detalleAlumno ? (
+            <div className="alumnos-header-premium" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 28, flexWrap: 'wrap' }}>
+              <div>
+                <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, letterSpacing: '-0.5px' }}>Resultados del diagnóstico</h1>
+                <p style={{ margin: '4px 0 0 0', fontSize: 14, color: '#888' }}>Vista general del desempeño de tus alumnos</p>
+              </div>
+              <button
+                onClick={exportarCSV}
+                disabled={!resultadosResumen || resultadosResumen.alumnos.length === 0}
+                style={{
+                  height: 44, padding: '0 20px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 12,
+                  fontSize: 14, fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 1px 3px rgba(74,144,217,0.3)',
+                  display: 'flex', alignItems: 'center', gap: 8, opacity: (!resultadosResumen || resultadosResumen.alumnos.length === 0) ? 0.5 : 1,
+                }}
+              >
+                ⬇️ Exportar a Excel (CSV)
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h1 className={mostrandoFicha ? 'ocultar-al-imprimir' : ''} style={{ margin: 0 }}>
+                {detalleAlumno.alumno.nombre}
+              </h1>
               <div className="ocultar-al-imprimir" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <button onClick={() => { setAlumnoSeleccionadoId(null); setDetalleAlumno(null); }} style={btnStyle('secundario')}>
                   ← Volver a la lista
@@ -2510,107 +2536,93 @@ export default function AdminPage() {
                   )}
                 </div>
               </div>
-            ) : (
-              <button
-                onClick={exportarCSV}
-                disabled={!resultadosResumen || resultadosResumen.alumnos.length === 0}
-                style={btnStyle('primario')}
-              >
-                Exportar a Excel (CSV)
-              </button>
-            )}
-          </div>
-
-          {!detalleAlumno && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, fontSize: 13, color: '#666', flexWrap: 'wrap' }}>
-              <span>Umbral de aprobación (verde/rojo en toda la app):</span>
-              {editandoUmbral ? (
-                <>
-                  <input
-                    type="number" min="0" max="100" value={umbralInput}
-                    onChange={(e) => setUmbralInput(parseInt(e.target.value, 10) || 0)}
-                    style={{ width: 60, padding: 4 }}
-                  />
-                  <button onClick={guardarUmbral} style={btnStyle('primario', { padding: '4px 10px', fontSize: 12 })}>Guardar</button>
-                  <button onClick={() => setEditandoUmbral(false)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>Cancelar</button>
-                </>
-              ) : (
-                <>
-                  <strong>{umbralAprobacion}%</strong>
-                  <button onClick={() => setEditandoUmbral(true)} title="Editar" style={btnStyle('secundario', { padding: '4px 8px', fontSize: 12 })}>✏️</button>
-                </>
-              )}
             </div>
           )}
 
-          {!detalleAlumno && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, fontSize: 13, color: '#666', flexWrap: 'wrap' }}>
-              <span>Tiempo límite del examen (para exámenes nuevos):</span>
-              {editandoTiempo ? (
-                <>
-                  <input
-                    type="number" min="1" max="600" value={tiempoInput}
-                    onChange={(e) => setTiempoInput(parseInt(e.target.value, 10) || 1)}
-                    style={{ width: 70, padding: 4 }}
-                  />
-                  <span>minutos</span>
-                  <button onClick={guardarTiempo} style={btnStyle('primario', { padding: '4px 10px', fontSize: 12 })}>Guardar</button>
-                  <button onClick={() => setEditandoTiempo(false)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>Cancelar</button>
-                </>
-              ) : (
-                <>
-                  <strong>{tiempoLimiteMinutos} minutos</strong>
-                  <button onClick={() => setEditandoTiempo(true)} title="Editar" style={btnStyle('secundario', { padding: '4px 8px', fontSize: 12 })}>✏️</button>
-                </>
-              )}
-            </div>
-          )}
-
-          {!detalleAlumno && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, fontSize: 13, color: '#666', flexWrap: 'wrap' }}>
-              <span>Intentos permitidos por alumno (0 = ilimitados):</span>
-              {editandoIntentos ? (
-                <>
-                  <input
-                    type="number" min="0" max="20" value={intentosInput}
-                    onChange={(e) => setIntentosInput(parseInt(e.target.value, 10) || 0)}
-                    style={{ width: 60, padding: 4 }}
-                  />
-                  <button onClick={guardarIntentos} style={btnStyle('primario', { padding: '4px 10px', fontSize: 12 })}>Guardar</button>
-                  <button onClick={() => setEditandoIntentos(false)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>Cancelar</button>
-                </>
-              ) : (
-                <>
-                  <strong>{intentosPermitidos === 0 ? 'Ilimitados' : intentosPermitidos}</strong>
-                  <button onClick={() => setEditandoIntentos(true)} title="Editar" style={btnStyle('secundario', { padding: '4px 8px', fontSize: 12 })}>✏️</button>
-                </>
-              )}
-            </div>
-          )}
-
-          {!detalleAlumno && (
-            <div style={{ marginBottom: 24, maxWidth: 640 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, fontSize: 13, color: '#666' }}>
-                <span>Instrucciones del examen (se le muestran al alumno antes de empezar, separadas de las lecturas):</span>
-                {!editandoInstrucciones && (
-                  <button onClick={() => setEditandoInstrucciones(true)} title="Editar" style={btnStyle('secundario', { padding: '4px 8px', fontSize: 12 })}>✏️</button>
-                )}
-              </div>
-              {editandoInstrucciones ? (
-                <div>
-                  <div style={{ background: '#fff', marginBottom: 8 }}>
-                    <ReactQuill theme="snow" value={instruccionesInput} onChange={setInstruccionesInput} placeholder="Ej. Reglas del examen, tiempo disponible, qué hacer si se corta la luz, etc." />
-                  </div>
-                  <button onClick={guardarInstrucciones} style={btnStyle('primario', { marginRight: 8 })}>Guardar</button>
-                  <button onClick={() => { setInstruccionesInput(instrucciones); setEditandoInstrucciones(false); }} style={btnStyle('secundario')}>Cancelar</button>
+          {!detalleAlumno && (() => {
+            const tarjetasConfig = [
+              { etiqueta: 'Umbral aprobación', valor: `${umbralAprobacion}%`, onEditar: () => setEditandoUmbral(true) },
+              { etiqueta: 'Tiempo límite', valor: `${tiempoLimiteMinutos} min`, onEditar: () => setEditandoTiempo(true) },
+              { etiqueta: 'Intentos', valor: intentosPermitidos === 0 ? 'Ilimitados' : String(intentosPermitidos), onEditar: () => setEditandoIntentos(true) },
+              { etiqueta: 'Instrucciones', valor: instrucciones ? 'Configuradas ✓' : 'Sin configurar', chico: !instrucciones, onEditar: () => setEditandoInstrucciones(true) },
+            ];
+            return (
+              <>
+                <div className="alumnos-config-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
+                  {tarjetasConfig.map((t) => (
+                    <div key={t.etiqueta} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: 11, fontWeight: 'bold', color: '#9aa1ac', textTransform: 'uppercase', letterSpacing: 0.4 }}>{t.etiqueta}</p>
+                        <p style={{ margin: '6px 0 0 0', fontSize: t.chico ? 13 : 18, fontWeight: 'bold', color: t.chico ? '#aaa' : '#222', fontStyle: t.chico ? 'italic' : 'normal' }}>{t.valor}</p>
+                      </div>
+                      <button
+                        onClick={t.onEditar}
+                        title="Editar"
+                        style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid #e5e7eb', background: '#fafbfc', cursor: 'pointer', fontSize: 13, flexShrink: 0 }}
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ) : instrucciones ? (
-                <div style={{ border: '1px solid #eee', borderRadius: 6, padding: 12, background: '#fafafa', fontSize: 13 }}>{renderizarHTMLconMatematicas(instrucciones)}</div>
-              ) : (
-                <p style={{ color: '#aaa', fontSize: 13, fontStyle: 'italic', margin: 0 }}>Sin instrucciones configuradas todavía.</p>
-              )}
-            </div>
-          )}
+
+                {(editandoUmbral || editandoTiempo || editandoIntentos || editandoInstrucciones) && (
+                  <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20, marginBottom: 28 }}>
+                    {editandoUmbral && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, color: '#666' }}>Umbral de aprobación (verde/rojo en toda la app):</span>
+                        <input
+                          type="number" min="0" max="100" value={umbralInput}
+                          onChange={(e) => setUmbralInput(parseInt(e.target.value, 10) || 0)}
+                          style={{ width: 60, padding: 4 }}
+                        />
+                        <button onClick={guardarUmbral} style={btnStyle('primario', { padding: '4px 10px', fontSize: 12 })}>Guardar</button>
+                        <button onClick={() => setEditandoUmbral(false)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>Cancelar</button>
+                      </div>
+                    )}
+                    {editandoTiempo && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, color: '#666' }}>Tiempo límite del examen (para exámenes nuevos):</span>
+                        <input
+                          type="number" min="1" max="600" value={tiempoInput}
+                          onChange={(e) => setTiempoInput(parseInt(e.target.value, 10) || 1)}
+                          style={{ width: 70, padding: 4 }}
+                        />
+                        <span style={{ fontSize: 13 }}>minutos</span>
+                        <button onClick={guardarTiempo} style={btnStyle('primario', { padding: '4px 10px', fontSize: 12 })}>Guardar</button>
+                        <button onClick={() => setEditandoTiempo(false)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>Cancelar</button>
+                      </div>
+                    )}
+                    {editandoIntentos && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, color: '#666' }}>Intentos permitidos por alumno (0 = ilimitados):</span>
+                        <input
+                          type="number" min="0" max="20" value={intentosInput}
+                          onChange={(e) => setIntentosInput(parseInt(e.target.value, 10) || 0)}
+                          style={{ width: 60, padding: 4 }}
+                        />
+                        <button onClick={guardarIntentos} style={btnStyle('primario', { padding: '4px 10px', fontSize: 12 })}>Guardar</button>
+                        <button onClick={() => setEditandoIntentos(false)} style={btnStyle('secundario', { padding: '4px 10px', fontSize: 12 })}>Cancelar</button>
+                      </div>
+                    )}
+                    {editandoInstrucciones && (
+                      <div>
+                        <span style={{ fontSize: 13, color: '#666', display: 'block', marginBottom: 8 }}>
+                          Instrucciones del examen (se le muestran al alumno antes de empezar, separadas de las lecturas):
+                        </span>
+                        <div style={{ background: '#fff', marginBottom: 8 }}>
+                          <ReactQuill theme="snow" value={instruccionesInput} onChange={setInstruccionesInput} placeholder="Ej. Reglas del examen, tiempo disponible, qué hacer si se corta la luz, etc." />
+                        </div>
+                        <button onClick={guardarInstrucciones} style={btnStyle('primario', { marginRight: 8 })}>Guardar</button>
+                        <button onClick={() => { setInstruccionesInput(instrucciones); setEditandoInstrucciones(false); }} style={btnStyle('secundario')}>Cancelar</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
 
           {cargandoAlumnos && <p style={{ color: '#888' }}>Cargando...</p>}
 
@@ -2961,49 +2973,65 @@ export default function AdminPage() {
                 <p style={{ color: '#888' }}>Todavía ningún alumno ha finalizado su examen de diagnóstico.</p>
               ) : (
                 <>
-                  <div style={{ display: 'flex', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 160, background: '#f4f4f4', borderRadius: 10, padding: 16, textAlign: 'center' }}>
-                      <div style={{ fontSize: 28, fontWeight: 'bold', color: '#333' }}>{resultadosResumen.totalAlumnosEvaluados}</div>
-                      <div style={{ fontSize: 12, color: '#666' }}>Alumnos evaluados</div>
+                  <div className="alumnos-stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
+                    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24 }}>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 'bold', color: '#9aa1ac', textTransform: 'uppercase', letterSpacing: 0.4 }}>Alumnos evaluados</p>
+                      <p style={{ margin: '8px 0 0 0', fontSize: 36, fontWeight: 900 }}>{resultadosResumen.totalAlumnosEvaluados}</p>
                     </div>
-                    <div style={{ flex: 1, minWidth: 160, background: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#eafaf1' : '#fdeceb', borderRadius: 10, padding: 16, textAlign: 'center' }}>
-                      <div style={{ fontSize: 28, fontWeight: 'bold', color: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>
+                    <div
+                      style={{
+                        borderRadius: 16, padding: 24,
+                        background: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#f0faf3' : '#fef2f2',
+                        border: `1px solid ${resultadosResumen.promedioGeneral >= umbralAprobacion ? '#c8ecd3' : '#fecaca'}`,
+                      }}
+                    >
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.4, color: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#4caf7d' : '#f28b8b' }}>
+                        Promedio general
+                      </p>
+                      <p style={{ margin: '8px 0 0 0', fontSize: 36, fontWeight: 900, color: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>
                         {resultadosResumen.promedioGeneral}%
-                      </div>
-                      <div style={{ fontSize: 12, color: '#666' }}>Promedio general</div>
+                      </p>
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: 32 }}>
-                    <h2 style={{ fontSize: 16, marginBottom: 12 }}>Promedio por materia</h2>
+                  <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24, marginBottom: 28 }}>
+                    <h2 style={{ fontSize: 15, fontWeight: 'bold', margin: '0 0 20px 0' }}>Promedio por materia</h2>
                     {resultadosResumen.promedioPorMateria.map((m) => (
-                      <div key={m.categoria} style={{ marginBottom: 14 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                          <span>{m.categoria}</span>
-                          <span style={{ fontWeight: 600, color: m.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>{m.porcentaje}%</span>
+                      <div key={m.categoria} style={{ marginBottom: 16 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                          <span style={{ fontWeight: 500 }}>{m.categoria}</span>
+                          <span style={{ fontWeight: 'bold', color: m.porcentaje >= umbralAprobacion ? '#22c55e' : '#ef4444' }}>{m.porcentaje}%</span>
                         </div>
-                        <div style={{ background: '#eee', borderRadius: 6, height: 14, overflow: 'hidden' }}>
-                          <div style={{ width: `${m.porcentaje}%`, height: '100%', background: m.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b' }} />
+                        <div style={{ background: '#f1f2f4', borderRadius: 999, height: 10, overflow: 'hidden' }}>
+                          <div style={{ width: `${m.porcentaje}%`, height: '100%', borderRadius: 999, background: m.porcentaje >= umbralAprobacion ? '#22c55e' : '#ef4444' }} />
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div>
-                    <h2 style={{ fontSize: 16, marginBottom: 12 }}>Lista de alumnos</h2>
+                  <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                      <h2 style={{ fontSize: 15, fontWeight: 'bold', margin: 0 }}>Lista de alumnos</h2>
+                      <span style={{ fontSize: 12, background: '#f0f2f4', padding: '4px 10px', borderRadius: 999, color: '#666' }}>
+                        {resultadosResumen.alumnos.length} en total
+                      </span>
+                    </div>
 
-                    <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-                      <input
-                        placeholder="Buscar por nombre o correo..."
-                        value={busquedaAlumno}
-                        onChange={(e) => { setBusquedaAlumno(e.target.value); setPaginaAlumnos(1); }}
-                        style={{ flex: 1, minWidth: 200, padding: 8, border: '1px solid #ddd', borderRadius: 6 }}
-                      />
+                    <div className="alumnos-filtros-fila" style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+                      <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+                        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#aaa', fontSize: 14 }}>🔍</span>
+                        <input
+                          placeholder="Buscar por nombre o correo..."
+                          value={busquedaAlumno}
+                          onChange={(e) => { setBusquedaAlumno(e.target.value); setPaginaAlumnos(1); }}
+                          style={{ width: '100%', height: 46, padding: '0 14px 0 38px', border: '2px solid #eee', borderRadius: 12, fontSize: 14, background: '#fafbfc', boxSizing: 'border-box' }}
+                        />
+                      </div>
                       <input
                         type="date"
                         value={filtroFechaAlumno}
                         onChange={(e) => { setFiltroFechaAlumno(e.target.value); setPaginaAlumnos(1); }}
-                        style={{ padding: 8, border: '1px solid #ddd', borderRadius: 6 }}
+                        style={{ height: 46, padding: '0 14px', border: '2px solid #eee', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
                         title="Filtrar por fecha del último intento"
                       />
                       {(busquedaAlumno || filtroFechaAlumno) && (
@@ -3039,34 +3067,36 @@ export default function AdminPage() {
 
                       return (
                         <>
-                          <p style={{ fontSize: 13, color: '#888', marginBottom: 10 }}>
+                          <p style={{ fontSize: 12, color: '#aaa', marginBottom: 12 }}>
                             {filtrados.length} alumno(s) encontrado(s)
                           </p>
-                          {paginaActualAlumnos.map((a, idx) => (
+                          {paginaActualAlumnos.map((a) => (
                             <div
                               key={a.alumnoId}
                               onClick={() => verDetalleAlumno(a.alumnoId)}
+                              className="fila-alumno-card"
                               style={{
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                padding: 14, border: '1px solid #eee', borderRadius: 8, marginBottom: 8, cursor: 'pointer',
-                                background: idx % 2 === 0 ? '#fff' : '#f7f7f7',
+                                padding: 16, border: '1px solid #eee', borderRadius: 12, marginBottom: 10, cursor: 'pointer',
+                                background: '#fff', transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
                               }}
                             >
-                              <div>
-                                <div style={{ fontWeight: 600, fontSize: 14 }}>{a.nombre}</div>
-                                <div style={{ fontSize: 13, color: '#888' }}>{a.email} · {a.intentos} intento(s)</div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 'bold', fontSize: 14 }}>{a.nombre}</div>
+                                <div style={{ fontSize: 12, color: '#999', marginTop: 2 }}>{a.email} · {a.intentos} intento(s)</div>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                                 <span
                                   style={{
-                                    fontWeight: 'bold', padding: '3px 10px', borderRadius: 20,
-                                    background: a.porcentaje >= umbralAprobacion ? '#eafaf1' : '#fdeceb',
-                                    color: a.porcentaje >= umbralAprobacion ? '#2e7d32' : '#c0392b',
+                                    fontWeight: 'bold', fontSize: 14, padding: '4px 12px', borderRadius: 999,
+                                    background: a.porcentaje >= umbralAprobacion ? '#f0faf3' : '#fef2f2',
+                                    color: a.porcentaje >= umbralAprobacion ? '#22c55e' : '#ef4444',
+                                    border: `1px solid ${a.porcentaje >= umbralAprobacion ? '#c8ecd3' : '#fecaca'}`,
                                   }}
                                 >
                                   {a.porcentaje}%
                                 </span>
-                                <span style={{ color: '#ccc' }}>›</span>
+                                <span style={{ color: '#ccc', fontSize: 16 }}>›</span>
                               </div>
                             </div>
                           ))}
@@ -3100,6 +3130,7 @@ export default function AdminPage() {
               )}
             </>
           )}
+        </div>
         </div>
       )}
 
