@@ -364,6 +364,15 @@ export default function Examen() {
     return () => document.removeEventListener('visibilitychange', alCambiarVisibilidad);
   }, [examenId, !!pregunta]);
 
+  // El aviso de "saliste de la pantalla" es un toast flotante que no debe
+  // quedarse estorbando para siempre: se cierra solo a los 15s (con barrita
+  // de progreso), aunque el alumno también lo puede cerrar antes con la X.
+  useEffect(() => {
+    if (!avisoSalidaPantalla) return;
+    const t = setTimeout(() => setAvisoSalidaPantalla(false), 15000);
+    return () => clearTimeout(t);
+  }, [avisoSalidaPantalla]);
+
   function formatearTiempo(segundos) {
     const m = Math.floor(segundos / 60);
     const s = segundos % 60;
@@ -504,6 +513,40 @@ export default function Examen() {
 
     return (
       <div style={{ maxWidth: pregunta.lectura ? 1400 : 860, margin: '40px auto', fontFamily: 'sans-serif', padding: 24, display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        {avisoSalidaPantalla && (
+          <div
+            style={{
+              position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1200,
+              width: '92%', maxWidth: 640,
+            }}
+          >
+            <div
+              style={{
+                position: 'relative', display: 'flex', alignItems: 'center', gap: 10,
+                fontSize: 13, fontWeight: 500, color: '#8a6416', background: '#fdf3e3', border: '1px solid #f0dfae',
+                padding: '12px 14px 16px', borderRadius: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                overflow: 'hidden',
+              }}
+            >
+              <span>⚠️</span>
+              <span style={{ flex: 1 }}>Se detectó que saliste de la pantalla del examen. Esto queda registrado.</span>
+              <span className="aviso-cierre-texto" style={{ fontSize: 11, opacity: 0.65, flexShrink: 0 }}>Se cierra en 15s</span>
+              <button
+                onClick={() => setAvisoSalidaPantalla(false)}
+                style={{
+                  width: 22, height: 22, flexShrink: 0, border: 'none', background: '#f0dfae', borderRadius: '50%',
+                  cursor: 'pointer', color: '#8a6416', fontSize: 14, lineHeight: 1,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                ×
+              </button>
+              <div style={{ position: 'absolute', bottom: 0, left: 8, right: 8, height: 2, background: '#f0dfae', borderRadius: 2, overflow: 'hidden' }}>
+                <div className="barra-cierre-aviso" style={{ height: '100%', background: '#d6a532' }} />
+              </div>
+            </div>
+          </div>
+        )}
         {pregunta.lectura && (
           <div className="columna-lectura" style={{ flex: '1 1 400px', minWidth: 0, order: 1 }}>
             {pregunta.lectura.instruccion && (
@@ -562,24 +605,7 @@ export default function Examen() {
             </div>
           )}
 
-          {avisoSalidaPantalla && (
-            <div
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between',
-                fontSize: 13, color: '#8a6416', background: '#fdf3e3', border: '1px solid #f0dfae',
-                padding: '9px 14px', borderRadius: 8, marginBottom: 14,
-              }}
-            >
-              <span>⚠️ Se detectó que saliste de la pantalla del examen. Esto queda registrado.</span>
-              <button
-                onClick={() => setAvisoSalidaPantalla(false)}
-                style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#8a6416', fontSize: 16, lineHeight: 1, flexShrink: 0 }}
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
+          
           <div style={{ border: '1px solid #e0e0e0', borderRadius: 10, padding: '20px 22px', background: '#fff', marginBottom: 12 }}>
             <div style={{ fontSize: 17, marginBottom: 16, lineHeight: 1.5 }}>{renderizarHTMLconMatematicas(pregunta.pregunta)}</div>
             {pregunta.imagenUrl && (
@@ -777,6 +803,16 @@ export default function Examen() {
         )}
 
         <style jsx>{`
+          .barra-cierre-aviso {
+            animation: barraCierreAviso 15s linear forwards;
+          }
+          @keyframes barraCierreAviso {
+            from { width: 100%; }
+            to { width: 0%; }
+          }
+          @media (max-width: 480px) {
+            .aviso-cierre-texto { display: none; }
+          }
           .panel-lectura {
             max-height: none;
           }
