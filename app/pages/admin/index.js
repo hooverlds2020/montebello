@@ -1668,7 +1668,7 @@ export default function AdminPage() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/img/logo-montebello.webp" alt="Montebello" style={{ height: 28, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
-        <div className="tabs-scroll-movil" style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
+        <div className="tabs-scroll-movil" style={{ flex: '1 1 0%', minWidth: 0, display: 'flex', gap: 8, overflowX: 'auto' }}>
           <button
             onClick={() => setVistaGeneral('asignaturas')}
             style={{
@@ -2974,23 +2974,38 @@ export default function AdminPage() {
               ) : (
                 <>
                   <div className="alumnos-stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
-                    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24 }}>
-                      <p style={{ margin: 0, fontSize: 11, fontWeight: 'bold', color: '#9aa1ac', textTransform: 'uppercase', letterSpacing: 0.4 }}>Alumnos evaluados</p>
-                      <p style={{ margin: '8px 0 0 0', fontSize: 36, fontWeight: 900 }}>{resultadosResumen.totalAlumnosEvaluados}</p>
+                    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: 11, fontWeight: 'bold', color: '#9aa1ac', textTransform: 'uppercase', letterSpacing: 0.4 }}>Alumnos evaluados</p>
+                        <p style={{ margin: '6px 0 0 0', fontSize: 32, fontWeight: 900 }}>{resultadosResumen.totalAlumnosEvaluados}</p>
+                      </div>
+                      <div style={{ width: 48, height: 48, flexShrink: 0, borderRadius: '50%', background: '#f0f2f4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                        👥
+                      </div>
                     </div>
                     <div
                       style={{
-                        borderRadius: 16, padding: 24,
+                        borderRadius: 16, padding: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
                         background: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#f0faf3' : '#fef2f2',
                         border: `1px solid ${resultadosResumen.promedioGeneral >= umbralAprobacion ? '#c8ecd3' : '#fecaca'}`,
                       }}
                     >
-                      <p style={{ margin: 0, fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.4, color: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#4caf7d' : '#f28b8b' }}>
-                        Promedio general
-                      </p>
-                      <p style={{ margin: '8px 0 0 0', fontSize: 36, fontWeight: 900, color: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>
-                        {resultadosResumen.promedioGeneral}%
-                      </p>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.4, color: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#4caf7d' : '#f28b8b' }}>
+                          Promedio general
+                        </p>
+                        <p style={{ margin: '6px 0 0 0', fontSize: 32, fontWeight: 900, color: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#2e7d32' : '#c0392b' }}>
+                          {resultadosResumen.promedioGeneral}%
+                        </p>
+                      </div>
+                      <div
+                        style={{
+                          width: 48, height: 48, flexShrink: 0, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+                          background: resultadosResumen.promedioGeneral >= umbralAprobacion ? '#dcf5e3' : '#fde2e2',
+                        }}
+                      >
+                        {resultadosResumen.promedioGeneral >= umbralAprobacion ? '📈' : '📉'}
+                      </div>
                     </div>
                   </div>
 
