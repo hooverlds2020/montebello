@@ -3038,19 +3038,34 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(detalleAlumno.historial[0]?.porCategoria || []).map((c) => (
-                        <tr key={c.categoria}>
-                          <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>{c.categoria}</td>
-                          <td style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>{c.porcentaje}%</td>
-                          <td style={{ padding: 4, border: '1px solid #e0e6ec', textAlign: 'center' }}>
-                            <input
-                              value={fichaInput.puntajesPorArea?.[c.categoria] || ''}
-                              onChange={(e) => actualizarPuntajeArea(c.categoria, e.target.value)}
-                              style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, textAlign: 'center', boxSizing: 'border-box' }}
-                            />
-                          </td>
-                        </tr>
-                      ))}
+                      {/* --- Áreas fijas del formato físico CENEVAL EXANI-II ---
+                          Cada una busca su dato real en porCategoria por nombre de categoría en BD.
+                          Si no hay coincidencia (área aún no existe en el sistema), se muestra "—"
+                          y el % no se puede editar; el "puntaje" sigue siendo manual siempre. */}
+                      {[
+                        { label: 'Pensamiento Matemático', nombresBD: ['Pensamiento matemático'] },
+                        { label: 'Pensamiento analítico', nombresBD: [] },
+                        { label: 'Estructura de la Lengua', nombresBD: [] },
+                        { label: 'Comprensión Lectora', nombresBD: ['Comprensión lectora'] },
+                      ].map(({ label, nombresBD }) => {
+                        const porCategoria = detalleAlumno.historial[0]?.porCategoria || [];
+                        const match = porCategoria.find((c) => nombresBD.includes(c.categoria));
+                        return (
+                          <tr key={label}>
+                            <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>{label}</td>
+                            <td style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                              {match ? `${match.porcentaje}%` : <span style={{ color: '#bbb' }}>—</span>}
+                            </td>
+                            <td style={{ padding: 4, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                              <input
+                                value={fichaInput.puntajesPorArea?.[label] || ''}
+                                onChange={(e) => actualizarPuntajeArea(label, e.target.value)}
+                                style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, textAlign: 'center', boxSizing: 'border-box' }}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
                       {!detalleAlumno.historial[0] && (
                         <tr><td colSpan={3} style={{ padding: 10, textAlign: 'center', color: '#aaa', border: '1px solid #e0e6ec' }}>Sin examen finalizado aún</td></tr>
                       )}
