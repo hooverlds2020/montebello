@@ -128,6 +128,7 @@ export default function Examen() {
   }
 
   async function iniciarExamen() {
+    if (cargando) return; // evita doble clic: ya hay una petición en curso
     setError('');
     setCargando(true);
     const res = await fetch('/api/examen/iniciar', { method: 'POST' });
@@ -973,9 +974,10 @@ export default function Examen() {
               )}
               <button
                 onClick={iniciarExamen}
-                style={{ padding: '12px 28px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 600 }}
+                disabled={cargando}
+                style={{ padding: '12px 28px', background: cargando ? '#a9c6e8' : '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: cargando ? 'default' : 'pointer', fontSize: 16, fontWeight: 600 }}
               >
-                Continuar examen
+                {cargando ? 'Cargando…' : 'Continuar examen'}
               </button>
             </div>
           );
@@ -1001,9 +1003,10 @@ export default function Examen() {
             </p>
             <button
               onClick={iniciarExamen}
-              style={{ padding: '12px 28px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 600 }}
+              disabled={cargando}
+              style={{ padding: '12px 28px', background: cargando ? '#a9c6e8' : '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, cursor: cargando ? 'default' : 'pointer', fontSize: 16, fontWeight: 600 }}
             >
-              Iniciar examen
+              {cargando ? 'Cargando…' : 'Iniciar examen'}
             </button>
           </div>
         );
