@@ -102,7 +102,7 @@ export default function BoletaOficial({ alumno, folio, fecha, porCategoria, tota
       {/* Encabezado: logo + instituto a la izquierda, alumno + folio a la derecha */}
       {!compacto && (
       <div className="boleta-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, borderBottom: '3px solid #0d3b66', paddingBottom: 16, marginBottom: 20 }}>
-        <div className="boleta-header-izq" style={{ display: 'flex', gap: 12, flex: 1, minWidth: 0 }}>
+        <div className="boleta-header-izq" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, minWidth: 0 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/img/logo-montebello-icono.webp" alt="" className="boleta-logo" style={{ width: 48, height: 'auto', flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
