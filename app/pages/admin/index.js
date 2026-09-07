@@ -958,6 +958,27 @@ export default function AdminPage() {
     cargarCategorias();
   }
 
+  // Controla qué materias aparecen en la tabla "Resultados de examen
+  // diagnóstico CENEVAL" de la Ficha de Registro, y con qué nombre. Así el
+  // instituto decide esto desde el panel sin depender de código hardcodeado.
+  async function toggleMostrarEnBoleta(c) {
+    await fetch(`/api/admin/categorias/${c.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mostrar_en_boleta: !c.mostrar_en_boleta }),
+    });
+    cargarCategorias();
+  }
+
+  async function actualizarEtiquetaBoleta(c, valor) {
+    await fetch(`/api/admin/categorias/${c.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ etiqueta_boleta: valor }),
+    });
+    cargarCategorias();
+  }
+
   // Drag & drop para reordenar materias en el menú lateral (arrastrar en vez de escribir números).
   // `scope` agrupa qué se puede reordenar entre sí: 'top' para materias de primer nivel,
   // o el id de la materia padre para reordenar sus subcategorías entre ellas.
@@ -1500,6 +1521,30 @@ export default function AdminPage() {
                   +
                 </button>
               </div>
+            </div>
+
+            {/* Controla si esta materia aparece en la tabla de resultados de
+                la Ficha de Registro, y con qué nombre se muestra ahí (puede
+                ser distinto al nombre interno del sistema). */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, paddingTop: 8, borderTop: c.id === categoriaActivaId ? '1px solid rgba(255,255,255,0.25)' : '1px solid #eee' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: c.id === categoriaActivaId ? '#cfe3f7' : '#888', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={!!c.mostrar_en_boleta}
+                  onChange={() => toggleMostrarEnBoleta(c)}
+                />
+                Mostrar en boleta
+              </label>
+              {c.mostrar_en_boleta && (
+                <input
+                  type="text"
+                  defaultValue={c.etiqueta_boleta || ''}
+                  placeholder={c.nombre}
+                  onBlur={(e) => actualizarEtiquetaBoleta(c, e.target.value)}
+                  style={{ flex: 1, minWidth: 0, padding: '5px 8px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12 }}
+                  title="Nombre con el que aparece en la Ficha de Registro (déjalo vacío para usar el nombre normal)"
+                />
+              )}
             </div>
           </div>
         )}
@@ -3038,35 +3083,43 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {/* --- Áreas fijas del formato físico CENEVAL EXANI-II ---
-                          Cada una busca su dato real en porCategoria por nombre de categoría en BD.
-                          Si no hay coincidencia (área aún no existe en el sistema), se muestra "—"
-                          y el % no se puede editar; el "puntaje" sigue siendo manual siempre. */}
-                      {[
-                        { label: 'Pensamiento Matemático', nombresBD: ['Pensamiento matemático'] },
-                        { label: 'Pensamiento analítico', nombresBD: [] },
-                        { label: 'Estructura de la Lengua', nombresBD: [] },
-                        { label: 'Comprensión Lectora', nombresBD: ['Comprensión lectora'] },
-                      ].map(({ label, nombresBD }) => {
-                        const porCategoria = detalleAlumno.historial[0]?.porCategoria || [];
-                        const match = porCategoria.find((c) => nombresBD.includes(c.categoria));
-                        return (
-                          <tr key={label}>
-                            <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>{label}</td>
-                            <td style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>
-                              {match ? `${match.porcentaje}%` : <span style={{ color: '#bbb' }}>—</span>}
-                            </td>
-                            <td style={{ padding: 4, border: '1px solid #e0e6ec', textAlign: 'center' }}>
-                              <input
-                                value={fichaInput.puntajesPorArea?.[label] || ''}
-                                onChange={(e) => actualizarPuntajeArea(label, e.target.value)}
-                                style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, textAlign: 'center', boxSizing: 'border-box' }}
-                              />
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {!detalleAlumno.historial[0] && (
+                      {/* --- Áreas mostradas en la boleta: se definen desde el panel
+                          (categorías > "Mostrar en boleta"), no hardcodeadas aquí.
+                          El admin decide cuáles aparecen y con qué etiqueta. */}
+                      {categorias
+                        .filter((c) => c.mostrar_en_boleta)
+                        .sort((a, b) => (a.orden ?? a.id) - (b.orden ?? b.id))
+                        .map((c) => {
+                          const porCategoria = detalleAlumno.historial[0]?.porCategoria || [];
+                          const match = porCategoria.find((pc) => {
+                            const nombreReal = pc.categoria.includes(' › ')
+                              ? pc.categoria.split(' › ').pop()
+                              : pc.categoria;
+                            return nombreReal === c.nombre;
+                          });
+                          const etiqueta = c.etiqueta_boleta || c.nombre;
+                          return (
+                            <tr key={c.id}>
+                              <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>{etiqueta}</td>
+                              <td style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                                {match ? `${match.porcentaje}%` : <span style={{ color: '#bbb' }}>—</span>}
+                              </td>
+                              <td style={{ padding: 4, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                                <input
+                                  value={fichaInput.puntajesPorArea?.[etiqueta] || ''}
+                                  onChange={(e) => actualizarPuntajeArea(etiqueta, e.target.value)}
+                                  style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, textAlign: 'center', boxSizing: 'border-box' }}
+                                />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      {categorias.filter((c) => c.mostrar_en_boleta).length === 0 && (
+                        <tr><td colSpan={3} style={{ padding: 10, textAlign: 'center', color: '#aaa', border: '1px solid #e0e6ec' }}>
+                          No hay materias marcadas para mostrarse en la boleta. Configúralo en la pestaña de Materias.
+                        </td></tr>
+                      )}
+                      {!detalleAlumno.historial[0] && categorias.filter((c) => c.mostrar_en_boleta).length > 0 && (
                         <tr><td colSpan={3} style={{ padding: 10, textAlign: 'center', color: '#aaa', border: '1px solid #e0e6ec' }}>Sin examen finalizado aún</td></tr>
                       )}
                       <tr>
