@@ -112,6 +112,7 @@ export default function AdminPage() {
 
   // Vista general del panel: 'asignaturas' (banco de reactivos) o 'alumnos' (resultados)
   const [vistaGeneral, setVistaGeneral] = useState('asignaturas');
+  const [subVistaDiagnostico, setSubVistaDiagnostico] = useState('materias'); // 'materias' | 'lecturas'
   const [resultadosResumen, setResultadosResumen] = useState(null);
   const [busquedaAlumno, setBusquedaAlumno] = useState('');
   const [filtroFechaAlumno, setFiltroFechaAlumno] = useState('');
@@ -895,10 +896,10 @@ export default function AdminPage() {
     if (vistaGeneral === 'usuarios' && !usuariosAdmin) {
       cargarUsuariosAdmin();
     }
-    if (vistaGeneral === 'lectura' && !lecturasVelocidad) {
+    if (vistaGeneral === 'asignaturas' && subVistaDiagnostico === 'lecturas' && !lecturasVelocidad) {
       cargarLecturasVelocidad();
     }
-  }, [vistaGeneral]);
+  }, [vistaGeneral, subVistaDiagnostico]);
 
   const [nuevaCategoriaPadreId, setNuevaCategoriaPadreId] = useState('');
   const [nuevaCategoriaCodigo, setNuevaCategoriaCodigo] = useState('');
@@ -1843,7 +1844,7 @@ export default function AdminPage() {
                 fontWeight: vistaGeneral === 'asignaturas' ? 'bold' : 'normal',
               }}
             >
-              📚 Asignaturas
+              🩺 Diagnóstico
             </button>
             <button
               onClick={() => setVistaGeneral('alumnos')}
@@ -1866,17 +1867,6 @@ export default function AdminPage() {
               }}
             >
               ⚙️ Administradores
-            </button>
-            <button
-              onClick={() => setVistaGeneral('lectura')}
-              style={{
-                height: 36, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
-                background: vistaGeneral === 'lectura' ? '#4a90d9' : 'transparent',
-                color: vistaGeneral === 'lectura' ? '#fff' : '#333',
-                fontWeight: vistaGeneral === 'lectura' ? 'bold' : 'normal',
-              }}
-            >
-              📖 Lectura
             </button>
           </nav>
         </div>
@@ -1933,7 +1923,7 @@ export default function AdminPage() {
                   fontWeight: vistaGeneral === 'asignaturas' ? 'bold' : 500,
                 }}
               >
-                📚 Asignaturas
+                🩺 Diagnóstico
               </button>
               <button
                 onClick={() => { setVistaGeneral('alumnos'); setMenuMovilAbierto(false); }}
@@ -1957,17 +1947,6 @@ export default function AdminPage() {
               >
                 ⚙️ Usuarios
               </button>
-              <button
-                onClick={() => { setVistaGeneral('lectura'); setMenuMovilAbierto(false); }}
-                style={{
-                  height: 48, borderRadius: 12, border: 'none', textAlign: 'left', padding: '0 16px', fontSize: 15, cursor: 'pointer',
-                  background: vistaGeneral === 'lectura' ? '#4a90d9' : '#f7f8fa',
-                  color: vistaGeneral === 'lectura' ? '#fff' : '#333',
-                  fontWeight: vistaGeneral === 'lectura' ? 'bold' : 500,
-                }}
-              >
-                📖 Lectura
-              </button>
               <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
               <button
                 onClick={() => { setMenuMovilAbierto(false); cerrarSesionAdmin(); }}
@@ -1984,6 +1963,37 @@ export default function AdminPage() {
       </header>
 
       {vistaGeneral === 'asignaturas' && (
+      <>
+        {/* Sub-pestañas: separan por completo "Materias" (contenido del
+            examen CENEVAL) de "Lecturas de velocidad" (módulo aparte), para
+            no confundir estas lecturas con las de comprensión DENTRO del
+            examen (ej. "Español"). Solo una se muestra a la vez. */}
+        <div style={{ display: 'flex', gap: 8, padding: '16px 24px 0 24px', borderBottom: '1px solid #eee', background: '#fff' }}>
+          <button
+            onClick={() => setSubVistaDiagnostico('materias')}
+            style={{
+              padding: '10px 4px', marginBottom: -1, border: 'none', background: 'none', cursor: 'pointer', fontSize: 14,
+              borderBottom: subVistaDiagnostico === 'materias' ? '2px solid #4a90d9' : '2px solid transparent',
+              color: subVistaDiagnostico === 'materias' ? '#4a90d9' : '#888',
+              fontWeight: subVistaDiagnostico === 'materias' ? 600 : 400,
+            }}
+          >
+            📋 Materias
+          </button>
+          <button
+            onClick={() => setSubVistaDiagnostico('lecturas')}
+            style={{
+              padding: '10px 4px', marginBottom: -1, border: 'none', background: 'none', cursor: 'pointer', fontSize: 14,
+              borderBottom: subVistaDiagnostico === 'lecturas' ? '2px solid #4a90d9' : '2px solid transparent',
+              color: subVistaDiagnostico === 'lecturas' ? '#4a90d9' : '#888',
+              fontWeight: subVistaDiagnostico === 'lecturas' ? 600 : 400,
+            }}
+          >
+            📖 Lecturas de velocidad
+          </button>
+        </div>
+
+      {subVistaDiagnostico === 'materias' && (
       <div className="admin-body" style={{ display: 'flex', alignItems: 'flex-start' }}>
       {/* MENÚ LATERAL: sticky (no fixed) — baja acompañando el scroll mientras
           hay contenido debajo, y en cuanto no hay más espacio se detiene
@@ -2787,6 +2797,156 @@ export default function AdminPage() {
         </div>
       </main>
       </div>
+      )}
+
+      {subVistaDiagnostico === 'lecturas' && (
+        <div style={{ background: '#f8fafc', minHeight: '100%' }}>
+        <div style={{ maxWidth: 780, margin: '0 auto', padding: '32px 24px' }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 'bold', color: '#0f2a44' }}>Lecturas de velocidad</h1>
+          <p style={{ color: '#888', fontSize: 13, margin: '4px 0 24px 0' }}>
+            Textos con cronómetro que el alumno presenta después de su examen de diagnóstico.
+            Solo la lectura marcada como <strong>Activa</strong> queda disponible para los alumnos.
+          </p>
+
+          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 32 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 16px 0' }}>+ Nueva lectura</h3>
+            <form onSubmit={crearLecturaVelocidad}>
+              <input
+                placeholder="Título (ej. Lectura 2)"
+                value={nuevaLVTitulo}
+                onChange={(e) => setNuevaLVTitulo(e.target.value)}
+                required
+                style={{ width: '100%', height: 44, padding: '0 16px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box', marginBottom: 12 }}
+              />
+              <textarea
+                placeholder="Pega aquí el texto completo de la lectura..."
+                value={nuevaLVTexto}
+                onChange={(e) => setNuevaLVTexto(e.target.value)}
+                required
+                rows={8}
+                style={{ width: '100%', padding: 14, borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box', marginBottom: 6, resize: 'vertical', fontFamily: 'inherit' }}
+              />
+              <p style={{ fontSize: 12, color: '#888', margin: '0 0 12px 0' }}>
+                {nuevaLVTexto.trim() ? `${nuevaLVTexto.trim().split(/\s+/).length} palabras (se cuentan solas al guardar)` : 'El total de palabras se calcula automáticamente'}
+              </p>
+              <button
+                type="submit"
+                style={{ height: 44, padding: '0 24px', background: '#0f2a44', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+              >
+                + Guardar lectura
+              </button>
+            </form>
+          </div>
+
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px 0' }}>Banco de lecturas</h3>
+          {!lecturasVelocidad && <p style={{ color: '#888', fontSize: 13 }}>Cargando...</p>}
+          {lecturasVelocidad && lecturasVelocidad.length === 0 && (
+            <p style={{ color: '#888', fontSize: 13 }}>Aún no hay ninguna lectura cargada. Agrega la primera arriba.</p>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {lecturasVelocidad && lecturasVelocidad.map((l) => (
+              <div key={l.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
+                      {l.activa && <span style={{ color: '#2e7d32', marginRight: 6 }}>●</span>}
+                      {l.titulo}
+                    </p>
+                    <p style={{ margin: '2px 0 0 0', fontSize: 12, color: '#888' }}>{l.total_palabras} palabras</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                    <button
+                      onClick={() => activarLecturaVelocidad(l)}
+                      style={{
+                        fontSize: 12, border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer',
+                        background: l.activa ? '#eafaf1' : '#eaf2fb', color: l.activa ? '#2e7d32' : '#3a5b7a',
+                      }}
+                    >
+                      {l.activa ? '✓ Activa' : 'Activar'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const abrir = lvExpandidaId === l.id ? null : l.id;
+                        setLvExpandidaId(abrir);
+                        if (abrir && !lvPreguntasPorLectura[l.id]) cargarPreguntasLV(l.id);
+                      }}
+                      style={{ fontSize: 12, border: '1px solid #ddd', background: '#fff', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
+                    >
+                      {lvExpandidaId === l.id ? 'Ocultar' : 'Preguntas'}
+                    </button>
+                    <button
+                      onClick={() => borrarLecturaVelocidad(l)}
+                      style={{ fontSize: 12, color: '#c0392b', background: '#fdeceb', border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+
+                {lvExpandidaId === l.id && (
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#555', margin: '0 0 10px 0' }}>Preguntas de comprensión</p>
+                    {(lvPreguntasPorLectura[l.id] || []).map((p, idx) => (
+                      <div key={p.id} style={{ background: '#fafbfc', border: '1px solid #eee', borderRadius: 10, padding: 12, marginBottom: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{idx + 1}. {p.pregunta}</p>
+                          <button onClick={() => borrarPreguntaLV(l.id, p.id)} style={{ fontSize: 11, color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>🗑️</button>
+                        </div>
+                        <ul style={{ margin: '6px 0 0 0', paddingLeft: 18, fontSize: 12, color: '#555' }}>
+                          {p.opciones.map((o) => (
+                            <li key={o.id} style={{ color: o.es_correcta ? '#2e7d32' : '#555', fontWeight: o.es_correcta ? 600 : 400 }}>
+                              {o.texto} {o.es_correcta && '✓'}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+
+                    <div style={{ background: '#fafbfc', border: '1px dashed #ccc', borderRadius: 10, padding: 12, marginTop: 10 }}>
+                      <p style={{ fontSize: 12, fontWeight: 600, margin: '0 0 8px 0' }}>+ Agregar pregunta</p>
+                      <input
+                        placeholder="Texto de la pregunta"
+                        value={nuevaPreguntaTexto}
+                        onChange={(e) => setNuevaPreguntaTexto(e.target.value)}
+                        style={{ width: '100%', height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 8 }}
+                      />
+                      {nuevaPreguntaOpciones.map((op, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <input
+                            type="radio"
+                            name={`correcta-${l.id}`}
+                            checked={nuevaPreguntaCorrectaIdx === i}
+                            onChange={() => setNuevaPreguntaCorrectaIdx(i)}
+                            title="Marcar como respuesta correcta"
+                          />
+                          <input
+                            placeholder={`Opción ${String.fromCharCode(97 + i)}`}
+                            value={op}
+                            onChange={(e) => {
+                              const copia = [...nuevaPreguntaOpciones];
+                              copia[i] = e.target.value;
+                              setNuevaPreguntaOpciones(copia);
+                            }}
+                            style={{ flex: 1, height: 34, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                          />
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => agregarPreguntaLV(l.id)}
+                        style={{ marginTop: 6, height: 36, padding: '0 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        + Agregar pregunta
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        </div>
+      )}
+      </>
       )}
 
       {vistaGeneral === 'alumnos' && (
@@ -3678,153 +3838,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {vistaGeneral === 'lectura' && (
-        <div style={{ background: '#f8fafc', minHeight: '100%' }}>
-        <div style={{ maxWidth: 780, margin: '0 auto', padding: '32px 24px' }}>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 'bold', color: '#0f2a44' }}>Módulo de Lectura</h1>
-          <p style={{ color: '#888', fontSize: 13, margin: '4px 0 24px 0' }}>
-            Textos con cronómetro que el alumno presenta después de su examen de diagnóstico.
-            Solo la lectura marcada como <strong>Activa</strong> queda disponible para los alumnos.
-          </p>
-
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 32 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 16px 0' }}>+ Nueva lectura</h3>
-            <form onSubmit={crearLecturaVelocidad}>
-              <input
-                placeholder="Título (ej. Lectura 2)"
-                value={nuevaLVTitulo}
-                onChange={(e) => setNuevaLVTitulo(e.target.value)}
-                required
-                style={{ width: '100%', height: 44, padding: '0 16px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box', marginBottom: 12 }}
-              />
-              <textarea
-                placeholder="Pega aquí el texto completo de la lectura..."
-                value={nuevaLVTexto}
-                onChange={(e) => setNuevaLVTexto(e.target.value)}
-                required
-                rows={8}
-                style={{ width: '100%', padding: 14, borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box', marginBottom: 6, resize: 'vertical', fontFamily: 'inherit' }}
-              />
-              <p style={{ fontSize: 12, color: '#888', margin: '0 0 12px 0' }}>
-                {nuevaLVTexto.trim() ? `${nuevaLVTexto.trim().split(/\s+/).length} palabras (se cuentan solas al guardar)` : 'El total de palabras se calcula automáticamente'}
-              </p>
-              <button
-                type="submit"
-                style={{ height: 44, padding: '0 24px', background: '#0f2a44', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
-              >
-                + Guardar lectura
-              </button>
-            </form>
-          </div>
-
-          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px 0' }}>Banco de lecturas</h3>
-          {!lecturasVelocidad && <p style={{ color: '#888', fontSize: 13 }}>Cargando...</p>}
-          {lecturasVelocidad && lecturasVelocidad.length === 0 && (
-            <p style={{ color: '#888', fontSize: 13 }}>Aún no hay ninguna lectura cargada. Agrega la primera arriba.</p>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {lecturasVelocidad && lecturasVelocidad.map((l) => (
-              <div key={l.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
-                      {l.activa && <span style={{ color: '#2e7d32', marginRight: 6 }}>●</span>}
-                      {l.titulo}
-                    </p>
-                    <p style={{ margin: '2px 0 0 0', fontSize: 12, color: '#888' }}>{l.total_palabras} palabras</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                    <button
-                      onClick={() => activarLecturaVelocidad(l)}
-                      style={{
-                        fontSize: 12, border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer',
-                        background: l.activa ? '#eafaf1' : '#eaf2fb', color: l.activa ? '#2e7d32' : '#3a5b7a',
-                      }}
-                    >
-                      {l.activa ? '✓ Activa' : 'Activar'}
-                    </button>
-                    <button
-                      onClick={() => {
-                        const abrir = lvExpandidaId === l.id ? null : l.id;
-                        setLvExpandidaId(abrir);
-                        if (abrir && !lvPreguntasPorLectura[l.id]) cargarPreguntasLV(l.id);
-                      }}
-                      style={{ fontSize: 12, border: '1px solid #ddd', background: '#fff', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
-                    >
-                      {lvExpandidaId === l.id ? 'Ocultar' : 'Preguntas'}
-                    </button>
-                    <button
-                      onClick={() => borrarLecturaVelocidad(l)}
-                      style={{ fontSize: 12, color: '#c0392b', background: '#fdeceb', border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-
-                {lvExpandidaId === l.id && (
-                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: '#555', margin: '0 0 10px 0' }}>Preguntas de comprensión</p>
-                    {(lvPreguntasPorLectura[l.id] || []).map((p, idx) => (
-                      <div key={p.id} style={{ background: '#fafbfc', border: '1px solid #eee', borderRadius: 10, padding: 12, marginBottom: 8 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{idx + 1}. {p.pregunta}</p>
-                          <button onClick={() => borrarPreguntaLV(l.id, p.id)} style={{ fontSize: 11, color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>🗑️</button>
-                        </div>
-                        <ul style={{ margin: '6px 0 0 0', paddingLeft: 18, fontSize: 12, color: '#555' }}>
-                          {p.opciones.map((o) => (
-                            <li key={o.id} style={{ color: o.es_correcta ? '#2e7d32' : '#555', fontWeight: o.es_correcta ? 600 : 400 }}>
-                              {o.texto} {o.es_correcta && '✓'}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-
-                    <div style={{ background: '#fafbfc', border: '1px dashed #ccc', borderRadius: 10, padding: 12, marginTop: 10 }}>
-                      <p style={{ fontSize: 12, fontWeight: 600, margin: '0 0 8px 0' }}>+ Agregar pregunta</p>
-                      <input
-                        placeholder="Texto de la pregunta"
-                        value={nuevaPreguntaTexto}
-                        onChange={(e) => setNuevaPreguntaTexto(e.target.value)}
-                        style={{ width: '100%', height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 8 }}
-                      />
-                      {nuevaPreguntaOpciones.map((op, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                          <input
-                            type="radio"
-                            name={`correcta-${l.id}`}
-                            checked={nuevaPreguntaCorrectaIdx === i}
-                            onChange={() => setNuevaPreguntaCorrectaIdx(i)}
-                            title="Marcar como respuesta correcta"
-                          />
-                          <input
-                            placeholder={`Opción ${String.fromCharCode(97 + i)}`}
-                            value={op}
-                            onChange={(e) => {
-                              const copia = [...nuevaPreguntaOpciones];
-                              copia[i] = e.target.value;
-                              setNuevaPreguntaOpciones(copia);
-                            }}
-                            style={{ flex: 1, height: 34, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
-                          />
-                        </div>
-                      ))}
-                      <button
-                        onClick={() => agregarPreguntaLV(l.id)}
-                        style={{ marginTop: 6, height: 36, padding: '0 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-                      >
-                        + Agregar pregunta
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-        </div>
-      )}
 
       {toast && (
         <div
