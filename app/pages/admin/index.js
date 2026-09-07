@@ -93,6 +93,18 @@ export default function AdminPage() {
   const [reactivos, setReactivos] = useState([]);
   const [cargandoReactivos, setCargandoReactivos] = useState(false);
   const [lecturas, setLecturas] = useState([]);
+
+  // --- Módulo de Lectura de velocidad (banco de textos con cronómetro,
+  // completamente separado de "lecturas" de arriba, que son del examen). ---
+  const [lecturasVelocidad, setLecturasVelocidad] = useState(null);
+  const [nuevaLVTitulo, setNuevaLVTitulo] = useState('');
+  const [nuevaLVTexto, setNuevaLVTexto] = useState('');
+  const [lvExpandidaId, setLvExpandidaId] = useState(null);
+  const [lvPreguntasPorLectura, setLvPreguntasPorLectura] = useState({}); // { [lecturaId]: [preguntas] }
+  const [nuevaPreguntaTexto, setNuevaPreguntaTexto] = useState('');
+  const [nuevaPreguntaOpciones, setNuevaPreguntaOpciones] = useState(['', '', '', '']);
+  const [nuevaPreguntaCorrectaIdx, setNuevaPreguntaCorrectaIdx] = useState(0);
+
   const [nuevaCategoria, setNuevaCategoria] = useState('');
 
   // Categoría activa en el menú lateral (reemplaza al filtro suelto de antes)
@@ -865,6 +877,9 @@ export default function AdminPage() {
     if (vistaGeneral === 'usuarios' && !usuariosAdmin) {
       cargarUsuariosAdmin();
     }
+    if (vistaGeneral === 'lectura' && !lecturasVelocidad) {
+      cargarLecturasVelocidad();
+    }
   }, [vistaGeneral]);
 
   const [nuevaCategoriaPadreId, setNuevaCategoriaPadreId] = useState('');
@@ -995,6 +1010,87 @@ export default function AdminPage() {
       body: JSON.stringify({ etiqueta_boleta: valor }),
     });
     cargarCategorias();
+  }
+
+  // --- Módulo de Lectura de velocidad ---
+  async function cargarLecturasVelocidad() {
+    const res = await fetch('/api/admin/lecturas-velocidad');
+    if (res.ok) setLecturasVelocidad(await res.json());
+  }
+
+  async function crearLecturaVelocidad(e) {
+    e.preventDefault();
+    if (!nuevaLVTitulo.trim() || !nuevaLVTexto.trim()) return;
+    const res = await fetch('/api/admin/lecturas-velocidad', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ titulo: nuevaLVTitulo, texto: nuevaLVTexto }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    setNuevaLVTitulo('');
+    setNuevaLVTexto('');
+    cargarLecturasVelocidad();
+    mostrarToast('Lectura agregada');
+  }
+
+  async function activarLecturaVelocidad(l) {
+    await fetch(`/api/admin/lecturas-velocidad/${l.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activa: !l.activa }),
+    });
+    cargarLecturasVelocidad();
+  }
+
+  async function borrarLecturaVelocidad(l) {
+    const res = await fetch(`/api/admin/lecturas-velocidad/${l.id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok) {
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    cargarLecturasVelocidad();
+  }
+
+  async function cargarPreguntasLV(lecturaId) {
+    const res = await fetch(`/api/admin/lecturas-velocidad/${lecturaId}/preguntas`);
+    if (res.ok) {
+      const data = await res.json();
+      setLvPreguntasPorLectura((prev) => ({ ...prev, [lecturaId]: data }));
+    }
+  }
+
+  async function agregarPreguntaLV(lecturaId) {
+    if (!nuevaPreguntaTexto.trim() || nuevaPreguntaOpciones.some((o) => !o.trim())) {
+      mostrarToast('Completa la pregunta y las 4 opciones', 'error');
+      return;
+    }
+    const res = await fetch(`/api/admin/lecturas-velocidad/${lecturaId}/preguntas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pregunta: nuevaPreguntaTexto,
+        opciones: nuevaPreguntaOpciones.map((texto, i) => ({ texto, es_correcta: i === nuevaPreguntaCorrectaIdx })),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    setNuevaPreguntaTexto('');
+    setNuevaPreguntaOpciones(['', '', '', '']);
+    setNuevaPreguntaCorrectaIdx(0);
+    cargarPreguntasLV(lecturaId);
+  }
+
+  async function borrarPreguntaLV(lecturaId, preguntaId) {
+    await fetch(`/api/admin/lecturas-velocidad/${lecturaId}/preguntas/${preguntaId}`, { method: 'DELETE' });
+    cargarPreguntasLV(lecturaId);
   }
 
   // Drag & drop para reordenar materias en el menú lateral (arrastrar en vez de escribir números).
@@ -1753,6 +1849,17 @@ export default function AdminPage() {
             >
               ⚙️ Administradores
             </button>
+            <button
+              onClick={() => setVistaGeneral('lectura')}
+              style={{
+                height: 36, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14,
+                background: vistaGeneral === 'lectura' ? '#4a90d9' : 'transparent',
+                color: vistaGeneral === 'lectura' ? '#fff' : '#333',
+                fontWeight: vistaGeneral === 'lectura' ? 'bold' : 'normal',
+              }}
+            >
+              📖 Lectura
+            </button>
           </nav>
         </div>
         <button
@@ -1831,6 +1938,17 @@ export default function AdminPage() {
                 }}
               >
                 ⚙️ Usuarios
+              </button>
+              <button
+                onClick={() => { setVistaGeneral('lectura'); setMenuMovilAbierto(false); }}
+                style={{
+                  height: 48, borderRadius: 12, border: 'none', textAlign: 'left', padding: '0 16px', fontSize: 15, cursor: 'pointer',
+                  background: vistaGeneral === 'lectura' ? '#4a90d9' : '#f7f8fa',
+                  color: vistaGeneral === 'lectura' ? '#fff' : '#333',
+                  fontWeight: vistaGeneral === 'lectura' ? 'bold' : 500,
+                }}
+              >
+                📖 Lectura
               </button>
               <div style={{ height: 1, background: '#f0f0f0', margin: '4px 0' }} />
               <button
@@ -3192,11 +3310,16 @@ export default function AdminPage() {
                       </tr>
                       <tr>
                         <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>Total de aciertos en examen de comprensión lectora</td>
-                        <td style={{ padding: 8, border: '1px solid #e0e6ec', textAlign: 'center' }}>
-                          {(() => {
-                            const cl = detalleAlumno.historial[0]?.porCategoria?.find((c) => c.categoria.toLowerCase().includes('comprensión lectora'));
-                            return cl ? `${cl.correctas}/${cl.total} · ${cl.porcentaje}%` : '—';
-                          })()}
+                        <td style={{ padding: 4, border: '1px solid #e0e6ec', textAlign: 'center' }}>
+                          {/* OJO: esto es la lectura de VELOCIDAD (módulo aparte, pendiente
+                              de construir), NO la categoría "Comprensión lectora" del examen
+                              CENEVAL — son dos evaluaciones distintas. Manual por ahora. */}
+                          <input
+                            value={fichaInput.aciertosLectura || ''}
+                            onChange={(e) => actualizarCampoFicha('aciertosLectura', e.target.value)}
+                            placeholder="ej. 7/10 · 70%"
+                            style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, textAlign: 'center', boxSizing: 'border-box' }}
+                          />
                         </td>
                       </tr>
                     </tbody>
@@ -3530,6 +3653,154 @@ export default function AdminPage() {
                 >
                   🗑️ Quitar acceso
                 </button>
+              </div>
+            ))}
+          </div>
+        </div>
+        </div>
+      )}
+
+      {vistaGeneral === 'lectura' && (
+        <div style={{ background: '#f8fafc', minHeight: '100%' }}>
+        <div style={{ maxWidth: 780, margin: '0 auto', padding: '32px 24px' }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 'bold', color: '#0f2a44' }}>Módulo de Lectura</h1>
+          <p style={{ color: '#888', fontSize: 13, margin: '4px 0 24px 0' }}>
+            Textos con cronómetro que el alumno presenta después de su examen de diagnóstico.
+            Solo la lectura marcada como <strong>Activa</strong> queda disponible para los alumnos.
+          </p>
+
+          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 32 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 16px 0' }}>+ Nueva lectura</h3>
+            <form onSubmit={crearLecturaVelocidad}>
+              <input
+                placeholder="Título (ej. Lectura 2)"
+                value={nuevaLVTitulo}
+                onChange={(e) => setNuevaLVTitulo(e.target.value)}
+                required
+                style={{ width: '100%', height: 44, padding: '0 16px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box', marginBottom: 12 }}
+              />
+              <textarea
+                placeholder="Pega aquí el texto completo de la lectura..."
+                value={nuevaLVTexto}
+                onChange={(e) => setNuevaLVTexto(e.target.value)}
+                required
+                rows={8}
+                style={{ width: '100%', padding: 14, borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box', marginBottom: 6, resize: 'vertical', fontFamily: 'inherit' }}
+              />
+              <p style={{ fontSize: 12, color: '#888', margin: '0 0 12px 0' }}>
+                {nuevaLVTexto.trim() ? `${nuevaLVTexto.trim().split(/\s+/).length} palabras (se cuentan solas al guardar)` : 'El total de palabras se calcula automáticamente'}
+              </p>
+              <button
+                type="submit"
+                style={{ height: 44, padding: '0 24px', background: '#0f2a44', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+              >
+                + Guardar lectura
+              </button>
+            </form>
+          </div>
+
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px 0' }}>Banco de lecturas</h3>
+          {!lecturasVelocidad && <p style={{ color: '#888', fontSize: 13 }}>Cargando...</p>}
+          {lecturasVelocidad && lecturasVelocidad.length === 0 && (
+            <p style={{ color: '#888', fontSize: 13 }}>Aún no hay ninguna lectura cargada. Agrega la primera arriba.</p>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {lecturasVelocidad && lecturasVelocidad.map((l) => (
+              <div key={l.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
+                      {l.activa && <span style={{ color: '#2e7d32', marginRight: 6 }}>●</span>}
+                      {l.titulo}
+                    </p>
+                    <p style={{ margin: '2px 0 0 0', fontSize: 12, color: '#888' }}>{l.total_palabras} palabras</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                    <button
+                      onClick={() => activarLecturaVelocidad(l)}
+                      style={{
+                        fontSize: 12, border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer',
+                        background: l.activa ? '#eafaf1' : '#eaf2fb', color: l.activa ? '#2e7d32' : '#3a5b7a',
+                      }}
+                    >
+                      {l.activa ? '✓ Activa' : 'Activar'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const abrir = lvExpandidaId === l.id ? null : l.id;
+                        setLvExpandidaId(abrir);
+                        if (abrir && !lvPreguntasPorLectura[l.id]) cargarPreguntasLV(l.id);
+                      }}
+                      style={{ fontSize: 12, border: '1px solid #ddd', background: '#fff', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
+                    >
+                      {lvExpandidaId === l.id ? 'Ocultar' : 'Preguntas'}
+                    </button>
+                    <button
+                      onClick={() => borrarLecturaVelocidad(l)}
+                      style={{ fontSize: 12, color: '#c0392b', background: '#fdeceb', border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+
+                {lvExpandidaId === l.id && (
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#555', margin: '0 0 10px 0' }}>Preguntas de comprensión</p>
+                    {(lvPreguntasPorLectura[l.id] || []).map((p, idx) => (
+                      <div key={p.id} style={{ background: '#fafbfc', border: '1px solid #eee', borderRadius: 10, padding: 12, marginBottom: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{idx + 1}. {p.pregunta}</p>
+                          <button onClick={() => borrarPreguntaLV(l.id, p.id)} style={{ fontSize: 11, color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>🗑️</button>
+                        </div>
+                        <ul style={{ margin: '6px 0 0 0', paddingLeft: 18, fontSize: 12, color: '#555' }}>
+                          {p.opciones.map((o) => (
+                            <li key={o.id} style={{ color: o.es_correcta ? '#2e7d32' : '#555', fontWeight: o.es_correcta ? 600 : 400 }}>
+                              {o.texto} {o.es_correcta && '✓'}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+
+                    <div style={{ background: '#fafbfc', border: '1px dashed #ccc', borderRadius: 10, padding: 12, marginTop: 10 }}>
+                      <p style={{ fontSize: 12, fontWeight: 600, margin: '0 0 8px 0' }}>+ Agregar pregunta</p>
+                      <input
+                        placeholder="Texto de la pregunta"
+                        value={nuevaPreguntaTexto}
+                        onChange={(e) => setNuevaPreguntaTexto(e.target.value)}
+                        style={{ width: '100%', height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 8 }}
+                      />
+                      {nuevaPreguntaOpciones.map((op, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <input
+                            type="radio"
+                            name={`correcta-${l.id}`}
+                            checked={nuevaPreguntaCorrectaIdx === i}
+                            onChange={() => setNuevaPreguntaCorrectaIdx(i)}
+                            title="Marcar como respuesta correcta"
+                          />
+                          <input
+                            placeholder={`Opción ${String.fromCharCode(97 + i)}`}
+                            value={op}
+                            onChange={(e) => {
+                              const copia = [...nuevaPreguntaOpciones];
+                              copia[i] = e.target.value;
+                              setNuevaPreguntaOpciones(copia);
+                            }}
+                            style={{ flex: 1, height: 34, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                          />
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => agregarPreguntaLV(l.id)}
+                        style={{ marginTop: 6, height: 36, padding: '0 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        + Agregar pregunta
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
