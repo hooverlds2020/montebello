@@ -987,9 +987,15 @@ export default function Examen() {
           return (
             <div style={{ textAlign: 'center', marginBottom: 40, padding: 28, background: '#fdf3e3', borderRadius: 12 }}>
               <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
-              <p style={{ color: '#8a6416', margin: 0, fontSize: 15 }}>
+              <p style={{ color: '#8a6416', margin: '0 0 16px 0', fontSize: 15 }}>
                 Ya presentaste tu examen de diagnóstico. Puedes consultar tu resultado abajo en el historial.
               </p>
+              <a
+                href="/lectura"
+                style={{ display: 'inline-block', padding: '10px 22px', background: '#4a90d9', color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+              >
+                📖 Continuar con la lectura
+              </a>
             </div>
           );
         }

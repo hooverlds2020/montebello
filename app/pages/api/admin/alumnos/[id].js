@@ -132,5 +132,35 @@ export default async function handler(req, res) {
     porCategoria: categoriasPorExamen[e.id] || [],
   }));
 
-  return res.status(200).json({ alumno, historial });
+  // Resultado más reciente del módulo de Lectura (si ya lo presentó), para
+  // que la Ficha de Registro pueda mostrarlo sin captura manual.
+  const { rows: lecturaRows } = await pool.query(
+    `SELECT i.id, i.estado, i.tiempo_segundos, l.titulo, l.total_palabras,
+            count(r.id) FILTER (WHERE r.opcion_id IS NOT NULL) AS respondidas,
+            count(r.id) FILTER (WHERE o.es_correcta) AS correctas,
+            count(pr.id) AS total_preguntas
+     FROM lecturas_velocidad_intentos i
+     JOIN lecturas_velocidad l ON l.id = i.lectura_velocidad_id
+     LEFT JOIN lecturas_velocidad_preguntas pr ON pr.lectura_velocidad_id = l.id
+     LEFT JOIN lecturas_velocidad_respuestas r ON r.intento_id = i.id AND r.pregunta_id = pr.id
+     LEFT JOIN lecturas_velocidad_opciones o ON o.id = r.opcion_id
+     WHERE i.alumno_id = $1
+     GROUP BY i.id, l.titulo, l.total_palabras
+     ORDER BY i.id DESC LIMIT 1`,
+    [id]
+  );
+  const lv = lecturaRows[0];
+  const lectura = lv
+    ? {
+        titulo: lv.titulo,
+        estado: lv.estado,
+        totalPalabras: lv.total_palabras,
+        tiempoSegundos: lv.tiempo_segundos,
+        ppm: lv.tiempo_segundos > 0 ? Math.round((lv.total_palabras / lv.tiempo_segundos) * 60) : null,
+        aciertos: parseInt(lv.correctas, 10) || 0,
+        totalPreguntas: parseInt(lv.total_preguntas, 10) || 0,
+      }
+    : null;
+
+  return res.status(200).json({ alumno, historial, lectura });
 }

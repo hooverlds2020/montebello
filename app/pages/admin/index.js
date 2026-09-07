@@ -295,7 +295,25 @@ export default function AdminPage() {
       });
       if (match) puntajesPorArea[etiqueta] = `${match.correctas} de ${match.total}`;
     }
-    setFichaInput({ ...guardadoPrevio, puntajesPorArea });
+    // Precarga también los 4 campos de "Resultados de examen de comprensión
+    // lectora" con el resultado real del módulo de Lectura, si ya lo
+    // presentó. Respeta lo ya capturado a mano si algo se hubiera guardado antes.
+    const camposLectura = {};
+    if (data.lectura && data.lectura.estado === 'finalizado') {
+      if (guardadoPrevio.palabrasTexto === undefined || guardadoPrevio.palabrasTexto === '') {
+        camposLectura.palabrasTexto = data.lectura.totalPalabras;
+      }
+      if (guardadoPrevio.tiempoLecturaMin === undefined || guardadoPrevio.tiempoLecturaMin === '') {
+        camposLectura.tiempoLecturaMin = data.lectura.tiempoSegundos != null ? +(data.lectura.tiempoSegundos / 60).toFixed(2) : '';
+      }
+      if (guardadoPrevio.aciertosLectura === undefined || guardadoPrevio.aciertosLectura === '') {
+        camposLectura.aciertosLectura = data.lectura.totalPreguntas > 0
+          ? `${data.lectura.aciertos}/${data.lectura.totalPreguntas} · ${Math.round((data.lectura.aciertos / data.lectura.totalPreguntas) * 100)}%`
+          : '';
+      }
+    }
+
+    setFichaInput({ ...guardadoPrevio, puntajesPorArea, ...camposLectura });
 
     setPerfilInput({
       nombre: data.alumno.nombre,
