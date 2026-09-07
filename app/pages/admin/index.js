@@ -266,7 +266,25 @@ export default function AdminPage() {
     const res = await fetch(`/api/admin/alumnos/${id}`);
     const data = await res.json();
     setDetalleAlumno(data);
-    setFichaInput(data.alumno.ficha_registro || {});
+
+    // Precarga en el estado real (no solo visual) el puntaje por defecto de
+    // cada área mostrada en boleta con el dato real "aciertos de total"
+    // (ej. "13 de 30"), tal como en el formato físico. Si ya había algo
+    // guardado antes, se respeta y no se pisa.
+    const guardadoPrevio = data.alumno.ficha_registro || {};
+    const porCategoria = data.historial?.[0]?.porCategoria || [];
+    const puntajesPorArea = { ...(guardadoPrevio.puntajesPorArea || {}) };
+    for (const c of categorias.filter((cat) => cat.mostrar_en_boleta)) {
+      const etiqueta = c.etiqueta_boleta || c.nombre;
+      if (puntajesPorArea[etiqueta] !== undefined && puntajesPorArea[etiqueta] !== '') continue;
+      const match = porCategoria.find((pc) => {
+        const nombreReal = pc.categoria.includes(' › ') ? pc.categoria.split(' › ').pop() : pc.categoria;
+        return nombreReal === c.nombre;
+      });
+      if (match) puntajesPorArea[etiqueta] = `${match.correctas} de ${match.total}`;
+    }
+    setFichaInput({ ...guardadoPrevio, puntajesPorArea });
+
     setPerfilInput({
       nombre: data.alumno.nombre,
       email: data.alumno.email,
@@ -3098,6 +3116,13 @@ export default function AdminPage() {
                             return nombreReal === c.nombre;
                           });
                           const etiqueta = c.etiqueta_boleta || c.nombre;
+                          // El puntaje default es el dato real (aciertos de total, ej.
+                          // "13 de 30", como en el formato físico). Sigue siendo editable
+                          // por si la institución quiere convertirlo a otra escala.
+                          const guardado = fichaInput.puntajesPorArea?.[etiqueta];
+                          const valorPuntaje = guardado !== undefined && guardado !== ''
+                            ? guardado
+                            : (match ? `${match.correctas} de ${match.total}` : '');
                           return (
                             <tr key={c.id}>
                               <td style={{ padding: 8, border: '1px solid #e0e6ec' }}>{etiqueta}</td>
@@ -3106,7 +3131,7 @@ export default function AdminPage() {
                               </td>
                               <td style={{ padding: 4, border: '1px solid #e0e6ec', textAlign: 'center' }}>
                                 <input
-                                  value={fichaInput.puntajesPorArea?.[etiqueta] || ''}
+                                  value={valorPuntaje}
                                   onChange={(e) => actualizarPuntajeArea(etiqueta, e.target.value)}
                                   style={{ width: '100%', padding: 5, border: '1px solid #ddd', borderRadius: 4, textAlign: 'center', boxSizing: 'border-box' }}
                                 />
