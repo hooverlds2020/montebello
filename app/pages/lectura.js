@@ -128,6 +128,11 @@ export default function Lectura() {
     setResultado(data);
   }
 
+  async function cerrarSesion() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+  }
+
   if (cargando) {
     return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Cargando…</div>;
   }
@@ -261,6 +266,12 @@ export default function Lectura() {
             <div><strong>{resultado.ppm}</strong><br />ppm</div>
             <div><strong>{resultado.aciertos}/{resultado.totalPreguntas}</strong><br />aciertos</div>
           </div>
+          <button
+            onClick={cerrarSesion}
+            style={{ marginTop: 24, padding: '10px 24px', background: '#fff', color: '#2e7d32', border: '1px solid #2e7d32', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Cerrar sesión
+          </button>
         </div>
       </div>
     );
