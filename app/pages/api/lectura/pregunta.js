@@ -28,12 +28,11 @@ export default async function handler(req, res) {
   }
 
   const { rows: preguntas } = await pool.query(
-    `SELECT p.id, p.pregunta,
-            r.opcion_id AS opcion_respondida_id
+    `SELECT p.id, p.pregunta
      FROM lecturas_velocidad_preguntas p
      LEFT JOIN lecturas_velocidad_respuestas r ON r.pregunta_id = p.id AND r.intento_id = $1
-     WHERE p.lectura_velocidad_id = $2
-     ORDER BY (r.opcion_id IS NOT NULL) ASC, RANDOM()
+     WHERE p.lectura_velocidad_id = $2 AND r.opcion_id IS NULL
+     ORDER BY RANDOM()
      LIMIT 1`,
     [intentoId, intento.lectura_velocidad_id]
   );
@@ -53,6 +52,6 @@ export default async function handler(req, res) {
     preguntaId: objetivo.id,
     pregunta: objetivo.pregunta,
     opciones: barajar(opciones),
-    opcionSeleccionadaId: objetivo.opcion_respondida_id || null,
+    opcionSeleccionadaId: null,
   });
 }
