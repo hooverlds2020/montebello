@@ -42,6 +42,7 @@ export default async function handler(req, res) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+
       // Siempre se borra primero el historial de examenes (examen_reactivos
       // depende de examenes por llave foránea).
       const { rows: examenesDelAlumno } = await client.query('SELECT id FROM examenes WHERE alumno_id = $1', [id]);
@@ -51,14 +52,20 @@ export default async function handler(req, res) {
         await client.query('DELETE FROM examenes WHERE id = ANY($1)', [idsExamenes]);
       }
 
-      // ?soloHistorial=1 : deja la cuenta del alumno intacta, solo borra sus
-      // intentos de examen (para "empezar de cero" sin perder el registro).
+      // ?soloHistorial=1 : deja la cuenta del alumno intacta, pero deja todo
+      // en cero para empezar de nuevo — no solo el examen: también borra sus
+      // intentos del módulo de Lectura de velocidad y limpia la Ficha de
+      // Registro (puntajes, palabras/tiempo de lectura, etc.), ya que esos
+      // datos habían quedado precargados con el intento anterior.
       if (req.query.soloHistorial) {
+        await client.query('DELETE FROM lecturas_velocidad_intentos WHERE alumno_id = $1', [id]);
+        await client.query('UPDATE alumnos SET ficha_registro = NULL WHERE id = $1', [id]);
         await client.query('COMMIT');
         return res.status(200).json({ ok: true, soloHistorial: true });
       }
 
       // Sin ese parámetro: borra la cuenta completa del alumno.
+      await client.query('DELETE FROM lecturas_velocidad_intentos WHERE alumno_id = $1', [id]);
       await client.query('DELETE FROM password_resets WHERE alumno_id = $1', [id]);
       await client.query('DELETE FROM alumnos WHERE id = $1', [id]);
       await client.query('COMMIT');

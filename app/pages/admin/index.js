@@ -374,7 +374,7 @@ export default function AdminPage() {
 
   function borrarHistorialAlumno(id, nombre) {
     pedirConfirmacion(
-      `¿Borrar TODO el historial de exámenes de "${nombre}"? La cuenta del alumno se conserva (puede volver a presentar), pero esta acción no se puede deshacer.`,
+      `¿Borrar TODO el historial de "${nombre}"? Se borra su examen de diagnóstico, su lectura de velocidad, y la Ficha de Registro se vacía por completo. La cuenta del alumno se conserva (puede volver a presentar todo desde cero), pero esta acción no se puede deshacer.`,
       async () => {
         const res = await fetch(`/api/admin/alumnos/${id}?soloHistorial=1`, { method: 'DELETE' });
         if (!res.ok) {
