@@ -107,7 +107,7 @@ export default function AdminPage() {
   const [nuevaPreguntaTipo, setNuevaPreguntaTipo] = useState('4'); // '2' | '3' | '4' | 'vf'
   const [nuevaPreguntaCorrectaIdx, setNuevaPreguntaCorrectaIdx] = useState(0);
   const [editandoPreguntaId, setEditandoPreguntaId] = useState(null); // null = modo "agregar"
-  const [editandoLecturaId, setEditandoLecturaId] = useState(null); // id de lectura cuyo texto se está editando
+  const [editandoLecturaVelocidadId, setEditandoLecturaVelocidadId] = useState(null); // id de lectura de velocidad cuyo texto se está editando
   const [editLVTitulo, setEditLVTitulo] = useState('');
   const [editLVTexto, setEditLVTexto] = useState('');
   const [editLVFuente, setEditLVFuente] = useState('');
@@ -1084,7 +1084,7 @@ export default function AdminPage() {
   }
 
   function iniciarEdicionLecturaVelocidad(l) {
-    setEditandoLecturaId(l.id);
+    setEditandoLecturaVelocidadId(l.id);
     setEditLVTitulo(l.titulo);
     setEditLVTexto(l.texto);
     setEditLVFuente(l.fuente || '');
@@ -1095,7 +1095,7 @@ export default function AdminPage() {
       mostrarToast('El título y el texto no pueden quedar vacíos', 'error');
       return;
     }
-    const res = await fetch(`/api/admin/lecturas-velocidad/${editandoLecturaId}`, {
+    const res = await fetch(`/api/admin/lecturas-velocidad/${editandoLecturaVelocidadId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ titulo: editLVTitulo, texto: editLVTexto, fuente: editLVFuente }),
@@ -1105,7 +1105,7 @@ export default function AdminPage() {
       mostrarToast(data.error, 'error');
       return;
     }
-    setEditandoLecturaId(null);
+    setEditandoLecturaVelocidadId(null);
     cargarLecturasVelocidad();
     mostrarToast('Lectura actualizada');
   }
@@ -2974,7 +2974,7 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {editandoLecturaId === l.id && (
+                {editandoLecturaVelocidadId === l.id && (
                   <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
                     <p style={{ fontSize: 12, fontWeight: 600, margin: '0 0 8px 0' }}>✏️ Editando lectura</p>
                     <input
@@ -3006,7 +3006,7 @@ export default function AdminPage() {
                         Guardar cambios
                       </button>
                       <button
-                        onClick={() => setEditandoLecturaId(null)}
+                        onClick={() => setEditandoLecturaVelocidadId(null)}
                         style={{ height: 36, padding: '0 18px', background: '#fff', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}
                       >
                         Cancelar
