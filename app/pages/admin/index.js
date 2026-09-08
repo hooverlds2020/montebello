@@ -104,8 +104,13 @@ export default function AdminPage() {
   const [lvPreguntasPorLectura, setLvPreguntasPorLectura] = useState({}); // { [lecturaId]: [preguntas] }
   const [nuevaPreguntaTexto, setNuevaPreguntaTexto] = useState('');
   const [nuevaPreguntaOpciones, setNuevaPreguntaOpciones] = useState(['', '', '', '']);
+  const [nuevaPreguntaTipo, setNuevaPreguntaTipo] = useState('4'); // '2' | '3' | '4' | 'vf'
   const [nuevaPreguntaCorrectaIdx, setNuevaPreguntaCorrectaIdx] = useState(0);
   const [editandoPreguntaId, setEditandoPreguntaId] = useState(null); // null = modo "agregar"
+  const [editandoLecturaId, setEditandoLecturaId] = useState(null); // id de lectura cuyo texto se está editando
+  const [editLVTitulo, setEditLVTitulo] = useState('');
+  const [editLVTexto, setEditLVTexto] = useState('');
+  const [editLVFuente, setEditLVFuente] = useState('');
 
   const [nuevaCategoria, setNuevaCategoria] = useState('');
 
@@ -1078,6 +1083,33 @@ export default function AdminPage() {
     cargarLecturasVelocidad();
   }
 
+  function iniciarEdicionLecturaVelocidad(l) {
+    setEditandoLecturaId(l.id);
+    setEditLVTitulo(l.titulo);
+    setEditLVTexto(l.texto);
+    setEditLVFuente(l.fuente || '');
+  }
+
+  async function guardarEdicionLecturaVelocidad() {
+    if (!editLVTitulo.trim() || !editLVTexto.trim()) {
+      mostrarToast('El título y el texto no pueden quedar vacíos', 'error');
+      return;
+    }
+    const res = await fetch(`/api/admin/lecturas-velocidad/${editandoLecturaId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ titulo: editLVTitulo, texto: editLVTexto, fuente: editLVFuente }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      mostrarToast(data.error, 'error');
+      return;
+    }
+    setEditandoLecturaId(null);
+    cargarLecturasVelocidad();
+    mostrarToast('Lectura actualizada');
+  }
+
   async function cargarPreguntasLV(lecturaId) {
     const res = await fetch(`/api/admin/lecturas-velocidad/${lecturaId}/preguntas`);
     if (res.ok) {
@@ -1090,7 +1122,26 @@ export default function AdminPage() {
     setNuevaPreguntaTexto('');
     setNuevaPreguntaOpciones(['', '', '', '']);
     setNuevaPreguntaCorrectaIdx(0);
+    setNuevaPreguntaTipo('4');
     setEditandoPreguntaId(null);
+  }
+
+  // Cambia cuántas opciones tiene la pregunta (2, 3, 4, o Verdadero/Falso),
+  // igual que "tipo de reactivo" en el examen CENEVAL. Verdadero/Falso deja
+  // los textos fijos; los demás tipos son editables por el admin.
+  function cambiarTipoPreguntaLV(tipo) {
+    setNuevaPreguntaTipo(tipo);
+    setNuevaPreguntaCorrectaIdx(0);
+    if (tipo === 'vf') {
+      setNuevaPreguntaOpciones(['Verdadero', 'Falso']);
+    } else {
+      const n = parseInt(tipo, 10);
+      setNuevaPreguntaOpciones((prev) => {
+        const copia = [...prev];
+        while (copia.length < n) copia.push('');
+        return copia.slice(0, n);
+      });
+    }
   }
 
   // Carga una pregunta existente en el formulario para editarla (el mismo
@@ -1099,8 +1150,9 @@ export default function AdminPage() {
   function iniciarEdicionPreguntaLV(p) {
     setEditandoPreguntaId(p.id);
     setNuevaPreguntaTexto(p.pregunta);
-    const opciones = [...p.opciones];
-    while (opciones.length < 4) opciones.push({ texto: '', es_correcta: false });
+    const opciones = p.opciones;
+    const esVF = opciones.length === 2 && opciones.every((o) => ['Verdadero', 'Falso'].includes(o.texto));
+    setNuevaPreguntaTipo(esVF ? 'vf' : String(opciones.length));
     setNuevaPreguntaOpciones(opciones.map((o) => o.texto));
     const idxCorrecta = opciones.findIndex((o) => o.es_correcta);
     setNuevaPreguntaCorrectaIdx(idxCorrecta >= 0 ? idxCorrecta : 0);
@@ -1108,7 +1160,7 @@ export default function AdminPage() {
 
   async function agregarPreguntaLV(lecturaId) {
     if (!nuevaPreguntaTexto.trim() || nuevaPreguntaOpciones.some((o) => !o.trim())) {
-      mostrarToast('Completa la pregunta y las 4 opciones', 'error');
+      mostrarToast('Completa la pregunta y todas las opciones', 'error');
       return;
     }
     const opciones = nuevaPreguntaOpciones.map((texto, i) => ({ texto, es_correcta: i === nuevaPreguntaCorrectaIdx }));
@@ -2907,6 +2959,13 @@ export default function AdminPage() {
                       {lvExpandidaId === l.id ? 'Ocultar' : 'Preguntas'}
                     </button>
                     <button
+                      onClick={() => iniciarEdicionLecturaVelocidad(l)}
+                      style={{ fontSize: 12, border: '1px solid #ddd', background: '#fff', borderRadius: 999, padding: '7px 10px', cursor: 'pointer' }}
+                      title="Editar texto de la lectura"
+                    >
+                      ✏️
+                    </button>
+                    <button
                       onClick={() => borrarLecturaVelocidad(l)}
                       style={{ fontSize: 12, color: '#c0392b', background: '#fdeceb', border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
                     >
@@ -2914,6 +2973,47 @@ export default function AdminPage() {
                     </button>
                   </div>
                 </div>
+
+                {editandoLecturaId === l.id && (
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, margin: '0 0 8px 0' }}>✏️ Editando lectura</p>
+                    <input
+                      value={editLVTitulo}
+                      onChange={(e) => setEditLVTitulo(e.target.value)}
+                      style={{ width: '100%', height: 40, padding: '0 12px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', marginBottom: 8 }}
+                    />
+                    <textarea
+                      value={editLVTexto}
+                      onChange={(e) => setEditLVTexto(e.target.value)}
+                      rows={8}
+                      style={{ width: '100%', padding: 12, borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box', marginBottom: 6, resize: 'vertical', fontFamily: 'inherit' }}
+                    />
+                    <p style={{ fontSize: 12, color: '#888', margin: '0 0 8px 0' }}>
+                      {editLVTexto.trim() ? `${editLVTexto.trim().split(/\s+/).length} palabras` : ''}
+                    </p>
+                    <textarea
+                      placeholder="Fuente / referencia bibliográfica (opcional, no se cuenta en palabras)"
+                      value={editLVFuente}
+                      onChange={(e) => setEditLVFuente(e.target.value)}
+                      rows={2}
+                      style={{ width: '100%', padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 10, resize: 'vertical', fontFamily: 'inherit' }}
+                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={guardarEdicionLecturaVelocidad}
+                        style={{ height: 36, padding: '0 18px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Guardar cambios
+                      </button>
+                      <button
+                        onClick={() => setEditandoLecturaId(null)}
+                        style={{ height: 36, padding: '0 18px', background: '#fff', border: '1px solid #ddd', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {lvExpandidaId === l.id && (
                   <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
@@ -2950,6 +3050,29 @@ export default function AdminPage() {
                         onChange={(e) => setNuevaPreguntaTexto(e.target.value)}
                         style={{ width: '100%', height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 8 }}
                       />
+                      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+                        {[
+                          { valor: '2', label: '2 opciones' },
+                          { valor: '3', label: '3 opciones' },
+                          { valor: '4', label: '4 opciones' },
+                          { valor: 'vf', label: 'Verdadero / Falso' },
+                        ].map((t) => (
+                          <button
+                            key={t.valor}
+                            type="button"
+                            onClick={() => cambiarTipoPreguntaLV(t.valor)}
+                            style={{
+                              fontSize: 11, padding: '6px 10px', borderRadius: 999, cursor: 'pointer',
+                              border: nuevaPreguntaTipo === t.valor ? '1px solid #4a90d9' : '1px solid #ddd',
+                              background: nuevaPreguntaTipo === t.valor ? '#eaf2fb' : '#fff',
+                              color: nuevaPreguntaTipo === t.valor ? '#3a5b7a' : '#555',
+                              fontWeight: nuevaPreguntaTipo === t.valor ? 600 : 400,
+                            }}
+                          >
+                            {t.label}
+                          </button>
+                        ))}
+                      </div>
                       {nuevaPreguntaOpciones.map((op, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                           <input
@@ -2962,12 +3085,13 @@ export default function AdminPage() {
                           <input
                             placeholder={`Opción ${String.fromCharCode(97 + i)}`}
                             value={op}
+                            disabled={nuevaPreguntaTipo === 'vf'}
                             onChange={(e) => {
                               const copia = [...nuevaPreguntaOpciones];
                               copia[i] = e.target.value;
                               setNuevaPreguntaOpciones(copia);
                             }}
-                            style={{ flex: 1, height: 34, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                            style={{ flex: 1, height: 34, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', background: nuevaPreguntaTipo === 'vf' ? '#f5f5f5' : '#fff' }}
                           />
                         </div>
                       ))}
