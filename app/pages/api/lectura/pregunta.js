@@ -37,6 +37,18 @@ export default async function handler(req, res) {
     [intentoId, intento.lectura_velocidad_id]
   );
 
+  // Para mostrar "Pregunta X de Y" en pantalla, igual que en el examen.
+  const { rows: conteo } = await pool.query(
+    `SELECT count(*) AS total,
+            count(*) FILTER (WHERE r.opcion_id IS NOT NULL) AS contestadas
+     FROM lecturas_velocidad_preguntas p
+     LEFT JOIN lecturas_velocidad_respuestas r ON r.pregunta_id = p.id AND r.intento_id = $1
+     WHERE p.lectura_velocidad_id = $2`,
+    [intentoId, intento.lectura_velocidad_id]
+  );
+  const total = parseInt(conteo[0].total, 10);
+  const contestadas = parseInt(conteo[0].contestadas, 10);
+
   const objetivo = preguntas[0];
   if (!objetivo) {
     return res.status(200).json({ terminado: true });
@@ -53,5 +65,7 @@ export default async function handler(req, res) {
     pregunta: objetivo.pregunta,
     opciones: barajar(opciones),
     opcionSeleccionadaId: null,
+    numeroActual: contestadas + 1,
+    totalPreguntas: total,
   });
 }

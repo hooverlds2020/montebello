@@ -235,6 +235,11 @@ export default function Lectura() {
   if (faseVista === 'preguntas' && pregunta) {
     return (
       <div style={contenedor}>
+        {pregunta.totalPreguntas && (
+          <p style={{ fontSize: 13, color: '#888', margin: '0 0 6px 0' }}>
+            Pregunta {pregunta.numeroActual} de {pregunta.totalPreguntas}
+          </p>
+        )}
         <h2 style={{ fontSize: 18, marginBottom: 20 }}>{pregunta.pregunta}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {pregunta.opciones.map((o) => (
