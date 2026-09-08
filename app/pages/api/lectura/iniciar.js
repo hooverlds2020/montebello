@@ -13,11 +13,14 @@ export default async function handler(req, res) {
   }
 
   const { rows: diag } = await pool.query(
-    `SELECT count(*) FROM examenes WHERE alumno_id = $1 AND estado = 'finalizado'`,
+    `SELECT sesion_finalizacion FROM examenes WHERE alumno_id = $1 AND estado = 'finalizado' ORDER BY id DESC LIMIT 1`,
     [sesion.alumnoId]
   );
-  if (parseInt(diag[0].count, 10) === 0) {
+  if (!diag[0]) {
     return res.status(403).json({ error: 'Debes terminar tu examen de diagnóstico antes de presentar la lectura.' });
+  }
+  if (diag[0].sesion_finalizacion && diag[0].sesion_finalizacion === sesion.sesionId) {
+    return res.status(403).json({ error: 'Podrás continuar con la lectura la próxima vez que inicies sesión.' });
   }
 
   // Si ya tiene un intento, se retoma (no se crea otro): la lectura queda

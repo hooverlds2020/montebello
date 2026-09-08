@@ -19,10 +19,13 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    // Finaliza el examen (idempotente: si ya estaba finalizado, no hace nada)
+    // Finaliza el examen (idempotente: si ya estaba finalizado, no hace nada).
+    // Guarda también en qué sesión (login) se finalizó: la sección de Lectura
+    // solo se habilita hasta que el alumno vuelva a entrar en OTRA sesión,
+    // no en la misma en la que acaba de terminar el examen.
     await pool.query(
-      `UPDATE examenes SET estado = 'finalizado', finalizado_en = NOW() WHERE id = $1 AND estado != 'finalizado'`,
-      [examenId]
+      `UPDATE examenes SET estado = 'finalizado', finalizado_en = NOW(), sesion_finalizacion = $2 WHERE id = $1 AND estado != 'finalizado'`,
+      [examenId, sesion.sesionId]
     );
     // Libera la marca de sesión única: ya terminó, puede volver a entrar
     // (por ejemplo desde otro dispositivo) sin que quede bloqueado.

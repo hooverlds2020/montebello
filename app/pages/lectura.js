@@ -153,6 +153,21 @@ export default function Lectura() {
     );
   }
 
+  // Terminó el diagnóstico, pero en ESTA MISMA sesión — debe cerrar sesión
+  // y volver a entrar más tarde para que se habilite la lectura.
+  if (estado && !estado.disponible && estado.motivo === 'espera_nueva_sesion') {
+    return (
+      <div style={contenedor}>
+        <div style={{ background: '#fdf3e3', border: '1px solid #f0d9a8', borderRadius: 12, padding: 28, textAlign: 'center' }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>🔒</div>
+          <p style={{ margin: 0, color: '#8a6416', fontSize: 15 }}>
+            Ya terminaste tu examen de diagnóstico. La lectura se habilitará la próxima vez que inicies sesión.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Sin lectura configurada por el admin todavía.
   if (estado && !estado.disponible && estado.motivo === 'sin_lectura_activa') {
     return (

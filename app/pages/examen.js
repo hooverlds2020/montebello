@@ -39,6 +39,7 @@ function formatearFecha(iso) {
 
 export default function Examen() {
   const [alumno, setAlumno] = useState(null);
+  const [lecturaDisponibleAhora, setLecturaDisponibleAhora] = useState(false);
   const [umbralAprobacion, setUmbralAprobacion] = useState(60); // valor por defecto mientras carga
   const [intentosPermitidos, setIntentosPermitidos] = useState(0); // 0 = ilimitados
   const [instruccionesExamen, setInstruccionesExamen] = useState(null);
@@ -85,6 +86,12 @@ export default function Examen() {
         cargarHistorial();
         cargarEnProgreso();
         setCargando(false);
+        // Verifica si la lectura ya se puede mostrar (solo si el diagnóstico
+        // se terminó en una sesión ANTERIOR, no en esta misma).
+        fetch('/api/lectura/estado')
+          .then((r) => r.json())
+          .then((d) => setLecturaDisponibleAhora(!!d.disponible))
+          .catch(() => {});
       })
       .catch(() => router.push('/login'));
 
@@ -990,12 +997,14 @@ export default function Examen() {
               <p style={{ color: '#8a6416', margin: '0 0 16px 0', fontSize: 15 }}>
                 Ya presentaste tu examen de diagnóstico. Puedes consultar tu resultado abajo en el historial.
               </p>
-              <a
-                href="/lectura"
-                style={{ display: 'inline-block', padding: '10px 22px', background: '#4a90d9', color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
-              >
-                📖 Continuar con la lectura
-              </a>
+              {lecturaDisponibleAhora && (
+                <a
+                  href="/lectura"
+                  style={{ display: 'inline-block', padding: '10px 22px', background: '#4a90d9', color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  📖 Continuar con la lectura
+                </a>
+              )}
             </div>
           );
         }

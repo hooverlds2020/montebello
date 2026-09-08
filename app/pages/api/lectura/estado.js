@@ -14,12 +14,17 @@ export default async function handler(req, res) {
   }
 
   const { rows: diag } = await pool.query(
-    `SELECT count(*) FROM examenes WHERE alumno_id = $1 AND estado = 'finalizado'`,
+    `SELECT sesion_finalizacion FROM examenes WHERE alumno_id = $1 AND estado = 'finalizado' ORDER BY id DESC LIMIT 1`,
     [sesion.alumnoId]
   );
-  const diagnosticoFinalizado = parseInt(diag[0].count, 10) > 0;
-  if (!diagnosticoFinalizado) {
+  if (!diag[0]) {
     return res.status(200).json({ disponible: false, motivo: 'diagnostico_pendiente' });
+  }
+  // Si el examen se finalizó en ESTA MISMA sesión (login), la lectura todavía
+  // no se habilita — debe esperar a que el alumno cierre sesión y vuelva a
+  // entrar (se hace en otro momento, ej. durante la entrevista).
+  if (diag[0].sesion_finalizacion && diag[0].sesion_finalizacion === sesion.sesionId) {
+    return res.status(200).json({ disponible: false, motivo: 'espera_nueva_sesion' });
   }
 
   // ¿Ya tiene un intento (de cualquier estado)? Ese manda, sin importar cuál
