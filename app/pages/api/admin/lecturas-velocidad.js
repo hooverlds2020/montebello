@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { titulo, texto, fuente } = req.body;
+    const { titulo, texto, fuente, tiempoExcelenteSeg, tiempoMuybienSeg, tiempoBienSeg, tiempoDeficienteSeg } = req.body;
     if (!titulo || !titulo.trim()) {
       return res.status(400).json({ error: 'El título es obligatorio' });
     }
@@ -30,8 +30,10 @@ export default async function handler(req, res) {
     }
     const totalPalabras = contarPalabras(texto);
     const { rows } = await pool.query(
-      'INSERT INTO lecturas_velocidad (titulo, texto, total_palabras, fuente) VALUES ($1, $2, $3, $4) RETURNING *',
-      [titulo.trim(), texto, totalPalabras, fuente?.trim() || null]
+      `INSERT INTO lecturas_velocidad
+         (titulo, texto, total_palabras, fuente, tiempo_excelente_seg, tiempo_muybien_seg, tiempo_bien_seg, tiempo_deficiente_seg)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [titulo.trim(), texto, totalPalabras, fuente?.trim() || null, tiempoExcelenteSeg || null, tiempoMuybienSeg || null, tiempoBienSeg || null, tiempoDeficienteSeg || null]
     );
     return res.status(201).json(rows[0]);
   }

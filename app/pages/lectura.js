@@ -14,6 +14,8 @@ export default function Lectura() {
   const [pregunta, setPregunta] = useState(null);
   const [seleccion, setSeleccion] = useState(null);
   const [resultado, setResultado] = useState(null);
+  const [vistaFinal, setVistaFinal] = useState('resumen'); // 'resumen' | 'detalle'
+  const [detalleRespuestas, setDetalleRespuestas] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
   // Cronómetro visible mientras lee: solo de referencia visual para el
@@ -126,6 +128,22 @@ export default function Lectura() {
     const res = await fetch(`/api/lectura/resultado?intentoId=${id}`);
     const data = await res.json();
     setResultado(data);
+  }
+
+  async function verDetalleRespuestas() {
+    const res = await fetch(`/api/lectura/detalle?intentoId=${intentoId}`);
+    const data = await res.json();
+    setDetalleRespuestas(data.detalle || []);
+    setVistaFinal('detalle');
+  }
+
+  // 79 -> "1:19", para mostrar la tabla de referencia con el mismo formato
+  // que se capturó en el admin.
+  function segundosAMmss(seg) {
+    if (seg == null) return '';
+    const m = Math.floor(seg / 60);
+    const s = seg % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
   }
 
   async function cerrarSesion() {
@@ -273,22 +291,108 @@ export default function Lectura() {
     );
   }
 
-  // Fase: finalizado, muestra resumen.
+  // Fase: finalizado, muestra resumen (o el detalle de respuestas si lo pidió).
   if (faseVista === 'finalizado' && resultado) {
+    if (vistaFinal === 'detalle') {
+      return (
+        <div style={contenedor}>
+          <h2 style={{ fontSize: 18, marginBottom: 16 }}>Detalle de respuestas — {resultado.lecturaTitulo}</h2>
+          {!detalleRespuestas && <p style={{ color: '#888' }}>Cargando…</p>}
+          {detalleRespuestas && detalleRespuestas.map((d, i) => (
+            <div key={i} style={{ background: '#fafbfc', border: '1px solid #eee', borderRadius: 10, padding: 14, marginBottom: 10 }}>
+              <p style={{ margin: '0 0 8px 0', fontSize: 14, fontWeight: 600 }}>{i + 1}. {d.pregunta}</p>
+              <p style={{ margin: 0, fontSize: 13, color: d.acerto ? '#2e7d32' : '#c0392b' }}>
+                {d.acerto ? '✓' : '✕'} Tu respuesta: {d.opcionElegida || '(sin responder)'}
+              </p>
+              {!d.acerto && (
+                <p style={{ margin: '4px 0 0 0', fontSize: 13, color: '#2e7d32' }}>
+                  Respuesta correcta: {d.opcionCorrecta}
+                </p>
+              )}
+            </div>
+          ))}
+          <div style={{ textAlign: 'center', marginTop: 20 }}>
+            <button
+              onClick={() => setVistaFinal('resumen')}
+              style={{ padding: '10px 24px', background: '#fff', color: '#4a90d9', border: '1px solid #4a90d9', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              ← Volver al resumen
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div style={contenedor}>
         <div style={{ textAlign: 'center', padding: 28, background: '#eafaf1', borderRadius: 12 }}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
-          <p style={{ margin: '0 0 16px 0', color: '#2e7d32', fontSize: 15 }}>Terminaste la lectura "{resultado.lecturaTitulo}".</p>
+          <h2 style={{ margin: '0 0 16px 0', color: '#2e7d32', fontSize: 18 }}>
+            Resultado de Lectura — {resultado.lecturaTitulo}
+          </h2>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap', fontSize: 14, color: '#333' }}>
             <div><strong>{resultado.totalPalabras}</strong><br />palabras</div>
             <div><strong>{resultado.tiempoMinutos} min</strong><br />tiempo</div>
             <div><strong>{resultado.ppm}</strong><br />ppm</div>
             <div><strong>{resultado.aciertos}/{resultado.totalPreguntas}</strong><br />aciertos</div>
           </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 24, flexWrap: 'wrap' }}>
+            <button
+              onClick={verDetalleRespuestas}
+              style={{ padding: '10px 22px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Ver detalle de respuestas
+            </button>
+            <button
+              onClick={() => router.push('/examen')}
+              style={{ padding: '10px 22px', background: '#fff', color: '#2e7d32', border: '1px solid #2e7d32', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Volver al diagnóstico
+            </button>
+          </div>
+        </div>
+
+        {/* Tabla de referencia: solo aparece si el admin configuró los 4
+            umbrales para ESTA lectura específica; si no, no se muestra nada
+            (evita clasificaciones incorrectas con datos de otra lectura). */}
+        {resultado.tablaReferencia && (
+          <div style={{ marginTop: 20, background: '#fff', border: '1px solid #eee', borderRadius: 12, padding: 20 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px 0' }}>
+              Tabla de referencia — {resultado.totalPalabras} palabras
+            </h3>
+            {resultado.nivel && (
+              <p style={{ margin: '4px 0 12px 0', fontSize: 14, fontWeight: 600, color: '#4a90d9' }}>
+                Velocidad: {resultado.nivel}
+              </p>
+            )}
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #eee' }}>Nivel</th>
+                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '1px solid #eee' }}>Tiempo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ['Excelente', resultado.tablaReferencia.excelente],
+                  ['Muy bien', resultado.tablaReferencia.muybien],
+                  ['Bien', resultado.tablaReferencia.bien],
+                  ['Deficiente', resultado.tablaReferencia.deficiente],
+                ].filter(([, seg]) => seg != null).map(([nombre, seg]) => (
+                  <tr key={nombre} style={{ fontWeight: resultado.nivel === nombre ? 700 : 400, color: resultado.nivel === nombre ? '#4a90d9' : '#333' }}>
+                    <td style={{ padding: 8, borderBottom: '1px solid #f5f5f5' }}>{nombre}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #f5f5f5' }}>{segundosAMmss(seg)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div style={{ textAlign: 'center', marginTop: 20 }}>
           <button
             onClick={cerrarSesion}
-            style={{ marginTop: 24, padding: '10px 24px', background: '#fff', color: '#2e7d32', border: '1px solid #2e7d32', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            style={{ padding: '10px 24px', background: '#fff', color: '#888', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
           >
             Cerrar sesión
           </button>

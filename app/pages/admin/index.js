@@ -111,6 +111,34 @@ export default function AdminPage() {
   const [editLVTitulo, setEditLVTitulo] = useState('');
   const [editLVTexto, setEditLVTexto] = useState('');
   const [editLVFuente, setEditLVFuente] = useState('');
+  // Tabla de referencia de velocidad (Excelente/Muy bien/Bien/Deficiente),
+  // capturados como texto "mm:ss" en la UI, convertidos a segundos al guardar.
+  const [nuevaLVExcelente, setNuevaLVExcelente] = useState('');
+  const [nuevaLVMuybien, setNuevaLVMuybien] = useState('');
+  const [nuevaLVBien, setNuevaLVBien] = useState('');
+  const [nuevaLVDeficiente, setNuevaLVDeficiente] = useState('');
+  const [editLVExcelente, setEditLVExcelente] = useState('');
+  const [editLVMuybien, setEditLVMuybien] = useState('');
+  const [editLVBien, setEditLVBien] = useState('');
+  const [editLVDeficiente, setEditLVDeficiente] = useState('');
+
+  // "1:19" -> 79 segundos. Devuelve null si el texto está vacío o mal formado
+  // (así ese campo se deja como estaba, sin mandar basura a la BD).
+  function mmssASegundos(texto) {
+    if (!texto || !texto.trim()) return null;
+    const m = texto.trim().match(/^(\d+):(\d{1,2})$/);
+    if (!m) return null;
+    return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  }
+
+  // 79 -> "1:19". Devuelve '' si no hay valor (para mostrar el input vacío).
+  function segundosAMmss(seg) {
+    if (seg === null || seg === undefined) return '';
+    const m = Math.floor(seg / 60);
+    const s = seg % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
 
   const [nuevaCategoria, setNuevaCategoria] = useState('');
 
@@ -1050,7 +1078,15 @@ export default function AdminPage() {
     const res = await fetch('/api/admin/lecturas-velocidad', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ titulo: nuevaLVTitulo, texto: nuevaLVTexto, fuente: nuevaLVFuente }),
+      body: JSON.stringify({
+        titulo: nuevaLVTitulo,
+        texto: nuevaLVTexto,
+        fuente: nuevaLVFuente,
+        tiempoExcelenteSeg: mmssASegundos(nuevaLVExcelente),
+        tiempoMuybienSeg: mmssASegundos(nuevaLVMuybien),
+        tiempoBienSeg: mmssASegundos(nuevaLVBien),
+        tiempoDeficienteSeg: mmssASegundos(nuevaLVDeficiente),
+      }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -1060,6 +1096,10 @@ export default function AdminPage() {
     setNuevaLVTitulo('');
     setNuevaLVTexto('');
     setNuevaLVFuente('');
+    setNuevaLVExcelente('');
+    setNuevaLVMuybien('');
+    setNuevaLVBien('');
+    setNuevaLVDeficiente('');
     cargarLecturasVelocidad();
     mostrarToast('Lectura agregada');
   }
@@ -1088,6 +1128,10 @@ export default function AdminPage() {
     setEditLVTitulo(l.titulo);
     setEditLVTexto(l.texto);
     setEditLVFuente(l.fuente || '');
+    setEditLVExcelente(segundosAMmss(l.tiempo_excelente_seg));
+    setEditLVMuybien(segundosAMmss(l.tiempo_muybien_seg));
+    setEditLVBien(segundosAMmss(l.tiempo_bien_seg));
+    setEditLVDeficiente(segundosAMmss(l.tiempo_deficiente_seg));
   }
 
   async function guardarEdicionLecturaVelocidad() {
@@ -1098,7 +1142,15 @@ export default function AdminPage() {
     const res = await fetch(`/api/admin/lecturas-velocidad/${editandoLecturaVelocidadId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ titulo: editLVTitulo, texto: editLVTexto, fuente: editLVFuente }),
+      body: JSON.stringify({
+        titulo: editLVTitulo,
+        texto: editLVTexto,
+        fuente: editLVFuente,
+        tiempoExcelenteSeg: mmssASegundos(editLVExcelente),
+        tiempoMuybienSeg: mmssASegundos(editLVMuybien),
+        tiempoBienSeg: mmssASegundos(editLVBien),
+        tiempoDeficienteSeg: mmssASegundos(editLVDeficiente),
+      }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -2913,6 +2965,15 @@ export default function AdminPage() {
                 rows={2}
                 style={{ width: '100%', padding: 12, borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 13, boxSizing: 'border-box', marginBottom: 12, resize: 'vertical', fontFamily: 'inherit' }}
               />
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#555', margin: '0 0 8px 0' }}>
+                Tabla de referencia de velocidad (opcional, formato m:ss — ej. 1:19)
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, marginBottom: 12 }}>
+                <input placeholder="Excelente" value={nuevaLVExcelente} onChange={(e) => setNuevaLVExcelente(e.target.value)} style={{ height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                <input placeholder="Muy bien" value={nuevaLVMuybien} onChange={(e) => setNuevaLVMuybien(e.target.value)} style={{ height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                <input placeholder="Bien" value={nuevaLVBien} onChange={(e) => setNuevaLVBien(e.target.value)} style={{ height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                <input placeholder="Deficiente" value={nuevaLVDeficiente} onChange={(e) => setNuevaLVDeficiente(e.target.value)} style={{ height: 38, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+              </div>
               <button
                 type="submit"
                 style={{ height: 44, padding: '0 24px', background: '#0f2a44', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
@@ -2998,6 +3059,15 @@ export default function AdminPage() {
                       rows={2}
                       style={{ width: '100%', padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 10, resize: 'vertical', fontFamily: 'inherit' }}
                     />
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#555', margin: '0 0 8px 0' }}>
+                      Tabla de referencia de velocidad (opcional, formato m:ss — ej. 1:19)
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 8, marginBottom: 10 }}>
+                      <input placeholder="Excelente" value={editLVExcelente} onChange={(e) => setEditLVExcelente(e.target.value)} style={{ height: 36, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                      <input placeholder="Muy bien" value={editLVMuybien} onChange={(e) => setEditLVMuybien(e.target.value)} style={{ height: 36, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                      <input placeholder="Bien" value={editLVBien} onChange={(e) => setEditLVBien(e.target.value)} style={{ height: 36, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                      <input placeholder="Deficiente" value={editLVDeficiente} onChange={(e) => setEditLVDeficiente(e.target.value)} style={{ height: 36, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }} />
+                    </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button
                         onClick={guardarEdicionLecturaVelocidad}

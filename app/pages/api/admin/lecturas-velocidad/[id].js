@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'PUT') {
-    const { titulo, texto, activa, fuente } = req.body;
+    const { titulo, texto, activa, fuente, tiempoExcelenteSeg, tiempoMuybienSeg, tiempoBienSeg, tiempoDeficienteSeg } = req.body;
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -30,6 +30,17 @@ export default async function handler(req, res) {
       }
       if (fuente !== undefined) {
         await client.query('UPDATE lecturas_velocidad SET fuente = $1 WHERE id = $2', [fuente?.trim() || null, id]);
+      }
+      if (tiempoExcelenteSeg !== undefined || tiempoMuybienSeg !== undefined || tiempoBienSeg !== undefined || tiempoDeficienteSeg !== undefined) {
+        await client.query(
+          `UPDATE lecturas_velocidad SET
+             tiempo_excelente_seg = COALESCE($1, tiempo_excelente_seg),
+             tiempo_muybien_seg = COALESCE($2, tiempo_muybien_seg),
+             tiempo_bien_seg = COALESCE($3, tiempo_bien_seg),
+             tiempo_deficiente_seg = COALESCE($4, tiempo_deficiente_seg)
+           WHERE id = $5`,
+          [tiempoExcelenteSeg || null, tiempoMuybienSeg || null, tiempoBienSeg || null, tiempoDeficienteSeg || null, id]
+        );
       }
       if (activa !== undefined) {
         // Solo una lectura puede estar activa a la vez: si se activa esta,
