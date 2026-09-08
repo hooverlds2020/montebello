@@ -33,7 +33,7 @@ export default async function handler(req, res) {
      FROM lecturas_velocidad_preguntas p
      LEFT JOIN lecturas_velocidad_respuestas r ON r.pregunta_id = p.id AND r.intento_id = $1
      WHERE p.lectura_velocidad_id = $2
-     ORDER BY (r.opcion_id IS NOT NULL) ASC, p.orden, p.id
+     ORDER BY (r.opcion_id IS NOT NULL) ASC, RANDOM()
      LIMIT 1`,
     [intentoId, intento.lectura_velocidad_id]
   );

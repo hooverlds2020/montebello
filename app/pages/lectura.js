@@ -9,6 +9,7 @@ export default function Lectura() {
   const [intentoId, setIntentoId] = useState(null);
   const [faseVista, setFaseVista] = useState(null); // 'leyendo' | 'preguntas' | 'finalizado'
   const [textoLectura, setTextoLectura] = useState('');
+  const [fuenteLectura, setFuenteLectura] = useState('');
   const [tituloLectura, setTituloLectura] = useState('');
   const [pregunta, setPregunta] = useState(null);
   const [seleccion, setSeleccion] = useState(null);
@@ -40,6 +41,7 @@ export default function Lectura() {
       setIntentoId(data.intento.id);
       setTituloLectura(data.intento.lectura.titulo);
       setTextoLectura(data.intento.lectura.texto);
+      setFuenteLectura(data.intento.lectura.fuente || '');
       setFaseVista(data.intento.estado === 'preguntas' ? 'preguntas' : data.intento.estado);
       if (data.intento.estado === 'preguntas') {
         cargarPregunta(data.intento.id);
@@ -68,6 +70,7 @@ export default function Lectura() {
     const data2 = await res2.json();
     setEstado(data2);
     setTextoLectura(data2.intento.lectura.texto);
+    setFuenteLectura(data2.intento.lectura.fuente || '');
     setFaseVista('leyendo');
     inicioRef.current = Date.now();
     setSegundosVisibles(0);
@@ -192,6 +195,9 @@ export default function Lectura() {
         <div style={{ background: '#fafbfc', border: '1px solid #eee', borderRadius: 12, padding: 24, fontSize: 16, lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
           {textoLectura}
         </div>
+        {fuenteLectura && (
+          <p style={{ fontSize: 12, color: '#999', marginTop: 8, fontStyle: 'italic' }}>{fuenteLectura}</p>
+        )}
         <div style={{ textAlign: 'center', marginTop: 20 }}>
           <button
             onClick={terminarLectura}

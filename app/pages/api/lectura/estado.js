@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   // ¿Ya tiene un intento (de cualquier estado)? Ese manda, sin importar cuál
   // lectura esté activa ahora mismo — así no se rompe algo ya en curso.
   const { rows: intentoRows } = await pool.query(
-    `SELECT i.*, l.titulo, l.texto, l.total_palabras
+    `SELECT i.*, l.titulo, l.texto, l.fuente, l.total_palabras
      FROM lecturas_velocidad_intentos i
      JOIN lecturas_velocidad l ON l.id = i.lectura_velocidad_id
      WHERE i.alumno_id = $1
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       intento: {
         id: it.id,
         estado: it.estado,
-        lectura: { id: it.lectura_velocidad_id, titulo: it.titulo, texto: it.texto, totalPalabras: it.total_palabras },
+        lectura: { id: it.lectura_velocidad_id, titulo: it.titulo, texto: it.texto, fuente: it.fuente, totalPalabras: it.total_palabras },
       },
     });
   }

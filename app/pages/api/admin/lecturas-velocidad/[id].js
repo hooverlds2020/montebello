@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'PUT') {
-    const { titulo, texto, activa } = req.body;
+    const { titulo, texto, activa, fuente } = req.body;
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -27,6 +27,9 @@ export default async function handler(req, res) {
           'UPDATE lecturas_velocidad SET texto = $1, total_palabras = $2 WHERE id = $3',
           [texto, contarPalabras(texto), id]
         );
+      }
+      if (fuente !== undefined) {
+        await client.query('UPDATE lecturas_velocidad SET fuente = $1 WHERE id = $2', [fuente?.trim() || null, id]);
       }
       if (activa !== undefined) {
         // Solo una lectura puede estar activa a la vez: si se activa esta,

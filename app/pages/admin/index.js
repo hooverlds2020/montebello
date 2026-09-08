@@ -99,11 +99,13 @@ export default function AdminPage() {
   const [lecturasVelocidad, setLecturasVelocidad] = useState(null);
   const [nuevaLVTitulo, setNuevaLVTitulo] = useState('');
   const [nuevaLVTexto, setNuevaLVTexto] = useState('');
+  const [nuevaLVFuente, setNuevaLVFuente] = useState('');
   const [lvExpandidaId, setLvExpandidaId] = useState(null);
   const [lvPreguntasPorLectura, setLvPreguntasPorLectura] = useState({}); // { [lecturaId]: [preguntas] }
   const [nuevaPreguntaTexto, setNuevaPreguntaTexto] = useState('');
   const [nuevaPreguntaOpciones, setNuevaPreguntaOpciones] = useState(['', '', '', '']);
   const [nuevaPreguntaCorrectaIdx, setNuevaPreguntaCorrectaIdx] = useState(0);
+  const [editandoPreguntaId, setEditandoPreguntaId] = useState(null); // null = modo "agregar"
 
   const [nuevaCategoria, setNuevaCategoria] = useState('');
 
@@ -1043,7 +1045,7 @@ export default function AdminPage() {
     const res = await fetch('/api/admin/lecturas-velocidad', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ titulo: nuevaLVTitulo, texto: nuevaLVTexto }),
+      body: JSON.stringify({ titulo: nuevaLVTitulo, texto: nuevaLVTexto, fuente: nuevaLVFuente }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -1052,6 +1054,7 @@ export default function AdminPage() {
     }
     setNuevaLVTitulo('');
     setNuevaLVTexto('');
+    setNuevaLVFuente('');
     cargarLecturasVelocidad();
     mostrarToast('Lectura agregada');
   }
@@ -1083,32 +1086,54 @@ export default function AdminPage() {
     }
   }
 
+  function limpiarFormularioPreguntaLV() {
+    setNuevaPreguntaTexto('');
+    setNuevaPreguntaOpciones(['', '', '', '']);
+    setNuevaPreguntaCorrectaIdx(0);
+    setEditandoPreguntaId(null);
+  }
+
+  // Carga una pregunta existente en el formulario para editarla (el mismo
+  // formulario de "Agregar pregunta" se reutiliza; al guardar, si hay una
+  // pregunta en edición, hace PUT en vez de POST).
+  function iniciarEdicionPreguntaLV(p) {
+    setEditandoPreguntaId(p.id);
+    setNuevaPreguntaTexto(p.pregunta);
+    const opciones = [...p.opciones];
+    while (opciones.length < 4) opciones.push({ texto: '', es_correcta: false });
+    setNuevaPreguntaOpciones(opciones.map((o) => o.texto));
+    const idxCorrecta = opciones.findIndex((o) => o.es_correcta);
+    setNuevaPreguntaCorrectaIdx(idxCorrecta >= 0 ? idxCorrecta : 0);
+  }
+
   async function agregarPreguntaLV(lecturaId) {
     if (!nuevaPreguntaTexto.trim() || nuevaPreguntaOpciones.some((o) => !o.trim())) {
       mostrarToast('Completa la pregunta y las 4 opciones', 'error');
       return;
     }
-    const res = await fetch(`/api/admin/lecturas-velocidad/${lecturaId}/preguntas`, {
-      method: 'POST',
+    const opciones = nuevaPreguntaOpciones.map((texto, i) => ({ texto, es_correcta: i === nuevaPreguntaCorrectaIdx }));
+    const editando = editandoPreguntaId != null;
+    const url = editando
+      ? `/api/admin/lecturas-velocidad/${lecturaId}/preguntas/${editandoPreguntaId}`
+      : `/api/admin/lecturas-velocidad/${lecturaId}/preguntas`;
+    const res = await fetch(url, {
+      method: editando ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        pregunta: nuevaPreguntaTexto,
-        opciones: nuevaPreguntaOpciones.map((texto, i) => ({ texto, es_correcta: i === nuevaPreguntaCorrectaIdx })),
-      }),
+      body: JSON.stringify({ pregunta: nuevaPreguntaTexto, opciones }),
     });
     const data = await res.json();
     if (!res.ok) {
       mostrarToast(data.error, 'error');
       return;
     }
-    setNuevaPreguntaTexto('');
-    setNuevaPreguntaOpciones(['', '', '', '']);
-    setNuevaPreguntaCorrectaIdx(0);
+    limpiarFormularioPreguntaLV();
     cargarPreguntasLV(lecturaId);
+    mostrarToast(editando ? 'Pregunta actualizada' : 'Pregunta agregada');
   }
 
   async function borrarPreguntaLV(lecturaId, preguntaId) {
     await fetch(`/api/admin/lecturas-velocidad/${lecturaId}/preguntas/${preguntaId}`, { method: 'DELETE' });
+    if (editandoPreguntaId === preguntaId) limpiarFormularioPreguntaLV();
     cargarPreguntasLV(lecturaId);
   }
 
@@ -2829,6 +2854,13 @@ export default function AdminPage() {
               <p style={{ fontSize: 12, color: '#888', margin: '0 0 12px 0' }}>
                 {nuevaLVTexto.trim() ? `${nuevaLVTexto.trim().split(/\s+/).length} palabras (se cuentan solas al guardar)` : 'El total de palabras se calcula automáticamente'}
               </p>
+              <textarea
+                placeholder="Fuente / referencia bibliográfica (opcional, ej. Alegría, Margarita. (2011)...). No se cuenta en las palabras del cronómetro."
+                value={nuevaLVFuente}
+                onChange={(e) => setNuevaLVFuente(e.target.value)}
+                rows={2}
+                style={{ width: '100%', padding: 12, borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 13, boxSizing: 'border-box', marginBottom: 12, resize: 'vertical', fontFamily: 'inherit' }}
+              />
               <button
                 type="submit"
                 style={{ height: 44, padding: '0 24px', background: '#0f2a44', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
@@ -2890,7 +2922,10 @@ export default function AdminPage() {
                       <div key={p.id} style={{ background: '#fafbfc', border: '1px solid #eee', borderRadius: 10, padding: 12, marginBottom: 8 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                           <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{idx + 1}. {p.pregunta}</p>
-                          <button onClick={() => borrarPreguntaLV(l.id, p.id)} style={{ fontSize: 11, color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>🗑️</button>
+                          <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+                            <button onClick={() => iniciarEdicionPreguntaLV(p)} style={{ fontSize: 12, background: 'none', border: 'none', cursor: 'pointer' }} title="Editar pregunta">✏️</button>
+                            <button onClick={() => borrarPreguntaLV(l.id, p.id)} style={{ fontSize: 11, color: '#c0392b', background: 'none', border: 'none', cursor: 'pointer' }}>🗑️</button>
+                          </div>
                         </div>
                         <ul style={{ margin: '6px 0 0 0', paddingLeft: 18, fontSize: 12, color: '#555' }}>
                           {p.opciones.map((o) => (
@@ -2902,8 +2937,13 @@ export default function AdminPage() {
                       </div>
                     ))}
 
-                    <div style={{ background: '#fafbfc', border: '1px dashed #ccc', borderRadius: 10, padding: 12, marginTop: 10 }}>
-                      <p style={{ fontSize: 12, fontWeight: 600, margin: '0 0 8px 0' }}>+ Agregar pregunta</p>
+                    <div style={{ background: editandoPreguntaId ? '#eaf2fb' : '#fafbfc', border: editandoPreguntaId ? '1px solid #4a90d9' : '1px dashed #ccc', borderRadius: 10, padding: 12, marginTop: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <p style={{ fontSize: 12, fontWeight: 600, margin: 0 }}>{editandoPreguntaId ? '✏️ Editando pregunta' : '+ Agregar pregunta'}</p>
+                        {editandoPreguntaId && (
+                          <button onClick={limpiarFormularioPreguntaLV} style={{ fontSize: 11, color: '#888', background: 'none', border: 'none', cursor: 'pointer' }}>Cancelar</button>
+                        )}
+                      </div>
                       <input
                         placeholder="Texto de la pregunta"
                         value={nuevaPreguntaTexto}
@@ -2935,7 +2975,7 @@ export default function AdminPage() {
                         onClick={() => agregarPreguntaLV(l.id)}
                         style={{ marginTop: 6, height: 36, padding: '0 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                       >
-                        + Agregar pregunta
+                        {editandoPreguntaId ? 'Guardar cambios' : '+ Agregar pregunta'}
                       </button>
                     </div>
                   </div>
