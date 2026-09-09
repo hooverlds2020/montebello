@@ -548,7 +548,104 @@ export default function AdminPage() {
     }
   }
 
-  // Botón "📷 Subir" reutilizable: input de archivo oculto + botón visible.
+  // Panel de "Bienestar" (TMMS-24): lista quién ya contestó (sin datos
+  // sensibles) y permite desbloquear el resultado de un alumno con la clave
+  // especial de psicología. El resultado nunca se guarda en el estado del
+  // componente más allá de mientras está montado — al cambiar de alumno o
+  // salir de esta pestaña, se pierde y hay que volver a poner la clave.
+  function PanelBienestar() {
+    const [lista, setLista] = useState(null);
+    const [alumnoAbiertoId, setAlumnoAbiertoId] = useState(null);
+    const [claveInput, setClaveInput] = useState('');
+    const [resultado, setResultado] = useState(null);
+    const [errorClave, setErrorClave] = useState('');
+    const [consultando, setConsultando] = useState(false);
+
+    useEffect(() => {
+      fetch('/api/admin/bienestar-lista')
+        .then((r) => r.json())
+        .then(setLista);
+    }, []);
+
+    async function consultar(alumnoId) {
+      setErrorClave('');
+      setConsultando(true);
+      const res = await fetch(`/api/bienestar/resultado?alumnoId=${alumnoId}&clave=${encodeURIComponent(claveInput)}`);
+      const data = await res.json();
+      setConsultando(false);
+      if (!res.ok) {
+        setErrorClave(data.error);
+        return;
+      }
+      setResultado(data);
+    }
+
+    function cerrarDetalle() {
+      setAlumnoAbiertoId(null);
+      setClaveInput('');
+      setResultado(null);
+      setErrorClave('');
+    }
+
+    if (!lista) return <p style={{ color: '#888', fontSize: 13 }}>Cargando…</p>;
+    if (lista.length === 0) return <p style={{ color: '#888', fontSize: 13 }}>Aún ningún alumno ha completado esta actividad.</p>;
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {lista.map((a) => (
+          <div key={a.alumno_id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>{a.nombre}</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: 12, color: '#888' }}>
+                  {a.email} · {new Date(a.creado_en).toLocaleDateString('es-MX')}
+                </p>
+              </div>
+              <button
+                onClick={() => (alumnoAbiertoId === a.alumno_id ? cerrarDetalle() : (setAlumnoAbiertoId(a.alumno_id), setResultado(null), setClaveInput(''), setErrorClave('')))}
+                style={{ fontSize: 12, border: '1px solid #ddd', background: '#fff', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
+              >
+                {alumnoAbiertoId === a.alumno_id ? 'Cerrar' : '🔒 Ver resultado'}
+              </button>
+            </div>
+
+            {alumnoAbiertoId === a.alumno_id && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
+                {!resultado && (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="password"
+                      placeholder="Clave de psicología"
+                      value={claveInput}
+                      onChange={(e) => setClaveInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && consultar(a.alumno_id)}
+                      style={{ flex: 1, height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                    />
+                    <button
+                      onClick={() => consultar(a.alumno_id)}
+                      disabled={consultando || !claveInput}
+                      style={{ height: 38, padding: '0 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      {consultando ? '...' : 'Ver'}
+                    </button>
+                  </div>
+                )}
+                {errorClave && <p style={{ color: '#c0392b', fontSize: 12, marginTop: 6 }}>{errorClave}</p>}
+                {resultado && (
+                  <div style={{ fontSize: 13, color: '#333' }}>
+                    <p style={{ margin: '0 0 6px 0' }}><strong>Percepción:</strong> {resultado.percepcion} — {resultado.nivelPercepcion}</p>
+                    <p style={{ margin: '0 0 6px 0' }}><strong>Comprensión:</strong> {resultado.comprension} — {resultado.nivelComprension}</p>
+                    <p style={{ margin: 0 }}><strong>Regulación:</strong> {resultado.regulacion} — {resultado.nivelRegulacion}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // onSubida recibe la URL final para meterla en el campo correspondiente.
   function BotonSubirImagen({ onSubida }) {
     const inputRef = useRef(null);
@@ -2120,6 +2217,28 @@ export default function AdminPage() {
           >
             📖 Lecturas de velocidad
           </button>
+          <button
+            onClick={() => setSubVistaDiagnostico('vocacional')}
+            style={{
+              padding: '10px 4px', marginBottom: -1, border: 'none', background: 'none', cursor: 'pointer', fontSize: 14,
+              borderBottom: subVistaDiagnostico === 'vocacional' ? '2px solid #4a90d9' : '2px solid transparent',
+              color: subVistaDiagnostico === 'vocacional' ? '#4a90d9' : '#888',
+              fontWeight: subVistaDiagnostico === 'vocacional' ? 600 : 400,
+            }}
+          >
+            🎯 Vocacional
+          </button>
+          <button
+            onClick={() => setSubVistaDiagnostico('bienestar')}
+            style={{
+              padding: '10px 4px', marginBottom: -1, border: 'none', background: 'none', cursor: 'pointer', fontSize: 14,
+              borderBottom: subVistaDiagnostico === 'bienestar' ? '2px solid #4a90d9' : '2px solid transparent',
+              color: subVistaDiagnostico === 'bienestar' ? '#4a90d9' : '#888',
+              fontWeight: subVistaDiagnostico === 'bienestar' ? 600 : 400,
+            }}
+          >
+            💭 Bienestar
+          </button>
         </div>
 
       {subVistaDiagnostico === 'materias' && (
@@ -3177,6 +3296,34 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+        </div>
+        </div>
+      )}
+
+      {subVistaDiagnostico === 'vocacional' && (
+        <div style={{ background: '#f8fafc', minHeight: '100%' }}>
+        <div style={{ maxWidth: 780, margin: '0 auto', padding: '32px 24px' }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 'bold', color: '#0f2a44' }}>Vocacional</h1>
+          <div style={{ background: '#fff', border: '1px dashed #ccc', borderRadius: 16, padding: 32, textAlign: 'center', marginTop: 20 }}>
+            <div style={{ fontSize: 28, marginBottom: 8 }}>🎯</div>
+            <p style={{ color: '#888', fontSize: 14, margin: 0 }}>
+              Aún no hay contenido cargado para el test vocacional. En cuanto se defina el instrumento a usar, se habilitará aquí con la misma estructura que Lecturas de velocidad.
+            </p>
+          </div>
+        </div>
+        </div>
+      )}
+
+      {subVistaDiagnostico === 'bienestar' && (
+        <div style={{ background: '#f8fafc', minHeight: '100%' }}>
+        <div style={{ maxWidth: 780, margin: '0 auto', padding: '32px 24px' }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 'bold', color: '#0f2a44' }}>Bienestar</h1>
+          <p style={{ color: '#888', fontSize: 13, margin: '4px 0 24px 0' }}>
+            El alumno contesta esta actividad, pero el resultado es confidencial: solo se
+            muestra con la clave especial de psicología/orientación. Cada consulta queda
+            registrada.
+          </p>
+          <PanelBienestar />
         </div>
         </div>
       )}

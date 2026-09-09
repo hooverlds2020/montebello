@@ -40,6 +40,7 @@ function formatearFecha(iso) {
 export default function Examen() {
   const [alumno, setAlumno] = useState(null);
   const [lecturaDisponibleAhora, setLecturaDisponibleAhora] = useState(false);
+  const [bienestarDisponibleAhora, setBienestarDisponibleAhora] = useState(false);
   const [umbralAprobacion, setUmbralAprobacion] = useState(60); // valor por defecto mientras carga
   const [intentosPermitidos, setIntentosPermitidos] = useState(0); // 0 = ilimitados
   const [instruccionesExamen, setInstruccionesExamen] = useState(null);
@@ -91,6 +92,10 @@ export default function Examen() {
         fetch('/api/lectura/estado')
           .then((r) => r.json())
           .then((d) => setLecturaDisponibleAhora(!!d.disponible))
+          .catch(() => {});
+        fetch('/api/bienestar/estado')
+          .then((r) => r.json())
+          .then((d) => setBienestarDisponibleAhora(!!d.disponible))
           .catch(() => {});
       })
       .catch(() => router.push('/login'));
@@ -1003,6 +1008,14 @@ export default function Examen() {
                   style={{ display: 'inline-block', padding: '10px 22px', background: '#4a90d9', color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
                 >
                   📖 Continuar con la lectura
+                </a>
+              )}
+              {bienestarDisponibleAhora && (
+                <a
+                  href="/bienestar"
+                  style={{ display: 'inline-block', padding: '10px 22px', background: '#4a90d9', color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+                >
+                  💭 Continuar con Bienestar
                 </a>
               )}
             </div>
