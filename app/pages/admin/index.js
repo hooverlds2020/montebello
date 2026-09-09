@@ -178,6 +178,7 @@ export default function AdminPage() {
   // Vista general del panel: 'asignaturas' (banco de reactivos) o 'alumnos' (resultados)
   const [vistaGeneral, setVistaGeneral] = useState('asignaturas');
   const [subVistaDiagnostico, setSubVistaDiagnostico] = useState('materias'); // 'materias' | 'lecturas'
+  const [subVistaUsuarios, setSubVistaUsuarios] = useState('admin'); // 'admin' | 'psicologia'
   const [resultadosResumen, setResultadosResumen] = useState(null);
   const [busquedaAlumno, setBusquedaAlumno] = useState('');
   const [filtroFechaAlumno, setFiltroFechaAlumno] = useState('');
@@ -4328,6 +4329,37 @@ export default function AdminPage() {
       {vistaGeneral === 'usuarios' && (
         <div style={{ background: '#f8fafc', minHeight: '100%' }}>
         <div style={{ maxWidth: 680, margin: '0 auto', padding: '32px 24px' }}>
+
+          {/* Sub-pestañas: "Panel de administración" y "Psicología" son dos
+              sistemas de acceso totalmente independientes (logins, tablas y
+              sesiones distintos) — separados visualmente para no confundirlos. */}
+          <div style={{ display: 'flex', gap: 16, borderBottom: '1px solid #eee', marginBottom: 24 }}>
+            <button
+              onClick={() => setSubVistaUsuarios('admin')}
+              style={{
+                padding: '10px 4px', marginBottom: -1, border: 'none', background: 'none', cursor: 'pointer', fontSize: 14,
+                borderBottom: subVistaUsuarios === 'admin' ? '2px solid #4a90d9' : '2px solid transparent',
+                color: subVistaUsuarios === 'admin' ? '#4a90d9' : '#888',
+                fontWeight: subVistaUsuarios === 'admin' ? 600 : 400,
+              }}
+            >
+              👤 Panel de administración
+            </button>
+            <button
+              onClick={() => setSubVistaUsuarios('psicologia')}
+              style={{
+                padding: '10px 4px', marginBottom: -1, border: 'none', background: 'none', cursor: 'pointer', fontSize: 14,
+                borderBottom: subVistaUsuarios === 'psicologia' ? '2px solid #4a90d9' : '2px solid transparent',
+                color: subVistaUsuarios === 'psicologia' ? '#4a90d9' : '#888',
+                fontWeight: subVistaUsuarios === 'psicologia' ? 600 : 400,
+              }}
+            >
+              🧠 Psicología
+            </button>
+          </div>
+
+          {subVistaUsuarios === 'admin' && (
+          <>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 'bold', color: '#0f2a44' }}>Usuarios del panel de administración</h1>
           <p style={{ color: '#888', fontSize: 13, margin: '4px 0 24px 0' }}>
             Controla quién puede entrar al panel de administración con su propio correo y contraseña.
@@ -4427,8 +4459,11 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+          </>
+          )}
 
-          <div style={{ borderTop: '1px solid #e5e7eb', margin: '40px 0 24px 0' }} />
+          {subVistaUsuarios === 'psicologia' && (
+          <>
           <h1 style={{ margin: 0, fontSize: 20, fontWeight: 'bold', color: '#0f2a44' }}>🧠 Usuarios de Psicología</h1>
           <p style={{ color: '#888', fontSize: 13, margin: '4px 0 24px 0' }}>
             Acceso separado, solo para el módulo de captura de la Escala de Hamilton
@@ -4495,6 +4530,8 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+          </>
+          )}
         </div>
         </div>
       )}
