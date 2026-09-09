@@ -91,7 +91,14 @@ export default function Examen() {
         // se terminó en una sesión ANTERIOR, no en esta misma).
         fetch('/api/lectura/estado')
           .then((r) => r.json())
-          .then((d) => setLecturaDisponibleAhora(!!d.disponible))
+          .then((d) => {
+            // "disponible" solo dice que la sección existe para este alumno,
+            // no que aún le falte hacerla — si ya tiene un intento finalizado,
+            // el botón "Continuar" ya no debe mostrarse (si no, se queda
+            // apareciendo para siempre y nunca deja ver que sigue Bienestar).
+            const yaLaHizo = d.intento && d.intento.estado === 'finalizado';
+            setLecturaDisponibleAhora(!!d.disponible && !yaLaHizo);
+          })
           .catch(() => {});
         fetch('/api/bienestar/estado')
           .then((r) => r.json())
