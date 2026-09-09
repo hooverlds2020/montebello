@@ -39,8 +39,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST' && intento.estado !== 'finalizado') {
     await pool.query(
-      `UPDATE lecturas_velocidad_intentos SET estado = 'finalizado', finalizado_en = NOW() WHERE id = $1`,
-      [intentoId]
+      `UPDATE lecturas_velocidad_intentos SET estado = 'finalizado', finalizado_en = NOW(), sesion_finalizacion = $2 WHERE id = $1`,
+      [intentoId, sesion.sesionId]
     );
     intento.estado = 'finalizado';
   }
