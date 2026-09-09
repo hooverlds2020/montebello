@@ -200,6 +200,47 @@ export default function AdminPage() {
   const [nuevoAdminPassword, setNuevoAdminPassword] = useState('');
   const [mensajeUsuarios, setMensajeUsuarios] = useState('');
 
+  // Usuarios del módulo de Psicología (login separado, para capturar Hamilton)
+  const [usuariosPsicologia, setUsuariosPsicologia] = useState(null);
+  const [nuevoPsicNombre, setNuevoPsicNombre] = useState('');
+  const [nuevoPsicEmail, setNuevoPsicEmail] = useState('');
+  const [nuevoPsicPassword, setNuevoPsicPassword] = useState('');
+  const [mensajePsicologia, setMensajePsicologia] = useState('');
+
+  async function cargarUsuariosPsicologia() {
+    const res = await fetch('/api/admin/usuarios-psicologia');
+    setUsuariosPsicologia(await res.json());
+  }
+
+  async function crearUsuarioPsicologia(e) {
+    e.preventDefault();
+    setMensajePsicologia('');
+    const res = await fetch('/api/admin/usuarios-psicologia', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre: nuevoPsicNombre, email: nuevoPsicEmail, password: nuevoPsicPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setMensajePsicologia(data.error);
+      return;
+    }
+    setNuevoPsicNombre('');
+    setNuevoPsicEmail('');
+    setNuevoPsicPassword('');
+    cargarUsuariosPsicologia();
+    mostrarToast('Usuario de psicología agregado', 'exito');
+  }
+
+  function borrarUsuarioPsicologia(u) {
+    pedirConfirmacion(`¿Quitar el acceso de "${u.nombre}" al módulo de psicología?`, async () => {
+      await fetch(`/api/admin/usuarios-psicologia/${u.id}`, { method: 'DELETE' });
+      cargarUsuariosPsicologia();
+      mostrarToast('Acceso eliminado', 'exito');
+    });
+  }
+
+
   async function cargarUsuariosAdmin() {
     const res = await fetch('/api/admin/usuarios');
     setUsuariosAdmin(await res.json());
@@ -1195,6 +1236,9 @@ export default function AdminPage() {
     }
     if (vistaGeneral === 'usuarios' && !usuariosAdmin) {
       cargarUsuariosAdmin();
+    }
+    if (vistaGeneral === 'usuarios' && !usuariosPsicologia) {
+      cargarUsuariosPsicologia();
     }
     if (vistaGeneral === 'asignaturas' && subVistaDiagnostico === 'lecturas' && !lecturasVelocidad) {
       cargarLecturasVelocidad();
@@ -4377,6 +4421,74 @@ export default function AdminPage() {
                     fontSize: 12, color: '#c0392b', background: '#fdeceb', border: 'none', borderRadius: 999,
                     padding: '7px 14px', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5,
                   }}
+                >
+                  🗑️ Quitar acceso
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ borderTop: '1px solid #e5e7eb', margin: '40px 0 24px 0' }} />
+          <h1 style={{ margin: 0, fontSize: 20, fontWeight: 'bold', color: '#0f2a44' }}>🧠 Usuarios de Psicología</h1>
+          <p style={{ color: '#888', fontSize: 13, margin: '4px 0 24px 0' }}>
+            Acceso separado, solo para el módulo de captura de la Escala de Hamilton
+            (<code>/psicologia</code>). No sirve para entrar a este panel de administración.
+          </p>
+
+          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 16, padding: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', marginBottom: 32 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 16px 0' }}>+ Agregar usuario de psicología</h3>
+            <form onSubmit={crearUsuarioPsicologia}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+                <input
+                  placeholder="Nombre completo"
+                  value={nuevoPsicNombre}
+                  onChange={(e) => setNuevoPsicNombre(e.target.value)}
+                  required
+                  style={{ height: 44, padding: '0 16px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box' }}
+                />
+                <input
+                  type="email"
+                  placeholder="Correo electrónico"
+                  value={nuevoPsicEmail}
+                  onChange={(e) => setNuevoPsicEmail(e.target.value)}
+                  required
+                  style={{ height: 44, padding: '0 16px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box' }}
+                />
+                <input
+                  type="password"
+                  placeholder="Contraseña (mínimo 6 caracteres)"
+                  value={nuevoPsicPassword}
+                  onChange={(e) => setNuevoPsicPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  style={{ height: 44, padding: '0 16px', borderRadius: 12, border: '1px solid #e5e7eb', background: '#fafbfc', fontSize: 14, boxSizing: 'border-box' }}
+                />
+              </div>
+              <button
+                type="submit"
+                style={{ height: 44, padding: '0 24px', background: '#0f2a44', color: '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+              >
+                + Agregar usuario
+              </button>
+            </form>
+            {mensajePsicologia && <p style={{ color: '#c0392b', fontSize: 13, marginTop: 12, marginBottom: 0 }}>{mensajePsicologia}</p>}
+          </div>
+
+          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 12px 0' }}>Usuarios registrados</h3>
+          {!usuariosPsicologia && <p style={{ color: '#888', fontSize: 13 }}>Cargando…</p>}
+          {usuariosPsicologia && usuariosPsicologia.length === 0 && (
+            <p style={{ color: '#888', fontSize: 13 }}>Aún no hay nadie con acceso al módulo de psicología.</p>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {usuariosPsicologia && usuariosPsicologia.map((u) => (
+              <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: '14px 16px' }}>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>{u.nombre}</p>
+                  <p style={{ margin: '2px 0 0 0', fontSize: 12, color: '#888' }}>{u.email}</p>
+                </div>
+                <button
+                  onClick={() => borrarUsuarioPsicologia(u)}
+                  style={{ fontSize: 12, color: '#c0392b', background: '#fdeceb', border: 'none', borderRadius: 999, padding: '7px 14px', cursor: 'pointer', flexShrink: 0 }}
                 >
                   🗑️ Quitar acceso
                 </button>
