@@ -1,5 +1,5 @@
-const { pool } = require('../../../../lib/db');
-const { estaAutenticado } = require('../../../../lib/auth');
+const { pool } = require('../../../lib/db');
+const { estaAutenticado } = require('../../../lib/auth');
 
 // Lista básica (nombre, fecha) — NO incluye puntajes ni niveles. Cualquier
 // admin del panel puede ver QUIÉN ya contestó, pero el resultado en sí
