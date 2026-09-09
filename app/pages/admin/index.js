@@ -8,6 +8,36 @@ import { renderizarExponentes } from '../../lib/formato';
 import parse from 'html-react-parser';
 const { estaAutenticado } = require('../../lib/auth');
 
+// Las 24 afirmaciones del TMMS-24, solo para mostrarlas de referencia en el
+// panel (no son editables — es un instrumento estándar validado).
+const TMMS_AFIRMACIONES = [
+  'Presto mucha atención a los sentimientos.',
+  'Normalmente me preocupo mucho por lo que siento.',
+  'Normalmente dedico tiempo a pensar en mis emociones.',
+  'Pienso que merece la pena prestar atención a mis emociones y estado de ánimo.',
+  'Dejo que mis sentimientos afecten a mis pensamientos.',
+  'Pienso en mi estado de ánimo constantemente.',
+  'A menudo pienso en mis sentimientos.',
+  'Presto mucha atención a cómo me siento.',
+  'Tengo claros mis sentimientos.',
+  'Frecuentemente puedo definir mis sentimientos.',
+  'Casi siempre sé cómo me siento.',
+  'Normalmente conozco mis sentimientos sobre las personas.',
+  'A menudo me doy cuenta de mis sentimientos en diferentes situaciones.',
+  'Siempre puedo decir cómo me siento.',
+  'A veces puedo decir cuáles son mis emociones.',
+  'Puedo llegar a comprender mis sentimientos.',
+  'Aunque a veces me siento triste, suelo tener una visión optimista.',
+  'Aunque me sienta mal, procuro pensar en cosas agradables.',
+  'Cuando estoy triste, pienso en todos los placeres de la vida.',
+  'Intento tener pensamientos positivos aunque me sienta mal.',
+  'Si doy demasiadas vueltas a las cosas, complicándolas, trato de calmarme.',
+  'Me preocupo por tener un buen estado de ánimo.',
+  'Tengo mucha energía cuando me siento feliz.',
+  'Cuando estoy enfadado intento cambiar mi estado de ánimo.',
+];
+
+
 // KaTeX (~250KB) se carga DIFERIDO, no de entrada con la página — solo se
 // pide de verdad la primera vez que hace falta (al abrir el editor de una
 // pregunta, o al mostrar una que ya tiene fórmula). Antes se cargaba
@@ -560,6 +590,28 @@ export default function AdminPage() {
     const [resultado, setResultado] = useState(null);
     const [errorClave, setErrorClave] = useState('');
     const [consultando, setConsultando] = useState(false);
+    const [mostrandoAfirmaciones, setMostrandoAfirmaciones] = useState(false);
+    const [mostrandoCambioClave, setMostrandoCambioClave] = useState(false);
+    const [claveActualInput, setClaveActualInput] = useState('');
+    const [claveNuevaInput, setClaveNuevaInput] = useState('');
+    const [mensajeCambioClave, setMensajeCambioClave] = useState(null); // { texto, tipo }
+
+    async function cambiarClavePsicologia() {
+      setMensajeCambioClave(null);
+      const res = await fetch('/api/admin/cambiar-clave-psicologia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claveActual: claveActualInput, claveNueva: claveNuevaInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMensajeCambioClave({ texto: data.error, tipo: 'error' });
+        return;
+      }
+      setClaveActualInput('');
+      setClaveNuevaInput('');
+      setMensajeCambioClave({ texto: 'Clave actualizada correctamente.', tipo: 'exito' });
+    }
 
     useEffect(() => {
       fetch('/api/admin/bienestar-lista')
@@ -587,10 +639,80 @@ export default function AdminPage() {
       setErrorClave('');
     }
 
-    if (!lista) return <p style={{ color: '#888', fontSize: 13 }}>Cargando…</p>;
-    if (lista.length === 0) return <p style={{ color: '#888', fontSize: 13 }}>Aún ningún alumno ha completado esta actividad.</p>;
+    const bloquesConfiguracion = (
+      <>
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, marginBottom: 16 }}>
+          <button
+            onClick={() => setMostrandoAfirmaciones(!mostrandoAfirmaciones)}
+            style={{ width: '100%', textAlign: 'left', padding: 14, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, fontWeight: 600 }}
+          >
+            📄 Ver las 24 afirmaciones del instrumento (solo lectura)
+            <span>{mostrandoAfirmaciones ? '▲' : '▼'}</span>
+          </button>
+          {mostrandoAfirmaciones && (
+            <div style={{ padding: '0 14px 14px 14px' }}>
+              <p style={{ fontSize: 12, color: '#888', margin: '0 0 10px 0' }}>
+                Es un instrumento estándar (TMMS-24) — este texto es de referencia, no editable.
+              </p>
+              <ol style={{ fontSize: 13, color: '#333', paddingLeft: 20, margin: 0 }}>
+                {TMMS_AFIRMACIONES.map((texto, i) => (
+                  <li key={i} style={{ marginBottom: 6 }}>{texto}</li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </div>
+
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, marginBottom: 24 }}>
+          <button
+            onClick={() => setMostrandoCambioClave(!mostrandoCambioClave)}
+            style={{ width: '100%', textAlign: 'left', padding: 14, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, fontWeight: 600 }}
+          >
+            🔑 Cambiar clave de psicología
+            <span>{mostrandoCambioClave ? '▲' : '▼'}</span>
+          </button>
+          {mostrandoCambioClave && (
+            <div style={{ padding: '0 14px 14px 14px' }}>
+              <p style={{ fontSize: 12, color: '#888', margin: '0 0 10px 0' }}>
+                Para cambiarla necesitas conocer la clave actual (como cambiar tu propia contraseña). Si nunca se ha configurado, déjala en blanco.
+              </p>
+              <input
+                type="password"
+                placeholder="Clave actual (déjalo vacío si es la primera vez)"
+                value={claveActualInput}
+                onChange={(e) => setClaveActualInput(e.target.value)}
+                style={{ width: '100%', height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 8 }}
+              />
+              <input
+                type="password"
+                placeholder="Clave nueva (mínimo 6 caracteres)"
+                value={claveNuevaInput}
+                onChange={(e) => setClaveNuevaInput(e.target.value)}
+                style={{ width: '100%', height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 8 }}
+              />
+              <button
+                onClick={cambiarClavePsicologia}
+                style={{ height: 36, padding: '0 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Guardar nueva clave
+              </button>
+              {mensajeCambioClave && (
+                <p style={{ fontSize: 12, marginTop: 8, color: mensajeCambioClave.tipo === 'error' ? '#c0392b' : '#2e7d32' }}>
+                  {mensajeCambioClave.texto}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </>
+    );
+
+    if (!lista) return <>{bloquesConfiguracion}<p style={{ color: '#888', fontSize: 13 }}>Cargando…</p></>;
+    if (lista.length === 0) return <>{bloquesConfiguracion}<p style={{ color: '#888', fontSize: 13 }}>Aún ningún alumno ha completado esta actividad.</p></>;
 
     return (
+      <>
+      {bloquesConfiguracion}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {lista.map((a) => (
           <div key={a.alumno_id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14 }}>
@@ -643,6 +765,7 @@ export default function AdminPage() {
           </div>
         ))}
       </div>
+      </>
     );
   }
 

@@ -13,10 +13,15 @@ export default async function handler(req, res) {
 
   const { alumnoId, clave } = req.query;
 
-  if (!process.env.CLAVE_PSICOLOGIA) {
-    return res.status(500).json({ error: 'CLAVE_PSICOLOGIA no está configurada en el servidor. Contacta al desarrollador.' });
+  // La clave vive en la BD (editable desde el panel); si nunca se configuró
+  // ahí, se usa la de la variable de entorno como respaldo.
+  const { rows: configRows } = await pool.query('SELECT clave_psicologia FROM configuracion ORDER BY id LIMIT 1');
+  const claveEfectiva = configRows[0]?.clave_psicologia || process.env.CLAVE_PSICOLOGIA;
+
+  if (!claveEfectiva) {
+    return res.status(500).json({ error: 'La clave de psicología no está configurada todavía. Configúrala desde el panel.' });
   }
-  if (clave !== process.env.CLAVE_PSICOLOGIA) {
+  if (clave !== claveEfectiva) {
     return res.status(403).json({ error: 'Clave incorrecta' });
   }
 
