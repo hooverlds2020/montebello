@@ -591,10 +591,13 @@ export default function AdminPage() {
     const [errorClave, setErrorClave] = useState('');
     const [consultando, setConsultando] = useState(false);
     const [mostrandoAfirmaciones, setMostrandoAfirmaciones] = useState(false);
-    const [mostrandoCambioClave, setMostrandoCambioClave] = useState(false);
+    const [menuConfigAbierto, setMenuConfigAbierto] = useState(false);
     const [claveActualInput, setClaveActualInput] = useState('');
     const [claveNuevaInput, setClaveNuevaInput] = useState('');
     const [mensajeCambioClave, setMensajeCambioClave] = useState(null); // { texto, tipo }
+    const [busqueda, setBusqueda] = useState('');
+    const [pagina, setPagina] = useState(1);
+    const POR_PAGINA = 20;
 
     async function cambiarClavePsicologia() {
       setMensajeCambioClave(null);
@@ -639,132 +642,174 @@ export default function AdminPage() {
       setErrorClave('');
     }
 
-    const bloquesConfiguracion = (
-      <>
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, marginBottom: 16 }}>
-          <button
-            onClick={() => setMostrandoAfirmaciones(!mostrandoAfirmaciones)}
-            style={{ width: '100%', textAlign: 'left', padding: 14, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, fontWeight: 600 }}
-          >
-            📄 Ver las 24 afirmaciones del instrumento (solo lectura)
-            <span>{mostrandoAfirmaciones ? '▲' : '▼'}</span>
-          </button>
-          {mostrandoAfirmaciones && (
-            <div style={{ padding: '0 14px 14px 14px' }}>
-              <p style={{ fontSize: 12, color: '#888', margin: '0 0 10px 0' }}>
-                Es un instrumento estándar (TMMS-24) — este texto es de referencia, no editable.
-              </p>
-              <ol style={{ fontSize: 13, color: '#333', paddingLeft: 20, margin: 0 }}>
-                {TMMS_AFIRMACIONES.map((texto, i) => (
-                  <li key={i} style={{ marginBottom: 6 }}>{texto}</li>
-                ))}
-              </ol>
-            </div>
-          )}
-        </div>
+    if (!lista) return <p style={{ color: '#888', fontSize: 13 }}>Cargando…</p>;
 
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, marginBottom: 24 }}>
-          <button
-            onClick={() => setMostrandoCambioClave(!mostrandoCambioClave)}
-            style={{ width: '100%', textAlign: 'left', padding: 14, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, fontWeight: 600 }}
-          >
-            🔑 Cambiar clave de psicología
-            <span>{mostrandoCambioClave ? '▲' : '▼'}</span>
-          </button>
-          {mostrandoCambioClave && (
-            <div style={{ padding: '0 14px 14px 14px' }}>
-              <p style={{ fontSize: 12, color: '#888', margin: '0 0 10px 0' }}>
-                Para cambiarla necesitas conocer la clave actual (como cambiar tu propia contraseña). Si nunca se ha configurado, déjala en blanco.
-              </p>
-              <input
-                type="password"
-                placeholder="Clave actual (déjalo vacío si es la primera vez)"
-                value={claveActualInput}
-                onChange={(e) => setClaveActualInput(e.target.value)}
-                style={{ width: '100%', height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 8 }}
-              />
-              <input
-                type="password"
-                placeholder="Clave nueva (mínimo 6 caracteres)"
-                value={claveNuevaInput}
-                onChange={(e) => setClaveNuevaInput(e.target.value)}
-                style={{ width: '100%', height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box', marginBottom: 8 }}
-              />
-              <button
-                onClick={cambiarClavePsicologia}
-                style={{ height: 36, padding: '0 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-              >
-                Guardar nueva clave
-              </button>
-              {mensajeCambioClave && (
-                <p style={{ fontSize: 12, marginTop: 8, color: mensajeCambioClave.tipo === 'error' ? '#c0392b' : '#2e7d32' }}>
-                  {mensajeCambioClave.texto}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      </>
-    );
-
-    if (!lista) return <>{bloquesConfiguracion}<p style={{ color: '#888', fontSize: 13 }}>Cargando…</p></>;
-    if (lista.length === 0) return <>{bloquesConfiguracion}<p style={{ color: '#888', fontSize: 13 }}>Aún ningún alumno ha completado esta actividad.</p></>;
+    const listaFiltrada = lista.filter((a) => {
+      const q = busqueda.trim().toLowerCase();
+      if (!q) return true;
+      return a.nombre.toLowerCase().includes(q) || a.email.toLowerCase().includes(q);
+    });
+    const totalPaginas = Math.max(1, Math.ceil(listaFiltrada.length / POR_PAGINA));
+    const paginaSegura = Math.min(pagina, totalPaginas);
+    const listaPagina = listaFiltrada.slice((paginaSegura - 1) * POR_PAGINA, paginaSegura * POR_PAGINA);
 
     return (
       <>
-      {bloquesConfiguracion}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {lista.map((a) => (
-          <div key={a.alumno_id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>{a.nombre}</p>
-                <p style={{ margin: '2px 0 0 0', fontSize: 12, color: '#888' }}>
-                  {a.email} · {new Date(a.creado_en).toLocaleDateString('es-MX')}
-                </p>
-              </div>
-              <button
-                onClick={() => (alumnoAbiertoId === a.alumno_id ? cerrarDetalle() : (setAlumnoAbiertoId(a.alumno_id), setResultado(null), setClaveInput(''), setErrorClave('')))}
-                style={{ fontSize: 12, border: '1px solid #ddd', background: '#fff', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
-              >
-                {alumnoAbiertoId === a.alumno_id ? 'Cerrar' : '🔒 Ver resultado'}
-              </button>
-            </div>
+        {/* Encabezado: buscador + engrane con configuración (afirmaciones,
+            cambio de clave) — todo lo administrativo queda escondido detrás
+            del engrane para que la pantalla no se sienta saturada. */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, position: 'relative' }}>
+          <input
+            placeholder="Buscar alumno por nombre o correo…"
+            value={busqueda}
+            onChange={(e) => { setBusqueda(e.target.value); setPagina(1); }}
+            style={{ flex: 1, height: 40, padding: '0 14px', borderRadius: 10, border: '1px solid #e5e7eb', fontSize: 14, boxSizing: 'border-box' }}
+          />
+          <button
+            onClick={() => setMenuConfigAbierto(!menuConfigAbierto)}
+            title="Configuración de Bienestar"
+            style={{ width: 40, height: 40, flexShrink: 0, border: '1px solid #e5e7eb', background: '#fff', borderRadius: 10, cursor: 'pointer', fontSize: 16 }}
+          >
+            ⚙️
+          </button>
 
-            {alumnoAbiertoId === a.alumno_id && (
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
-                {!resultado && (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="password"
-                      placeholder="Clave de psicología"
-                      value={claveInput}
-                      onChange={(e) => setClaveInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && consultar(a.alumno_id)}
-                      style={{ flex: 1, height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
-                    />
-                    <button
-                      onClick={() => consultar(a.alumno_id)}
-                      disabled={consultando || !claveInput}
-                      style={{ height: 38, padding: '0 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      {consultando ? '...' : 'Ver'}
-                    </button>
-                  </div>
-                )}
-                {errorClave && <p style={{ color: '#c0392b', fontSize: 12, marginTop: 6 }}>{errorClave}</p>}
-                {resultado && (
-                  <div style={{ fontSize: 13, color: '#333' }}>
-                    <p style={{ margin: '0 0 6px 0' }}><strong>Percepción:</strong> {resultado.percepcion} — {resultado.nivelPercepcion}</p>
-                    <p style={{ margin: '0 0 6px 0' }}><strong>Comprensión:</strong> {resultado.comprension} — {resultado.nivelComprension}</p>
-                    <p style={{ margin: 0 }}><strong>Regulación:</strong> {resultado.regulacion} — {resultado.nivelRegulacion}</p>
-                  </div>
+          {menuConfigAbierto && (
+            <div style={{ position: 'absolute', top: 46, right: 0, width: 340, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 4px 16px rgba(0,0,0,0.08)', zIndex: 10, padding: 14 }}>
+              <button
+                onClick={() => setMostrandoAfirmaciones(!mostrandoAfirmaciones)}
+                style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, fontWeight: 600, marginBottom: 8 }}
+              >
+                📄 Ver las 24 afirmaciones
+                <span>{mostrandoAfirmaciones ? '▲' : '▼'}</span>
+              </button>
+              {mostrandoAfirmaciones && (
+                <div style={{ maxHeight: 240, overflowY: 'auto', marginBottom: 12, paddingRight: 4 }}>
+                  <p style={{ fontSize: 11, color: '#888', margin: '0 0 8px 0' }}>
+                    Instrumento estándar (TMMS-24) — de referencia, no editable.
+                  </p>
+                  <ol style={{ fontSize: 12, color: '#333', paddingLeft: 18, margin: 0 }}>
+                    {TMMS_AFIRMACIONES.map((texto, i) => (
+                      <li key={i} style={{ marginBottom: 5 }}>{texto}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 10 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 8px 0' }}>🔑 Cambiar clave de psicología</p>
+                <p style={{ fontSize: 11, color: '#888', margin: '0 0 8px 0' }}>
+                  Necesitas la clave actual para cambiarla. Déjala vacía si es la primera vez.
+                </p>
+                <input
+                  type="password"
+                  placeholder="Clave actual"
+                  value={claveActualInput}
+                  onChange={(e) => setClaveActualInput(e.target.value)}
+                  style={{ width: '100%', height: 34, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, boxSizing: 'border-box', marginBottom: 6 }}
+                />
+                <input
+                  type="password"
+                  placeholder="Clave nueva (mínimo 6 caracteres)"
+                  value={claveNuevaInput}
+                  onChange={(e) => setClaveNuevaInput(e.target.value)}
+                  style={{ width: '100%', height: 34, padding: '0 10px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12, boxSizing: 'border-box', marginBottom: 8 }}
+                />
+                <button
+                  onClick={cambiarClavePsicologia}
+                  style={{ height: 32, padding: '0 14px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Guardar nueva clave
+                </button>
+                {mensajeCambioClave && (
+                  <p style={{ fontSize: 11, marginTop: 6, color: mensajeCambioClave.tipo === 'error' ? '#c0392b' : '#2e7d32' }}>
+                    {mensajeCambioClave.texto}
+                  </p>
                 )}
               </div>
-            )}
+            </div>
+          )}
+        </div>
+
+        {listaFiltrada.length === 0 && (
+          <p style={{ color: '#888', fontSize: 13 }}>
+            {lista.length === 0 ? 'Aún ningún alumno ha completado esta actividad.' : 'Ningún alumno coincide con la búsqueda.'}
+          </p>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {listaPagina.map((a) => (
+            <div key={a.alumno_id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>{a.nombre}</p>
+                  <p style={{ margin: '2px 0 0 0', fontSize: 12, color: '#888' }}>
+                    {a.email} · {new Date(a.creado_en).toLocaleDateString('es-MX')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => (alumnoAbiertoId === a.alumno_id ? cerrarDetalle() : (setAlumnoAbiertoId(a.alumno_id), setResultado(null), setClaveInput(''), setErrorClave('')))}
+                  style={{ fontSize: 12, border: '1px solid #ddd', background: '#fff', borderRadius: 999, padding: '7px 14px', cursor: 'pointer' }}
+                >
+                  {alumnoAbiertoId === a.alumno_id ? 'Cerrar' : '🔒 Ver resultado'}
+                </button>
+              </div>
+
+              {alumnoAbiertoId === a.alumno_id && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
+                  {!resultado && (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="password"
+                        placeholder="Clave de psicología"
+                        value={claveInput}
+                        onChange={(e) => setClaveInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && consultar(a.alumno_id)}
+                        style={{ flex: 1, height: 38, padding: '0 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, boxSizing: 'border-box' }}
+                      />
+                      <button
+                        onClick={() => consultar(a.alumno_id)}
+                        disabled={consultando || !claveInput}
+                        style={{ height: 38, padding: '0 16px', background: '#4a90d9', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        {consultando ? '...' : 'Ver'}
+                      </button>
+                    </div>
+                  )}
+                  {errorClave && <p style={{ color: '#c0392b', fontSize: 12, marginTop: 6 }}>{errorClave}</p>}
+                  {resultado && (
+                    <div style={{ fontSize: 13, color: '#333' }}>
+                      <p style={{ margin: '0 0 6px 0' }}><strong>Percepción:</strong> {resultado.percepcion} — {resultado.nivelPercepcion}</p>
+                      <p style={{ margin: '0 0 6px 0' }}><strong>Comprensión:</strong> {resultado.comprension} — {resultado.nivelComprension}</p>
+                      <p style={{ margin: 0 }}><strong>Regulación:</strong> {resultado.regulacion} — {resultado.nivelRegulacion}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {totalPaginas > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 20 }}>
+            <button
+              onClick={() => setPagina((p) => Math.max(1, p - 1))}
+              disabled={paginaSegura === 1}
+              style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', cursor: paginaSegura === 1 ? 'default' : 'pointer', fontSize: 13, color: paginaSegura === 1 ? '#ccc' : '#333' }}
+            >
+              ← Anterior
+            </button>
+            <span style={{ fontSize: 13, color: '#888', alignSelf: 'center' }}>
+              Página {paginaSegura} de {totalPaginas}
+            </span>
+            <button
+              onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+              disabled={paginaSegura === totalPaginas}
+              style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', cursor: paginaSegura === totalPaginas ? 'default' : 'pointer', fontSize: 13, color: paginaSegura === totalPaginas ? '#ccc' : '#333' }}
+            >
+              Siguiente →
+            </button>
           </div>
-        ))}
-      </div>
+        )}
       </>
     );
   }
